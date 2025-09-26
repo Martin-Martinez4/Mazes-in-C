@@ -1,0 +1,10 @@
+^C:\USERS\INSTRUCTOR\DESKTOP\PERSONAL\BOOTDEV\PROJECTS\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Instructor/Desktop/Personal/bootDev/projects -BC:/Users/Instructor/Desktop/Personal/bootDev/projects/build --check-stamp-file C:/Users/Instructor/Desktop/Personal/bootDev/projects/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -1,0 +1,41 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeCInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeCommonLanguageInclude.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeGenericSystem.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeInitializeConfigs.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeLanguageInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeRCInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeSystemSpecificInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeSystemSpecificInitialize.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Compiler/CMakeCommonCompilerMacros.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Compiler/MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Compiler/MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/FeatureSummary.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Internal/CMakeCLinkerInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Internal/CMakeCommonLinkerInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Linker/Windows-MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Linker/Windows-MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Windows-Initialize.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Windows-MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Windows-MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Windows.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/WindowsPaths.cmake
+C:/SDL3/cmake/SDL3Config.cmake
+C:/SDL3/cmake/SDL3ConfigVersion.cmake
+C:/SDL3/x86_64-w64-mingw32/lib/cmake/SDL3/SDL3Config.cmake
+C:/SDL3/x86_64-w64-mingw32/lib/cmake/SDL3/SDL3ConfigVersion.cmake
+C:/SDL3/x86_64-w64-mingw32/lib/cmake/SDL3/SDL3headersTargets.cmake
+C:/SDL3/x86_64-w64-mingw32/lib/cmake/SDL3/SDL3sharedTargets-release.cmake
+C:/SDL3/x86_64-w64-mingw32/lib/cmake/SDL3/SDL3sharedTargets.cmake
+C:/SDL3/x86_64-w64-mingw32/lib/cmake/SDL3/SDL3testTargets-release.cmake
+C:/SDL3/x86_64-w64-mingw32/lib/cmake/SDL3/SDL3testTargets.cmake
+C:/SDL3_image/cmake/SDL3_imageConfig.cmake
+C:/SDL3_image/cmake/SDL3_imageConfigVersion.cmake
+C:/SDL3_image/x86_64-w64-mingw32/lib/cmake/SDL3_image/SDL3_image-shared-targets-release.cmake
+C:/SDL3_image/x86_64-w64-mingw32/lib/cmake/SDL3_image/SDL3_image-shared-targets.cmake
+C:/SDL3_image/x86_64-w64-mingw32/lib/cmake/SDL3_image/SDL3_imageConfig.cmake
+C:/SDL3_image/x86_64-w64-mingw32/lib/cmake/SDL3_image/SDL3_imageConfigVersion.cmake
+C:/Users/Instructor/Desktop/Personal/bootDev/projects/CMakeLists.txt
+C:/Users/Instructor/Desktop/Personal/bootDev/projects/build/CMakeFiles/3.31.3/CMakeCCompiler.cmake
+C:/Users/Instructor/Desktop/Personal/bootDev/projects/build/CMakeFiles/3.31.3/CMakeRCCompiler.cmake
+C:/Users/Instructor/Desktop/Personal/bootDev/projects/build/CMakeFiles/3.31.3/CMakeSystem.cmake
