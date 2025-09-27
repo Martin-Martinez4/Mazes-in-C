@@ -1,4 +1,5 @@
 # Windows: Need to copy SDL3.dll to ./build/Debug in order for the exe to run
+# Shoutout to https://www.freepascal-meets-sdl.net/installation-of-sdl3-linux-and-windows/
 
 cmake_minimum_required(VERSION 3.10)
 project(3DRenderer LANGUAGES C)
@@ -20,10 +21,10 @@ else()
     set(SDL3_image_DIR "C:/SDL3_image/cmake")
   endif()
   # 1. Look for a SDL3 package, 2. look for the SDL3 component and 3. fail if none can be found
-  find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3)
+  find_package(SDL3 CONFIG REQUIRED COMPONENTS SDL3)
     
   # 1. Look for a SDL3 package, 2. Look for the SDL3maincomponent and 3. DO NOT fail when SDL3main is not available
-  find_package(SDL3 CONFIG COMPONENTS SDL3main)
+  find_package(SDL3)
 
   
 endif()
