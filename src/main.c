@@ -7,6 +7,10 @@
 const int WINDOW_WIDTH = 900;
 const int WINDOW_HEIGHT = 506;
 
+const int CELL_HEIGHT = 40;
+const int CELL_WIDTH = 40;
+const int BORDER_WIDTH = 2;
+
 int main(int argc, char* argv[]) {
 
     SDL_Window *window;                    // Declare a pointer
@@ -37,10 +41,35 @@ int main(int argc, char* argv[]) {
 
     // Drawn from top left corner it seems
     SDL_FRect background;
-    background.x = (int)(WINDOW_WIDTH/4);
-    background.y = (int)(WINDOW_HEIGHT/4);
-    background.h =  (int)(WINDOW_HEIGHT/2);
-    background.w = (int)(WINDOW_WIDTH/2);
+    background.x = (int)(WINDOW_WIDTH/2)-CELL_WIDTH;
+    background.y = (int)(WINDOW_HEIGHT/2)-CELL_HEIGHT;
+    background.h =  CELL_HEIGHT;
+    background.w = CELL_WIDTH;
+
+    SDL_FRect border_left;
+    border_left.x = (int)(WINDOW_WIDTH/2)-CELL_WIDTH-BORDER_WIDTH;
+    border_left.y = (int)(WINDOW_HEIGHT/2)-CELL_HEIGHT-BORDER_WIDTH;
+    border_left.h =  CELL_HEIGHT + BORDER_WIDTH * 2;
+    border_left.w = BORDER_WIDTH;
+
+    SDL_FRect border_right;
+    border_right.x = (int)(WINDOW_WIDTH/2);
+    border_right.y = (int)(WINDOW_HEIGHT/2)-CELL_HEIGHT-BORDER_WIDTH;
+    border_right.h =  CELL_HEIGHT + BORDER_WIDTH * 2;
+    border_right.w = BORDER_WIDTH;
+
+    SDL_FRect border_bottom;
+    border_bottom.x = (int)(WINDOW_WIDTH/2)-CELL_WIDTH;
+    border_bottom.y = (int)(WINDOW_HEIGHT/2);
+    border_bottom.h =  BORDER_WIDTH;
+    border_bottom.w = CELL_WIDTH;
+
+
+    SDL_FRect border_top;
+    border_top.x = (int)(WINDOW_WIDTH/2)-CELL_WIDTH;
+    border_top.y = (int)(WINDOW_HEIGHT/2) - CELL_HEIGHT - BORDER_WIDTH;
+    border_top.h =  BORDER_WIDTH;
+    border_top.w = CELL_WIDTH;
 
 
     while (!done) {
@@ -62,9 +91,21 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 250, 249, 246, 255);
         int status = SDL_RenderFillRect(renderer, &background);
 
+        SDL_SetRenderDrawColor(renderer, 250, 0, 0, 50);
+        SDL_RenderFillRect(renderer, &border_left);
+
+        SDL_SetRenderDrawColor(renderer, 50, 150, 0, 255);
+        SDL_RenderFillRect(renderer, &border_top);
+
+        SDL_SetRenderDrawColor(renderer, 50, 150, 50, 255);
+        SDL_RenderFillRect(renderer, &border_bottom);
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 250, 255);
+        SDL_RenderFillRect(renderer, &border_right);
+
         // Draw blue line
-         SDL_SetRenderDrawColor(renderer, 50, 50, 246, 255);
-        SDL_RenderLine(renderer, (int)(WINDOW_WIDTH/4), (int)(WINDOW_HEIGHT/4), (int)(WINDOW_WIDTH/4) + (int)(WINDOW_WIDTH/2), (int)(WINDOW_HEIGHT/4) + (int)(WINDOW_HEIGHT/2));
+        //  SDL_SetRenderDrawColor(renderer, 50, 50, 246, 255);
+        // SDL_RenderLine(renderer, (int)(WINDOW_WIDTH/4), (int)(WINDOW_HEIGHT/4), (int)(WINDOW_WIDTH/4) + (int)(WINDOW_WIDTH/2), (int)(WINDOW_HEIGHT/4) + (int)(WINDOW_HEIGHT/2));
 
 
         SDL_RenderPresent(renderer);
