@@ -3,6 +3,7 @@
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_rect.h>
 #include <stdio.h>
+#include <math.h>
 
 const int WINDOW_WIDTH = 900;
 const int WINDOW_HEIGHT = 506;
@@ -10,6 +11,34 @@ const int WINDOW_HEIGHT = 506;
 const int CELL_HEIGHT = 40;
 const int CELL_WIDTH = 40;
 const int BORDER_WIDTH = 2;
+
+void drawCells(int windowHeight, int windowWidth, int cellHeight, int cellWidth, int borderWidth){
+    int twiceBorderWidth = borderWidth * 2;
+    int totalCellHeight = cellHeight + borderWidth * 2;
+    int totalCellWidth = cellWidth + borderWidth * 2;
+
+    int verticalBorderHeight = cellHeight + borderWidth * 2;
+
+    int offsetX = 0;
+    int offsetY = 0;
+    
+
+    // border_left example
+    // SDL_FRect border_left = {
+    //     .x = offsetX-borderWidth-borderWidth,
+    //     .y = offsetY-cellHeight-borderWidth,
+    //     .h = cellHeight + borderWidth * 2,
+    //     .w = borderWidth
+    // };
+
+    int rows = (int)(windowHeight / totalCellHeight);
+    int columns = (int)(windowWidth / totalCellWidth);
+
+    for(int i = 0; i < rows; i++){
+        
+    }
+
+}
 
 int main(int argc, char* argv[]) {
 
