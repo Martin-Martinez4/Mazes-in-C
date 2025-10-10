@@ -2,7 +2,7 @@
 # Shoutout to https://www.freepascal-meets-sdl.net/installation-of-sdl3-linux-and-windows/
 
 cmake_minimum_required(VERSION 3.10)
-project(3DRenderer LANGUAGES C)
+project(Mazes LANGUAGES C)
 
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

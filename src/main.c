@@ -40,11 +40,12 @@ int main(int argc, char* argv[]) {
     }
 
     // Drawn from top left corner it seems
+    // Make it bigger so that the background is not seen when there is no border
     SDL_FRect background;
-    background.x = (int)(WINDOW_WIDTH/2)-CELL_WIDTH;
-    background.y = (int)(WINDOW_HEIGHT/2)-CELL_HEIGHT;
-    background.h =  CELL_HEIGHT;
-    background.w = CELL_WIDTH;
+    background.x = (int)(WINDOW_WIDTH/2)-CELL_WIDTH - BORDER_WIDTH;
+    background.y = (int)(WINDOW_HEIGHT/2)-CELL_HEIGHT - BORDER_WIDTH;
+    background.h =  CELL_HEIGHT + BORDER_WIDTH * 2;
+    background.w = CELL_WIDTH + BORDER_WIDTH * 2;
 
     SDL_FRect border_left;
     border_left.x = (int)(WINDOW_WIDTH/2)-CELL_WIDTH-BORDER_WIDTH;
