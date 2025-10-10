@@ -38,6 +38,7 @@ endif()
     set(app_sources ${app_sources}
  
       ${CMAKE_SOURCE_DIR}/src/main.c
+      ${CMAKE_SOURCE_DIR}/src/drawCells.c
     )
 
 

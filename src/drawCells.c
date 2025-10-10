@@ -1,19 +1,19 @@
 #include <SDL3/SDL_rect.h>
 #include "drawCells.h"
 
+int coordsMatrixToArray(int x, int y, int columns){
+  return x * columns + y;
+}
+
 // return a array of pointers to rectF
 // create draw takes array of pointers to rectFs converts to array of rectF struct and use that to drawRects 
-// have a variable that gaurds against rebuilding the cells every frame
+// have a variable that guards against rebuilding the cells every frame
 void drawCells(int windowHeight, int windowWidth, int cellHeight, int cellWidth, int borderWidth){
     int twiceBorderWidth = borderWidth * 2;
     int totalCellHeight = cellHeight + borderWidth * 2;
     int totalCellWidth = cellWidth + borderWidth * 2;
 
     int verticalBorderHeight = cellHeight + borderWidth * 2;
-
-    int offsetX = 0;
-    int offsetY = 0;
-    
 
     // array of pointers to rect
     // border_left example
@@ -38,7 +38,7 @@ void drawCells(int windowHeight, int windowWidth, int cellHeight, int cellWidth,
     for(int row = 0; row < rows; row++){
         offsetY = totalCellHeight * row;
         for(int col = 0; col < columns; col++){
-          
+
         }
     }
 

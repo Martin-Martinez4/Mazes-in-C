@@ -4,6 +4,7 @@
 #include <SDL3/SDL_rect.h>
 #include <stdio.h>
 #include <math.h>
+#include "drawCells.h"
 
 const int WINDOW_WIDTH = 900;
 const int WINDOW_HEIGHT = 506;
