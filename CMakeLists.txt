@@ -26,12 +26,10 @@ else()
   # 1. Look for a SDL3 package, 2. Look for the SDL3maincomponent and 3. DO NOT fail when SDL3main is not available
   find_package(SDL3)
 
-  
 endif()
     
     find_package(SDL3_image REQUIRED)
 
-    
     set(sources ${sources}
     #   ${CMAKE_CURRENT_SOURCE_DIR}/LinearMath/Vector.cpp
     
@@ -75,51 +73,24 @@ include_directories(
   ${SDL3_IMAGE_INCLUDE_DIRS}?
 )
   
-
-# SDL3::SDL3main may or may not be available. It is e.g. required by Windows GUI applications
-# if(TARGET SDL3::SDL3main)
-#   # It has an implicit dependency on SDL3 functions, so it MUST be added before SDL3::SDL3 (or SDL3::SDL3-static)
-#   target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL3::SDL3main)
-# endif()
-    
-# # Link to the actual SDL3 library. SDL3::SDL3 is the shared SDL library, SDL3::SDL3-static is the static SDL libarary.
-# target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE SDL3::SDL3)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC -lm ${SDL3_LIBRARIES} ${SDL3_IMAGE_LIBRARIES})
 
 # # Tests
-# enable_testing()
-# include(FetchContent)
-# FetchContent_Declare(
-# googletest
-# URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-# )
-# # For Windows: Prevent overriding the parent project's compiler/linker settings
-# set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-# FetchContent_MakeAvailable(googletest)
+set(test_sources ${test_sources}
+# ${CMAKE_CURRENT_SOURCE_DIR}/tests/LinearMath/Vector_tests.cpp
 
-# set(test_sources ${test_sources}
-# # ${CMAKE_CURRENT_SOURCE_DIR}/tests/LinearMath/Vector_tests.cpp
-
-# )
-
-# add_executable(
-#     ${CMAKE_PROJECT_NAME}_test 
-#     ${CMAKE_SOURCE_DIR}/test/main_test.cpp
-#     ${sources}
-#     ${test_sources}
-# )
-# include_directories(
-#   ${CMAKE_PROJECT_NAME}
-#   PUBLIC
-#   ${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/
-# )
-
-# target_link_libraries( 
-#     ${CMAKE_PROJECT_NAME}_test
-#     PUBLIC
-#     GTest::gtest_main
-# )
+)
+add_executable(
+    ${CMAKE_PROJECT_NAME}_test 
+    ${CMAKE_SOURCE_DIR}/test/main.c
+    ${sources}
+    ${test_sources}
+)
+include_directories(
+  ${CMAKE_PROJECT_NAME}
+  PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/
+)
 
 
-# include(GoogleTest)
-# gtest_discover_tests(${CMAKE_PROJECT_NAME}_test)
+

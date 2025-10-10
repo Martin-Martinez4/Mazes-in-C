@@ -1,3 +1,5 @@
+- Make tests
+
 - Drawing thicker lines cannot be done with SDL_DrawLines; use rectangles instead
   - Will work for horizontal and vertical lines right away
   - implement something for diagonal lines.  Option use Bresenham's line algorithm
