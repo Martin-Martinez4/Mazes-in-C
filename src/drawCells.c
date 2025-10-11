@@ -1,5 +1,6 @@
 #include <SDL3/SDL_rect.h>
 #include "drawCells.h"
+#include <stdlib.h>
 
 int coordsMatrixToArray(int x, int y, int columns){
   return x * columns + y;
