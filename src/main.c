@@ -4,6 +4,7 @@
 #include <SDL3/SDL_rect.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
 #include "drawCells.h"
 
 const int WINDOW_WIDTH = 900;
@@ -16,6 +17,8 @@ const int BORDER_WIDTH = 2;
 
 
 int main(int argc, char* argv[]) {
+
+    printf("RUNNING\n");
 
     SDL_Window *window;                    // Declare a pointer
     bool done = false;
@@ -43,38 +46,25 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Drawn from top left corner it seems
-    // Make it bigger so that the background is not seen when there is no border
-    SDL_FRect background;
-    background.x = (int)(WINDOW_WIDTH/2)-CELL_WIDTH - BORDER_WIDTH;
-    background.y = (int)(WINDOW_HEIGHT/2)-CELL_HEIGHT - BORDER_WIDTH;
-    background.h =  CELL_HEIGHT + BORDER_WIDTH * 2;
-    background.w = CELL_WIDTH + BORDER_WIDTH * 2;
+    MazeStats mazeStats = createMazeStats(WINDOW_WIDTH, WINDOW_HEIGHT, 25, 25, 4);
+    
+    // only holds the borders
+    size_t rectsSize = ((3 * mazeStats.rows * mazeStats.columns + (mazeStats.rows + mazeStats.columns)) - (mazeStats.rows * mazeStats.columns)) * sizeof(SDL_FRect); 
+    SDL_FRect *rects = (SDL_FRect *)malloc(rectsSize);
+    int lenRects = rectsSize / sizeof(SDL_FRect);
 
-    SDL_FRect border_left;
-    border_left.x = (int)(WINDOW_WIDTH/2)-CELL_WIDTH-BORDER_WIDTH;
-    border_left.y = (int)(WINDOW_HEIGHT/2)-CELL_HEIGHT-BORDER_WIDTH;
-    border_left.h =  CELL_HEIGHT + BORDER_WIDTH * 2;
-    border_left.w = BORDER_WIDTH;
+    // printf("size is: %d\n", (int)lenRects);
+    // printf("rows is: %d\n", mazeStats.rows);
+    // printf("columns is: %d\n", mazeStats.columns);
 
-    SDL_FRect border_right;
-    border_right.x = (int)(WINDOW_WIDTH/2);
-    border_right.y = (int)(WINDOW_HEIGHT/2)-CELL_HEIGHT-BORDER_WIDTH;
-    border_right.h =  CELL_HEIGHT + BORDER_WIDTH * 2;
-    border_right.w = BORDER_WIDTH;
+    buildCellsArray(rects, lenRects, mazeStats);
 
-    SDL_FRect border_bottom;
-    border_bottom.x = (int)(WINDOW_WIDTH/2)-CELL_WIDTH;
-    border_bottom.y = (int)(WINDOW_HEIGHT/2);
-    border_bottom.h =  BORDER_WIDTH;
-    border_bottom.w = CELL_WIDTH;
-
-
-    SDL_FRect border_top;
-    border_top.x = (int)(WINDOW_WIDTH/2)-CELL_WIDTH;
-    border_top.y = (int)(WINDOW_HEIGHT/2) - CELL_HEIGHT - BORDER_WIDTH;
-    border_top.h =  BORDER_WIDTH;
-    border_top.w = CELL_WIDTH;
+    SDL_FRect background = {
+        .x = 0,
+        .y = 0,
+        .h = mazeStats.canvasHeight,
+        .w = mazeStats.canvasWidth
+    };
 
 
     while (!done) {
@@ -86,31 +76,18 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // Do game logic, present a frame, etc.
+        // // Do game logic, present a frame, etc.
 
-        // fill with black background
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
+        // // fill with black background
+        // SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        // SDL_RenderClear(renderer);
 
-        // Draw filled off-white rectangle
-        SDL_SetRenderDrawColor(renderer, 250, 249, 246, 255);
+         SDL_SetRenderDrawColor(renderer, 250, 249, 246, 255);
         int status = SDL_RenderFillRect(renderer, &background);
+        
+        SDL_SetRenderDrawColor(renderer, 50, 50, 246, 255);
+        SDL_RenderFillRects(renderer, rects, (lenRects - mazeStats.rows - mazeStats.columns));
 
-        SDL_SetRenderDrawColor(renderer, 250, 0, 0, 50);
-        SDL_RenderFillRect(renderer, &border_left);
-
-        SDL_SetRenderDrawColor(renderer, 50, 150, 0, 255);
-        SDL_RenderFillRect(renderer, &border_top);
-
-        SDL_SetRenderDrawColor(renderer, 50, 150, 50, 255);
-        SDL_RenderFillRect(renderer, &border_bottom);
-
-        SDL_SetRenderDrawColor(renderer, 0, 0, 250, 255);
-        SDL_RenderFillRect(renderer, &border_right);
-
-        // Draw blue line
-        //  SDL_SetRenderDrawColor(renderer, 50, 50, 246, 255);
-        // SDL_RenderLine(renderer, (int)(WINDOW_WIDTH/4), (int)(WINDOW_HEIGHT/4), (int)(WINDOW_WIDTH/4) + (int)(WINDOW_WIDTH/2), (int)(WINDOW_HEIGHT/4) + (int)(WINDOW_HEIGHT/2));
 
 
         SDL_RenderPresent(renderer);
