@@ -2,6 +2,30 @@
 #include "string.h"
 #include <stdlib.h>
 
+RBNode *createRBNode(RBTree* tree, char* val){
+  RBNode* node = (RBNode *)malloc(sizeof(RBNode));
+
+  node->key = val;
+  node->parent = tree->nilNode;
+  node->left = tree->nilNode;
+  node->right = tree->nilNode;
+  node->red = true;
+
+  return node;
+
+}
+
+RBTree *createRBTree(){
+
+  RBTree *rbt = (RBTree *)malloc(sizeof(RBTree));
+  rbt->nilNode = NULL;
+  rbt->depth = 0;
+  rbt->root = NULL;
+  rbt->size = 0;
+
+  return rbt;
+}
+
 void leftRotate(RBTree* tree, RBNode* pivotParent){
   /*
     original node becomes left child of current node's right child
@@ -138,13 +162,15 @@ void fixTree(RBTree* tree, RBNode* newNode){
 
 
 void rbTreeInsert(RBTree* tree, char* string){
-  RBNode* node = (RBNode *)malloc(sizeof(RBNode));
+  // RBNode* node = (RBNode *)malloc(sizeof(RBNode));
 
-  node->key = string;
-  node->parent = tree->nilNode;
-  node->left = tree->nilNode;
-  node->right = tree->nilNode;
-  node->red = true;
+  // node->key = string;
+  // node->parent = tree->nilNode;
+  // node->left = tree->nilNode;
+  // node->right = tree->nilNode;
+  // node->red = true;
+
+  RBNode *node = createRBNode(tree, string);
 
   RBNode *parent;
   RBNode *current = tree->root;
@@ -180,6 +206,22 @@ void rbTreeInsert(RBTree* tree, char* string){
   }
 
   fixTree(tree, node);
+
+  tree->size++;
+
+}
+
+
+int traverseInOrder(RBTree *tree, RBNode *node, char **strings, int* index ){
+  if(node == tree->nilNode){
+    return;
+  }
+
+  traverseInOrder(tree, node->left, strings, index);
+  
+  strings[*index] = node->key;
+
+  traverseInOrder(tree, node->right, strings, index);
 
 }
 

@@ -14,11 +14,16 @@ typedef struct RBNode {
 typedef struct RBTree {
   struct RBNode* root;
   int depth; 
+  int size;
   struct RBNode* nilNode;
 } RBTree;
+
+RBTree *createRBTree();
+RBNode *createRBNode(RBTree* tree, char* val);
 
 void leftRotate(RBTree* tree, RBNode* pivotParent);
 void rightRotate(RBTree* tree, RBNode* pivotParent);
 void fixTree(RBTree* tree, RBNode* newNode);
 void rbTreeInsert(RBTree* tree, char* string);
+int traverseInOrder(RBTree* tree, char **strings);
 #endif
