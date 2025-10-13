@@ -33,6 +33,9 @@ endif()
     set(sources ${sources}
     #   ${CMAKE_CURRENT_SOURCE_DIR}/LinearMath/Vector.cpp
     ${CMAKE_SOURCE_DIR}/src/drawCells.c
+    ${CMAKE_SOURCE_DIR}/src/cell.c
+    ${CMAKE_SOURCE_DIR}/src/rbTree.c
+
     
     )
     

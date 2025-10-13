@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    MazeStats mazeStats = createMazeStats(WINDOW_WIDTH, WINDOW_HEIGHT, 25, 25, 4);
+    MazeStats mazeStats = createMazeStats((int)(WINDOW_WIDTH/2), (int)(WINDOW_HEIGHT/2), 25, 25, 4);
     
     // only holds the borders
     size_t rectsSize = ((3 * mazeStats.rows * mazeStats.columns + (mazeStats.rows + mazeStats.columns)) - (mazeStats.rows * mazeStats.columns)) * sizeof(SDL_FRect); 
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     // printf("rows is: %d\n", mazeStats.rows);
     // printf("columns is: %d\n", mazeStats.columns);
 
-    buildCellsArray(rects, lenRects, mazeStats);
+   int cellsToDraw =  buildCellsArray(rects, lenRects, mazeStats);
 
     SDL_FRect background = {
         .x = 0,
@@ -76,17 +76,17 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // // Do game logic, present a frame, etc.
+        // Do game logic, present a frame, etc.
 
-        // // fill with black background
-        // SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        // SDL_RenderClear(renderer);
+        // fill with black background
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
 
          SDL_SetRenderDrawColor(renderer, 250, 249, 246, 255);
         int status = SDL_RenderFillRect(renderer, &background);
         
         SDL_SetRenderDrawColor(renderer, 50, 50, 246, 255);
-        SDL_RenderFillRects(renderer, rects, (lenRects - mazeStats.rows - mazeStats.columns));
+        SDL_RenderFillRects(renderer, rects, cellsToDraw);
 
 
 

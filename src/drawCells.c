@@ -22,9 +22,9 @@ MazeStats createMazeStats(int canvasWidth, int canvasHeight, int cellWidth, int 
     int totalCellHeight = cellHeight + borderWidth;
     int totalCellWidth = cellWidth + borderWidth;
 
-    printf("totalCellHeight : %d\n", totalCellHeight);
-    printf("totalCellWidth : %d\n", totalCellWidth);
-    printf("canvasWidth : %d\n", canvasWidth);
+    // printf("totalCellHeight : %d\n", totalCellHeight);
+    // printf("totalCellWidth : %d\n", totalCellWidth);
+    // printf("canvasWidth : %d\n", canvasWidth);
 
 
     struct MazeStats m = {
@@ -62,32 +62,64 @@ int buildCellsArray(SDL_FRect *rects, size_t length, MazeStats mazeStats){
     for(int row = 0; row < rows; row++){
         offsetY = (totalCellHeight * row);
         for(int col = 0; col < columns; col++){
+            int randomNumber = rand() % 10 + 1;
+
             offsetX = (totalCellWidth * col);
-            SDL_FRect leftBorder = {
-                .x = offsetX,
-                .y = offsetY,
-                .h = verticalBorderHeight,
-                .w = borderWidth
-            };
 
-            
+            if(randomNumber > 2 || col == 0){
 
-            rects[current] = leftBorder;
-            current++;
+                SDL_FRect leftBorder = {
+                    .x = offsetX,
+                    .y = offsetY,
+                    .h = verticalBorderHeight,
+                    .w = borderWidth
+                };
+    
+                rects[current] = leftBorder;
+                current++;
+            }
 
-            SDL_FRect topBorder = {
-                .x = offsetX,
-                .y = offsetY,
-                .h = borderWidth,
-                .w = totalCellWidth
-            };
+            randomNumber = rand() % 10 + 1;
+            if(randomNumber > 3 || row == 0){
+
+                SDL_FRect topBorder = {
+                    .x = offsetX,
+                    .y = offsetY,
+                    .h = borderWidth,
+                    .w = totalCellWidth
+                };
+    
+    
+                rects[current] = topBorder;
+                current++;
+            }
+
+            if(col == columns-1) {
+                SDL_FRect rightBorder = {
+                    .x = offsetX + totalCellWidth,
+                    .y = offsetY,
+                    .h = verticalBorderHeight,
+                    .w = borderWidth
+                };
 
 
-            rects[current] = topBorder;
-            current++;
+                rects[current] = rightBorder;
+                current++;
+            }
+            if(row == rows-1){
+                SDL_FRect bottomBorder = {
+                    .x = offsetX ,
+                    .y = offsetY + totalCellHeight,
+                    .h = borderWidth,
+                    .w = totalCellWidth + borderWidth
+                };
 
-            // printf("current %d\n", current);
+
+                rects[current] = bottomBorder;
+                current++;
+            }
         }
+
     }
 
     return current;

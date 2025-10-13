@@ -1,12 +1,12 @@
 - Make tests
 
-- Drawing thicker lines cannot be done with SDL_DrawLines; use rectangles instead
-  - Will work for horizontal and vertical lines right away
+- [x] Drawing thicker lines cannot be done with SDL_DrawLines; use rectangles instead
+  - [x] Will work for horizontal and vertical lines right away
   - implement something for diagonal lines.  Option use Bresenham's line algorithm
 
 - Divide surface into grid in code
   - benefical to draw the grid to see it at first
 
-- Find out how to add Google Test
+- [x] Find out how to add Google Test
 
 - See if UI is feasible to create using only SDL3
