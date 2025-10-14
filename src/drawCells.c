@@ -53,7 +53,7 @@ int buildCellsArray(SDL_FRect *rects, size_t length, MazeStats mazeStats){
 
     // printf("Rows: %d\n", rows);
     // printf("Cols: %d\n", columns);
-    mazeStats  = createMazeStats(100, 100, 8, 8, 2);
+    // mazeStats  = createMazeStats(100, 100, 8, 8, 2);
    
     int current = 0;
 

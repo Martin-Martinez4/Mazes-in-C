@@ -57,6 +57,8 @@ endif()
     ${CMAKE_SOURCE_DIR}/src/rbTree.c
     ${CMAKE_SOURCE_DIR}/src/sets.c
     ${CMAKE_SOURCE_DIR}/src/drawCells.c
+    ${CMAKE_SOURCE_DIR}/src/kruskals.c
+    
 
     
     )
