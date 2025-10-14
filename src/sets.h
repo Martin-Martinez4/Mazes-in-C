@@ -7,6 +7,7 @@ typedef struct Set{
   RBTree* elements;
 } Set;
 
+Set* createSet();
 
 // add
 // just insert to the RBTree
@@ -20,6 +21,8 @@ void add(Set* A, char* val);
 // implement on RBTree
 // traverse and try to find
 bool has(Set* A, char* val);
+
+char** getSetValues(Set* A);
 
 // merge (union is a C key word)
 // get the values of both in a list 
@@ -47,6 +50,7 @@ void mergeInPlace(Set* A, Set* B);
 // For all in A if in B add to new Set
 // For all in B if in A add to new Set
 // Set* symmetricDifference(Set* A, Set* B);
+
 
 
 #endif

@@ -203,7 +203,6 @@ void Test_rbTreeInsert(){
 
     for(int n = 0; n < tc.length; n++){
       rbTreeInsert(tc.theTree, tc.vals[n]);
-      printf("val: %s\n", tc.vals[n]);
     }
 
     
@@ -241,8 +240,94 @@ void Test_rbTreeInsert(){
   }
 }
 
+void Test_searchRBTree(){
+
+  // RBTree *tree1 = createRBTree();
+  // RBTree *tree2 = createRBTree();
+  // RBTree *tree2 = createRBTree();
+
+  // maually create nodes to traverse
+
+  typedef struct  testCase  {
+    RBTree *theTree;
+    char** vals; 
+    int length;
+    char** seachVals;
+    bool *wants;
+    int testLength;
+
+  }testCase;
+  
+ struct testCase *testCases = (struct testCase[]){
+  {
+    .theTree = createRBTree(),
+    .vals = (char *[]){"5"},
+    .length = 1,
+    .seachVals = (char *[]){"5", "five", "4", "z"},
+    .wants = (bool []){true, false, false, false},
+    .testLength = 4
+  }, 
+  {
+    .theTree = createRBTree(),
+    .vals = (char *[]){"5", "4"},
+    .length = 2,
+    .seachVals = (char *[]){"5", "five", "4", "z"},
+    .wants = (bool []){true, false, true, false},
+    .testLength = 4
+  }, 
+  {
+    .theTree = createRBTree(),
+    .vals = (char *[]){"5", "4", "3"},
+    .length = 3,
+    // "3" < "4" < "5"
+    .seachVals = (char *[]){"5", "five", "4", "3"},
+    .wants = (bool []){true, false, true, true},
+    .testLength = 4
+  }, 
+  {
+    .theTree = createRBTree(),
+    .vals = (char *[]){"10", "5", "1", "7", "6"},
+    .length = 5,
+    // Lexicographic order: "1", "10", "5", "6", "7"
+    .seachVals = (char *[]){"10", "5", "1", "7", "6", "5", "five", "4", "3"},
+    .wants = (bool []){true, true, true, true, true, true, false, false, false}, // approximate, color checks may differ slightly
+    .testLength = 9
+  }
+};
+
+  int lenTestCases = 4;
+
+  for(int i = 0; i < lenTestCases; i++){
+    bool allPassed = true;
+    printf("%d Running...\n", i);
+
+    testCase tc = testCases[i];
+
+    for(int n = 0; n < tc.length; n++){
+      rbTreeInsert(tc.theTree, tc.vals[n]);
+    }
+
+       
+    for(int j = 0; j < tc.testLength; j++){
+      bool got = searchRBTree(tc.theTree, tc.theTree->root, tc.seachVals[j]);
+      if(got != tc.wants[j]){
+        fprintf(stderr, "\t=====\n\033[31mAssertion failed: Test Case: %d, search #%d; Looking for: %s got: %d, wanted: %d\033[0m\n=====\n",i, j, tc.seachVals[j], got, tc.wants[j]); 
+        allPassed = false;
+      }
+    }
+
+    if(allPassed){
+      fprintf(stderr, "=====\n\033[0;32mAll OK; %s, test case %d ,file %s, line %d\033[0m\n=====\n", "Test_traverseInOrder", i, __FILE__, __LINE__);
+    }
+
+    printTree(tc.theTree, tc.theTree->root, 0);
+  }
+}
+
+
 void rbTreeRunTests(){
   Test_traverseInOrder();
   Test_rbTreeInsert();
+  Test_searchRBTree();
 }
 

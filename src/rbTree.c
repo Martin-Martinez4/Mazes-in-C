@@ -236,14 +236,19 @@ bool searchRBTree(RBTree* tree, RBNode *node, char* string){
    if(node == tree->nilNode){
     return false;
   }
+  
+  int cmp = strcmp(string, node->key);
 
-  searchRBTree(tree, node, string);
-  if(strcmp(node->key, string) == 0){
+  if(cmp == 0){
     return true;
   }
-  searchRBTree(tree, node, string);
 
-  return false;
+  if(cmp > 0){
+
+    return searchRBTree(tree, node->right, string);
+  }else if(cmp < 0){
+    return searchRBTree(tree, node->left, string);
+  }
 }
 
 

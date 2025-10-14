@@ -27,6 +27,6 @@ void fixTree(RBTree* tree, RBNode* newNode);
 void rbTreeInsert(RBTree* tree, char* string);
 int traverseInOrder(RBTree *tree, RBNode *node, char **strings, int* index );
 int traverseInOrderGetNodes(RBTree *tree, RBNode *node, RBNode** nodes, int* index);
-bool searchRBTree(RBTree* tree, char* string);
+bool searchRBTree(RBTree* tree, RBNode *node, char* string);
 void printTree(RBTree *tree, RBNode *node, int depth);
 #endif

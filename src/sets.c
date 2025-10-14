@@ -1,9 +1,18 @@
+#include <stdlib.h>
 #include "sets.h"
+
+// will have to free elements then Set
+Set* createSet(){
+  Set* s = (Set *)malloc(sizeof(Set));
+  s->elements = createRBTree();
+
+  return s;
+}
 
 // add
 // just insert to the RBTree
 void add(Set* A, char* val){
-  rbTreeInsert(A->elements, createRBNode(A->elements, val));
+  rbTreeInsert(A->elements, val);
 }
 
 // remove
@@ -16,7 +25,16 @@ void add(Set* A, char* val){
 // has/find
 // implement on RBTree
 // traverse and try to find
-bool has(Set* A, char* val);
+bool has(Set* A, char* val){
+  return false;
+}
+
+char** getSetValues(Set* A){
+  char **strings = (char **)malloc(sizeof(char *) * A->elements->size);
+  int index = 0;
+  traverseInOrder(A->elements, A->elements->root, strings, &index);
+  return strings;
+}
 
 // merge (union is a C key word)
 // get the values of both in a list 
@@ -29,7 +47,13 @@ bool has(Set* A, char* val);
 // merge (union is a C key word)
 // get the values of B
 // add values to A
-void mergeInPlace(Set* A, Set* B);
+void mergeInPlace(Set* A, Set* B){
+  char** bValues = getSetValues(B);
+
+  for(int i = 0; i < B->elements->size; i++){
+    add(A, bValues[i]);
+  }
+}
 
 // Difference
 // in A but not in B

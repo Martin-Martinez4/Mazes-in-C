@@ -6,8 +6,8 @@
 
 int main() {
     Test_drawCells();
-
     rbTreeRunTests();
+    setsRunTests();
     printf("Program continues...\n");
     return 0;
 }
