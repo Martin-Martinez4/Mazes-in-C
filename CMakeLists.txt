@@ -1,6 +1,11 @@
 # Windows: Need to copy SDL3.dll to ./build/Debug in order for the exe to run
 # Shoutout to https://www.freepascal-meets-sdl.net/installation-of-sdl3-linux-and-windows/
 
+# ==============================
+# Mazes-in-C - CMake Configuration
+# Cross-platform: Windows + Linux
+# ==============================
+
 cmake_minimum_required(VERSION 3.10)
 project(Mazes LANGUAGES C)
 
@@ -17,31 +22,46 @@ if(VENDORED)
     add_subdirectory(vendored/sdl EXCLUDE_FROM_ALL)
 else()
   if(WIN32)
-    set(SDL3_DIR "C:/SDL3/cmake")
-    set(SDL3_image_DIR "C:/SDL3_image/cmake")
+    set(SDL3_DIR "C:/SDL3/cmake" CACHE PATH "Path to SDL3Config.cmake")
+    set(SDL3_image_DIR "C:/SDL3_image/cmake" CACHE PATH "Path to SDL3_imageConfig.cmake")
   endif()
   # 1. Look for a SDL3 package, 2. look for the SDL3 component and 3. fail if none can be found
-  find_package(SDL3 CONFIG REQUIRED COMPONENTS SDL3)
-    
-  # 1. Look for a SDL3 package, 2. Look for the SDL3maincomponent and 3. DO NOT fail when SDL3main is not available
-  find_package(SDL3)
+  find_package(SDL3 CONFIG QUIET COMPONENTS SDL3)
+  if(NOT SDL3_FOUND)
+  # Fallback to manual include/lib detection
+    find_path(SDL3_INCLUDE_DIR SDL3/SDL.h)
+    find_library(SDL3_LIBRARY SDL3)
+    if(NOT SDL3_INCLUDE_DIR OR NOT SDL3_LIBRARY)
+        message(FATAL_ERROR "SDL3 not found! Please install SDL3 or set SDL3_DIR.")
+    endif()
+    set(SDL3_INCLUDE_DIRS ${SDL3_INCLUDE_DIR})
+    set(SDL3_LIBRARIES ${SDL3_LIBRARY})
+  endif()
+  
+  find_package(SDL3_image CONFIG QUIET)
+  if(NOT SDL3_image_FOUND)
+    find_path(SDL3_IMAGE_INCLUDE_DIR SDL3/SDL_image.h)
+    find_library(SDL3_IMAGE_LIBRARY SDL3_image)
+    if(NOT SDL3_IMAGE_INCLUDE_DIR OR NOT SDL3_IMAGE_LIBRARY)
+        message(FATAL_ERROR "SDL3_image not found! Please install SDL3_image or set SDL3_image_DIR.")
+    endif()
+    set(SDL3_IMAGE_INCLUDE_DIRS ${SDL3_IMAGE_INCLUDE_DIR})
+    set(SDL3_IMAGE_LIBRARIES ${SDL3_IMAGE_LIBRARY})
+  endif()
 
 endif()
     
-    find_package(SDL3_image REQUIRED)
 
-    set(sources ${sources}
-    #   ${CMAKE_CURRENT_SOURCE_DIR}/LinearMath/Vector.cpp
-    ${CMAKE_SOURCE_DIR}/src/drawCells.c
+    set(sources
     ${CMAKE_SOURCE_DIR}/src/cell.c
     ${CMAKE_SOURCE_DIR}/src/rbTree.c
     ${CMAKE_SOURCE_DIR}/src/sets.c
-
+    ${CMAKE_SOURCE_DIR}/src/drawCells.c
 
     
     )
     
-    set(app_sources ${app_sources}
+    set(app_sources
  
       ${CMAKE_SOURCE_DIR}/src/main.c
       
@@ -51,19 +71,13 @@ endif()
 if(WIN32)
     # Create your game executable target as usual
     # WIN32 will be built as a GUI application
-    add_executable(
-      ${CMAKE_PROJECT_NAME}
-      WIN32
-      ${sources}
-      ${app_sources}
-
-    )
+    add_executable(${CMAKE_PROJECT_NAME} WIN32 ${sources} ${app_sources})
 else()
-add_executable(
-    ${CMAKE_PROJECT_NAME}
-    ${sources} 
-    ${app_sources}
-  )
+  add_executable(
+      ${CMAKE_PROJECT_NAME}
+      ${sources} 
+      ${app_sources}
+    )
 endif()
 
 message("SDL3_IMAGE_INCLUDE_DIRS: ${SDL3_IMAGE_INCLUDE_DIRS}")
@@ -71,18 +85,16 @@ message("SDL3_INCLUDE_DIRS: ${SDL3_INCLUDE_DIRS}")
 
 
 
-include_directories(
-  ${CMAKE_PROJECT_NAME}
-  PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/
-  # ${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/
-  ${SDL3_INCLUDE_DIRS}?
-  ${SDL3_IMAGE_INCLUDE_DIRS}?
+target_include_directories(
+    ${CMAKE_PROJECT_NAME} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${SDL3_INCLUDE_DIRS}
+    ${SDL3_IMAGE_INCLUDE_DIRS}
 )
-  
+
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC -lm ${SDL3_LIBRARIES} ${SDL3_IMAGE_LIBRARIES})
 
-# # Tests
+#--- Test executable ---
 set(test_sources ${test_sources}
 # ${CMAKE_CURRENT_SOURCE_DIR}/tests/LinearMath/Vector_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_drawCells.c
@@ -96,11 +108,15 @@ add_executable(
     ${sources}
     ${test_sources}
 )
-include_directories(
-  ${CMAKE_PROJECT_NAME}
+target_include_directories(
+  ${CMAKE_PROJECT_NAME}_test
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/
+  ${SDL3_IMAGE_INCLUDE_DIRS}
 )
+
+target_link_libraries(${CMAKE_PROJECT_NAME}_test PUBLIC -lm ${SDL3_LIBRARIES} ${SDL3_IMAGE_LIBRARIES})
+
 
 
 

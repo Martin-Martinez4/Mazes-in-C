@@ -9,7 +9,7 @@ void Test_drawCells(){
     int x; 
     int y; 
     int columns;
-    int want
+    int want;
   }testCase;
 
 
