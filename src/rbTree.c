@@ -1,6 +1,9 @@
 #include "rbTree.h"
 #include "string.h"
 #include <stdlib.h>
+#include <stdio.h>
+
+
 
 RBNode *createRBNode(RBTree* tree, char* val){
   RBNode* node = (RBNode *)malloc(sizeof(RBNode));
@@ -15,15 +18,20 @@ RBNode *createRBNode(RBTree* tree, char* val){
 
 }
 
-RBTree *createRBTree(){
+RBTree* createRBTree() {
+  RBTree* tree = malloc(sizeof(RBTree));
+  tree->nilNode = malloc(sizeof(RBNode));
 
-  RBTree *rbt = (RBTree *)malloc(sizeof(RBTree));
-  rbt->nilNode = NULL;
-  rbt->depth = 0;
-  rbt->root = NULL;
-  rbt->size = 0;
+  tree->nilNode->red = false;
+  tree->nilNode->left = tree->nilNode;
+  tree->nilNode->right = tree->nilNode;
+  tree->nilNode->parent = tree->nilNode;
+  tree->nilNode->key = NULL;
 
-  return rbt;
+  tree->root = tree->nilNode;
+  tree->size = 0;
+
+  return tree;
 }
 
 void leftRotate(RBTree* tree, RBNode* pivotParent){
@@ -47,7 +55,9 @@ void leftRotate(RBTree* tree, RBNode* pivotParent){
     pivot->left->parent = pivotParent;
   }
 
-  if(pivotParent == tree->nilNode){
+  pivot->parent = pivotParent->parent;
+
+  if(pivotParent->parent == tree->nilNode){
     tree->root = pivot;
   }
   else if(pivotParent == pivotParent->parent->left){
@@ -61,43 +71,31 @@ void leftRotate(RBTree* tree, RBNode* pivotParent){
   pivotParent->parent = pivot;
 }
 
-void rightRotate(RBTree* tree, RBNode* pivotParent){
-  /* 
-    parent becomes right child of current
-    parent's left child becomes current's right child
-    current left child stays
-    parent right child stays
+void rightRotate(RBTree* tree, RBNode* pivotParent) {
+    if (pivotParent == tree->nilNode || pivotParent->left == tree->nilNode) {
+        return;
+    }
 
-    if parent's parent is null make current root
-  */
+    RBNode* pivot = pivotParent->left;
+    pivotParent->left = pivot->right;
 
-  if(pivotParent == tree->nilNode || pivotParent->left == tree->nilNode){
-    return;
-  }
+    if (pivot->right != tree->nilNode) {
+        pivot->right->parent = pivotParent;
+    }
 
-  RBNode* pivot = pivotParent->left;
-  pivotParent->left = pivot->right;
+    pivot->parent = pivotParent->parent;
 
+    if (pivotParent->parent == tree->nilNode) {
+        tree->root = pivot;
+    } else if (pivotParent == pivotParent->parent->left) {
+        pivotParent->parent->left = pivot;
+    } else {
+        pivotParent->parent->right = pivot;
+    }
 
-  if(pivot->right != tree->nilNode){
-    pivot->right->parent = pivotParent;
-  }
-
-  pivot->parent = pivotParent->parent;
-  if(pivotParent->parent == tree->nilNode){
-    tree->root = pivot;
-  }
-  else if(pivotParent == pivotParent->parent->right){
-    pivotParent->parent->right = pivot;
-  }
-  else{
-    pivotParent->parent->left = pivot;
-  }
-
-  pivot->right = pivotParent;
-  pivotParent->parent = pivot;
+    pivot->right = pivotParent;
+    pivotParent->parent = pivot;
 }
-
 
 /*
   Constraints:
@@ -109,50 +107,49 @@ void rightRotate(RBTree* tree, RBNode* pivotParent){
   insert new node as red
   if that violates constraints recolor then rotate
 */
-void fixTree(RBTree* tree, RBNode* newNode){
+void fixTree(RBTree* tree, RBNode* newNode) {
+  RBNode *currentNode = newNode;
 
-  RBNode * currentNode = newNode;
-
-  while(tree->root != currentNode && currentNode->parent->red){
+  while (currentNode->parent->red) {
     RBNode *parent = currentNode->parent;
     RBNode *grandparent = parent->parent;
 
-    if(parent == grandparent->right){
-      RBNode* uncle = grandparent->left;
+    if (parent == grandparent->left) {
+      RBNode *uncle = grandparent->right;
 
-      if(uncle->red){
-        uncle->red = false;
+      if (uncle->red) {
         parent->red = false;
+        uncle->red = false;
         grandparent->red = true;
         currentNode = grandparent;
-      }else{
-        if(currentNode == parent->left){
-          currentNode = parent;
-          rightRotate(tree, currentNode);
-          parent = currentNode->parent;
-        }
-
-        parent->red = false;
-        grandparent->red = true;
-        leftRotate(tree, grandparent);
-      }
-    }else{
-      RBNode* uncle = grandparent->right;
-      if(uncle->red){
-        uncle->red = false;
-        parent->red = false;
-        grandparent->red = true;
-        currentNode = grandparent;
-      }else{
-        if(currentNode == parent->right){
+      } else {
+        if (currentNode == parent->right) {
           currentNode = parent;
           leftRotate(tree, currentNode);
           parent = currentNode->parent;
         }
-
         parent->red = false;
         grandparent->red = true;
         rightRotate(tree, grandparent);
+      }
+    }
+    else {
+      RBNode *uncle = grandparent->left;
+
+      if (uncle->red) {
+        parent->red = false;
+        uncle->red = false;
+        grandparent->red = true;
+        currentNode = grandparent;
+      } else {
+        if (currentNode == parent->left) {
+            currentNode = parent;
+            rightRotate(tree, currentNode);
+            parent = currentNode->parent;
+        }
+        parent->red = false;
+        grandparent->red = true;
+        leftRotate(tree, grandparent);
       }
     }
   }
@@ -171,29 +168,24 @@ void rbTreeInsert(RBTree* tree, char* string){
   // node->red = true;
 
   RBNode *node = createRBNode(tree, string);
-
-  RBNode *parent;
+  
+  RBNode *parent = tree->nilNode;
   RBNode *current = tree->root;
-
+  
   while(current != tree->nilNode){
     parent = current;
-    int cmp;
-
-    if(current == tree->root){
-      cmp = 1;
-    }else{
-      cmp = strcmp(node->key, current->key);
-    }
-
+    int cmp = strcmp(node->key, current->key);
+    
     if(cmp > 0){
       current = current->right;
     }else if(cmp < 0){
       current = current->left;
     }else{
       // duplicate value
+      free(node);
       return;
     }
-
+    
   }
 
   node->parent = parent;
@@ -204,6 +196,8 @@ void rbTreeInsert(RBTree* tree, char* string){
   }else{
     parent->left = node;
   }
+    
+  
 
   fixTree(tree, node);
 
@@ -214,14 +208,51 @@ void rbTreeInsert(RBTree* tree, char* string){
 
 int traverseInOrder(RBTree *tree, RBNode *node, char **strings, int* index ){
   if(node == tree->nilNode){
-    return;
+    return *index;
   }
 
   traverseInOrder(tree, node->left, strings, index);
-  
   strings[*index] = node->key;
-
+  (*index)++; 
   traverseInOrder(tree, node->right, strings, index);
 
+  return *index;
+}
+
+int traverseInOrderGetNodes(RBTree *tree, RBNode *node, RBNode** nodes, int* index ){
+  if(node == tree->nilNode){
+    return *index;
+  }
+
+  traverseInOrderGetNodes(tree, node->left, nodes, index);
+  nodes[*index] = node;
+  (*index)++; 
+  traverseInOrderGetNodes(tree, node->right, nodes, index);
+
+  return *index;
+}
+
+bool searchRBTree(RBTree* tree, RBNode *node, char* string){
+   if(node == tree->nilNode){
+    return false;
+  }
+
+  searchRBTree(tree, node, string);
+  if(strcmp(node->key, string) == 0){
+    return true;
+  }
+  searchRBTree(tree, node, string);
+
+  return false;
+}
+
+
+void printTree(RBTree *tree, RBNode *node, int depth) {
+    if (node == tree->nilNode) return;
+
+    printTree(tree, node->right, depth + 1);
+    for (int i = 0; i < depth; i++) printf("    ");
+    printf("%s (%s)\n", node->key, node->red ? "R" : "B");
+    printTree(tree, node->left, depth + 1);
 }
 

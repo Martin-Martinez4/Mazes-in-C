@@ -35,6 +35,8 @@ endif()
     ${CMAKE_SOURCE_DIR}/src/drawCells.c
     ${CMAKE_SOURCE_DIR}/src/cell.c
     ${CMAKE_SOURCE_DIR}/src/rbTree.c
+    ${CMAKE_SOURCE_DIR}/src/sets.c
+
 
     
     )
@@ -83,7 +85,9 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC -lm ${SDL3_LIBRARIES} ${SDL3_
 # # Tests
 set(test_sources ${test_sources}
 # ${CMAKE_CURRENT_SOURCE_DIR}/tests/LinearMath/Vector_tests.cpp
- ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_drawCells.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_drawCells.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_rbTree.c
+
 )
 add_executable(
     ${CMAKE_PROJECT_NAME}_test 

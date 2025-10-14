@@ -43,7 +43,7 @@ void Test_drawCells(){
   int lenTestCases = 4;
 
   for(int i = 0; i < lenTestCases; i++){
-   printf("%d Running...\n", i);
+   printf("%d Running...", i);
 
     testCase tc = testCases[i];
     int got = coordsMatrixToArray(tc.x, tc.y, tc.columns);
