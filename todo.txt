@@ -2,6 +2,19 @@
   - rbTree.c
     - searchRBTree
 
+- found out Red Black Tree Based Set is not the best for this use case
+  - Instead:
+    - Use an array of gridWidth * gridHeight dimensions
+    - DSU struct has rank and parent
+      - parent is the index of its root
+      - merging sets is just setting the value at the index equal to the index of the parent.
+
+        - Find 
+          - During find(), make every visited node’s parent point directly to the root
+          - Recursive at first while arr[target].parent != target
+            - arr[target].parent = find(arr, arr[target].parent);
+          - return arr[target].parent;
+
 - attempt to implement krus
 
 - implement something for diagonal lines.  Option use Bresenham's line algorithm
