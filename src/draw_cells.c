@@ -3,10 +3,6 @@
 #include <stdio.h>
 
 
-int coordsMatrixToArray(int x, int y, int columns){
-  return x * columns + y;
-}
-
 // pass by value is good enough for now
 MazeStats createMazeStats(int canvasWidth, int canvasHeight, int cellWidth, int cellHeight, int borderWidth){
     // typedef struct MazeStats{
