@@ -1,7 +1,7 @@
 #include "grid_utils.h"
 
 
-int coordsMatrixToArray(int x, int y, int columns){
+int matrix_coords_to_array_coords(int x, int y, int columns){
   return x * columns + y;
 }
 

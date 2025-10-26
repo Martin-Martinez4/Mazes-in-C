@@ -1,5 +1,6 @@
 #ifndef H_CELLS
 #define H_CELLS
+#include <stdint.h>
 
 // TOP_CHECK & num = 0 means there is no top wall
 // 1000
@@ -26,14 +27,16 @@
 typedef struct Cell {
   int row;
   int column;
-  unsigned int walls : 4;
+  uint8_t walls;
 }Cell;
 
 typedef struct Edge{
-  int row;
-  int column;
   Cell* cell_ptr;
-}Edge;
+  uint8_t direction;
+  uint8_t opposite_direction;
+} Edge;
+
+Cell create_walled_cell(int row, int column);
 
 #endif
 

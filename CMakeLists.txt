@@ -91,6 +91,7 @@ message("SDL3_INCLUDE_DIRS: ${SDL3_INCLUDE_DIRS}")
 target_include_directories(
     ${CMAKE_PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
     ${SDL3_INCLUDE_DIRS}
     ${SDL3_IMAGE_INCLUDE_DIRS}
 )
@@ -103,6 +104,7 @@ set(test_sources ${test_sources}
   ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_draw_cells.c
   ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_rb_tree.c
   ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_sets.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/test/utils/Tests_grid_utils.c
 
 )
 add_executable(
@@ -115,6 +117,9 @@ target_include_directories(
   ${CMAKE_PROJECT_NAME}_test
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
+  ${CMAKE_CURRENT_SOURCE_DIR}/test/myAssert
+  ${CMAKE_CURRENT_SOURCE_DIR}/test/utils
   ${SDL3_IMAGE_INCLUDE_DIRS}
 )
 
