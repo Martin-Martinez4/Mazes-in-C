@@ -1,7 +1,7 @@
 #ifndef H_SETS
 #define H_SETS
 
-#include "rbTree.h"
+#include "rb_tree.h"
 
 typedef struct Set{
   RBTree* elements;

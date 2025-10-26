@@ -5,10 +5,10 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include "drawCells.h"
+#include "draw_cells.h"
 
 const int WINDOW_WIDTH = 1080;
-const int WINDOW_HEIGHT = 560;
+const int WINDOW_HEIGHT = 506;
 
 const int CELL_HEIGHT = 40;
 const int CELL_WIDTH = 40;
@@ -17,8 +17,10 @@ const int BORDER_WIDTH = 2;
 
 
 int main(int argc, char* argv[]) {
+    
 
     printf("RUNNING\n");
+    
 
     SDL_Window *window;                    // Declare a pointer
     bool done = false;
@@ -46,7 +48,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    MazeStats mazeStats = createMazeStats((int)(WINDOW_WIDTH), (int)(WINDOW_HEIGHT), 100, 100, 1);
+    MazeStats mazeStats = createMazeStats((int)(WINDOW_WIDTH/2), (int)(WINDOW_HEIGHT/2), 25, 25, 4);
     
     // only holds the borders
     size_t rectsSize = ((3 * mazeStats.rows * mazeStats.columns + (mazeStats.rows + mazeStats.columns)) - (mazeStats.rows * mazeStats.columns)) * sizeof(SDL_FRect); 

@@ -1,6 +1,6 @@
 #include "kruskals.h"
 
-Cell *kruskalsCreateMaze(MazeStats *mazeStates){
+Cell *kruskalsCreateMaze(MazeStats *mazeStats){
   return NULL;
 }
 

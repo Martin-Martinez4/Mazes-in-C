@@ -1,4 +1,4 @@
-#include "drawCells.h"
+#include "draw_cells.h"
 #include <stdlib.h>
 #include <stdio.h>
 
