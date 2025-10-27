@@ -2,6 +2,6 @@
 #define TESTS_H_RB_TREE
 
 void Test_traverseInOrder();
-void rbTreeRunTests();
+void rb_tree_run_tests();
 
 #endif

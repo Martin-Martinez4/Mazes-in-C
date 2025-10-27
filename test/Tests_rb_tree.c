@@ -325,7 +325,7 @@ void Test_searchRBTree(){
 }
 
 
-void rbTreeRunTests(){
+void rb_tree_run_tests(){
   Test_traverseInOrder();
   Test_rbTreeInsert();
   Test_searchRBTree();

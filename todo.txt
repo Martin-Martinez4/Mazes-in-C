@@ -17,6 +17,8 @@
 
 - attempt to implement krus
 
+- maybe only an array of ints representing the wall states is needed instead of an array of Cells.  
+
 - implement something for diagonal lines.  Option use Bresenham's line algorithm
 
 - Divide surface into grid in code
