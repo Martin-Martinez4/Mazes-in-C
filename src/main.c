@@ -24,7 +24,6 @@ int main(int argc, char* argv[]) {
     // Seed the random number generator
     srand((unsigned int)time(NULL));
 
-    // Example usage
     int r = rand();           // random number
     int r2 = rand() % 10;     // random number from 0 to 9
     

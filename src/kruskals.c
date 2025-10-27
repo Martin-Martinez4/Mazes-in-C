@@ -36,12 +36,6 @@ void setUpEdges(Edge* edges, Cell* cells, int rows, int columns){
     for(int col = 0; col < columns; col++){
       Cell *c = &cells[matrix_coords_to_array_coords(row, col, columns)];
 
-      // // directions are represented by 1,2,4,8
-      // for(int side = 1; side <= 8; side *= 2){
-
-      //   edges[indx] = create_edge(c, side);
-      //   indx++;
-      // }
       // Right neighbor
       if (col + 1 < columns) edges[indx++] = create_edge(c, RIGHT);
       // Bottom neighbor
