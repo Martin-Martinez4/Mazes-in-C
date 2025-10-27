@@ -1,4 +1,6 @@
 #include "draw_cells.h"
+#include "cell.h"
+#include "grid_utils.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -36,8 +38,87 @@ MazeStats createMazeStats(int canvasWidth, int canvasHeight, int cellWidth, int 
     return m;
 }
 
+int rectsFromCells(Cell* cells, SDL_FRect *rects, size_t length, MazeStats mazeStats){
+     int borderWidth = mazeStats.borderWidth;
+    int totalCellHeight = mazeStats.totalCellHeight;
+    int totalCellWidth = mazeStats.totalCellWidth;
 
-int buildCellsArray(SDL_FRect *rects, size_t length, MazeStats mazeStats){
+    int verticalBorderHeight = totalCellHeight;
+        
+    int rows = mazeStats.rows;
+    int columns = mazeStats.columns;
+
+    int current = 0;
+
+    int offsetX = 0;
+    int offsetY = 0;
+
+    for(int row = 0; row < rows; row++){
+        offsetY = (totalCellHeight * row);
+        for(int col = 0; col < columns; col++){
+           Cell *c = &cells[matrix_coords_to_array_coords(row, col, columns)];
+           int walls = c->walls;
+
+            offsetX = (totalCellWidth * col);
+
+            if( (LEFT & walls) != 0 || col == 0){
+
+                SDL_FRect leftBorder = {
+                    .x = offsetX,
+                    .y = offsetY,
+                    .h = verticalBorderHeight,
+                    .w = borderWidth
+                };
+    
+                rects[current] = leftBorder;
+                current++;
+            }
+
+            if((TOP & walls) != 0 || row == 0){
+
+                SDL_FRect topBorder = {
+                    .x = offsetX,
+                    .y = offsetY,
+                    .h = borderWidth,
+                    .w = totalCellWidth
+                };
+    
+    
+                rects[current] = topBorder;
+                current++;
+            }
+             if((RIGHT & walls) != 0 || col == columns-1) {
+                SDL_FRect rightBorder = {
+                    .x = offsetX + totalCellWidth,
+                    .y = offsetY,
+                    .h = verticalBorderHeight,
+                    .w = borderWidth
+                };
+
+
+                rects[current] = rightBorder;
+                current++;
+            }
+            if((BOTTOM & walls) != 0 | row == rows-1){
+                SDL_FRect bottomBorder = {
+                    .x = offsetX ,
+                    .y = offsetY + totalCellHeight,
+                    .h = borderWidth,
+                    .w = totalCellWidth + borderWidth
+                };
+
+
+                rects[current] = bottomBorder;
+                current++;
+            }
+  
+        }
+    }
+
+    return current;
+}
+
+int rectsFromStats(SDL_FRect *rects, size_t length, MazeStats mazeStats){
     int borderWidth = mazeStats.borderWidth;
     int totalCellHeight = mazeStats.totalCellHeight;
     int totalCellWidth = mazeStats.totalCellWidth;

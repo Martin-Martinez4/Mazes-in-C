@@ -5,18 +5,28 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 #include "draw_cells.h"
+#include "cell.h"
+#include "kruskals.h"
 
-const int WINDOW_WIDTH = 1080;
-const int WINDOW_HEIGHT = 506;
+const int WINDOW_WIDTH = 2040;
+const int WINDOW_HEIGHT = 1200;
 
-const int CELL_HEIGHT = 40;
-const int CELL_WIDTH = 40;
-const int BORDER_WIDTH = 2;
+const int CELL_HEIGHT = 50;
+const int CELL_WIDTH = 50;
+const int BORDER_WIDTH = 1;
 
 
 
 int main(int argc, char* argv[]) {
+
+    // Seed the random number generator
+    srand((unsigned int)time(NULL));
+
+    // Example usage
+    int r = rand();           // random number
+    int r2 = rand() % 10;     // random number from 0 to 9
     
 
     printf("RUNNING\n");
@@ -48,10 +58,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    MazeStats mazeStats = createMazeStats((int)(WINDOW_WIDTH/2), (int)(WINDOW_HEIGHT/2), 25, 25, 4);
+    MazeStats mazeStats = createMazeStats((int)(WINDOW_WIDTH), (int)(WINDOW_HEIGHT), 25, 25, 4);
+
+    Cell* cells = kruskalsCreateMaze(&mazeStats);
     
     // only holds the borders
     size_t rectsSize = ((3 * mazeStats.rows * mazeStats.columns + (mazeStats.rows + mazeStats.columns)) - (mazeStats.rows * mazeStats.columns)) * sizeof(SDL_FRect); 
+
     SDL_FRect *rects = (SDL_FRect *)malloc(rectsSize);
     int lenRects = rectsSize / sizeof(SDL_FRect);
 
@@ -59,7 +72,8 @@ int main(int argc, char* argv[]) {
     // printf("rows is: %d\n", mazeStats.rows);
     // printf("columns is: %d\n", mazeStats.columns);
 
-   int cellsToDraw =  buildCellsArray(rects, lenRects, mazeStats);
+//    int cellsToDraw =  rectsFromStats(rects, lenRects, mazeStats);
+    int cellsToDraw = rectsFromCells(cells, rects, lenRects, mazeStats);
 
     SDL_FRect background = {
         .x = 0,
@@ -84,10 +98,14 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-         SDL_SetRenderDrawColor(renderer, 250, 249, 246, 255);
+        //  SDL_SetRenderDrawColor(renderer, 250, 249, 246, 255);
+        SDL_SetRenderDrawColor(renderer, 15, 15, 15, 255);
         int status = SDL_RenderFillRect(renderer, &background);
         
-        SDL_SetRenderDrawColor(renderer, 50, 50, 246, 255);
+        // SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
+        // SDL_SetRenderDrawColor(renderer, 125, 120, 120, 255);
+        SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
+
         SDL_RenderFillRects(renderer, rects, cellsToDraw);
 
 
