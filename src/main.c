@@ -10,11 +10,11 @@
 #include "cell.h"
 #include "kruskals.h"
 
-const int WINDOW_WIDTH = 2040;
-const int WINDOW_HEIGHT = 1200;
+const int WINDOW_WIDTH = 1080;
+const int WINDOW_HEIGHT = 720;
 
-const int CELL_HEIGHT = 50;
-const int CELL_WIDTH = 50;
+const int CELL_HEIGHT = 5;
+const int CELL_WIDTH = 5;
 const int BORDER_WIDTH = 1;
 
 
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    MazeStats mazeStats = createMazeStats((int)(WINDOW_WIDTH), (int)(WINDOW_HEIGHT), 25, 25, 4);
+    MazeStats mazeStats = createMazeStats((int)(WINDOW_WIDTH), (int)(WINDOW_HEIGHT), CELL_HEIGHT, CELL_WIDTH, BORDER_WIDTH);
 
     Cell* cells = kruskalsCreateMaze(&mazeStats);
     

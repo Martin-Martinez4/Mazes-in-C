@@ -160,7 +160,8 @@ Cell *kruskalsCreateMaze(MazeStats *mazeStats){
 
     top--;
   }
-
+  free(edges);
+  free(sets);
 
   return cells;
 
