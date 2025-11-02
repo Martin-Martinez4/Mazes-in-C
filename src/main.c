@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "draw_cells.h"
+#include "maze_stats.h"
 #include "cell.h"
 #include "kruskals.h"
 

@@ -54,6 +54,7 @@ endif()
 
     set(sources
     ${CMAKE_SOURCE_DIR}/src/utils/grid_utils.c
+    ${CMAKE_SOURCE_DIR}/src/rooms.c
     ${CMAKE_SOURCE_DIR}/src/cell.c
     ${CMAKE_SOURCE_DIR}/src/rb_tree.c
     ${CMAKE_SOURCE_DIR}/src/sets.c

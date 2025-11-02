@@ -2,7 +2,8 @@
 #define H_KRUSKALS
 
 #include "cell.h"
-#include "draw_cells.h"
+#include "maze_stats.h"
+
 
 Cell *kruskalsCreateMaze(MazeStats* mazeStates);
 
