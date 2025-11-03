@@ -5,5 +5,6 @@
 #include "Tests_rb_tree.h"
 #include "Tests_sets.h"
 #include "Tests_grid_utils.h"
+#include "Tests_aabb.h"
 
 #endif

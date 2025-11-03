@@ -38,80 +38,58 @@ MazeStats createMazeStats(int canvasWidth, int canvasHeight, int cellWidth, int 
     return m;
 }
 
-int rectsFromCells(Cell* cells, SDL_FRect *rects, size_t length, MazeStats mazeStats){
-     int borderWidth = mazeStats.borderWidth;
+int rectsFromCells(Cell* cells, SDL_FRect *rects, size_t length, MazeStats mazeStats) {
+    int borderWidth = mazeStats.borderWidth;
     int totalCellHeight = mazeStats.totalCellHeight;
     int totalCellWidth = mazeStats.totalCellWidth;
 
-    int verticalBorderHeight = totalCellHeight;
-        
     int rows = mazeStats.rows;
     int columns = mazeStats.columns;
 
     int current = 0;
 
-    int offsetX = 0;
-    int offsetY = 0;
+    for (int row = 0; row < rows; row++) {
+        int offsetY = totalCellHeight * row;
+        for (int col = 0; col < columns; col++) {
+            int offsetX = totalCellWidth * col;
+            Cell *c = &cells[matrix_coords_to_array_coords(row, col, columns)];
+            int walls = c->walls;
 
-    for(int row = 0; row < rows; row++){
-        offsetY = (totalCellHeight * row);
-        for(int col = 0; col < columns; col++){
-           Cell *c = &cells[matrix_coords_to_array_coords(row, col, columns)];
-           int walls = c->walls;
-
-            offsetX = (totalCellWidth * col);
-
-            if( (LEFT & walls) != 0 || col == 0){
-
-                SDL_FRect leftBorder = {
-                    .x = offsetX,
-                    .y = offsetY,
-                    .h = verticalBorderHeight,
-                    .w = borderWidth
-                };
-    
-                rects[current] = leftBorder;
-                current++;
+            // LEFT
+            if ((walls & LEFT) != 0 || col == 0) {
+                if (current >= (int)length) {
+                    fprintf(stderr, "rects array overflow at LEFT, current=%d, max=%zu\n", current, length);
+                    exit(1);
+                }
+                rects[current++] = (SDL_FRect){.x = offsetX, .y = offsetY, .w = borderWidth, .h = totalCellHeight};
             }
 
-            if((TOP & walls) != 0 || row == 0){
-
-                SDL_FRect topBorder = {
-                    .x = offsetX,
-                    .y = offsetY,
-                    .h = borderWidth,
-                    .w = totalCellWidth
-                };
-    
-    
-                rects[current] = topBorder;
-                current++;
+            // TOP
+            if ((walls & TOP) != 0 || row == 0) {
+                if (current >= (int)length) {
+                    fprintf(stderr, "rects array overflow at TOP, current=%d, max=%zu\n", current, length);
+                    exit(1);
+                }
+                rects[current++] = (SDL_FRect){.x = offsetX, .y = offsetY, .w = totalCellWidth, .h = borderWidth};
             }
-             if((RIGHT & walls) != 0 || col == columns-1) {
-                SDL_FRect rightBorder = {
-                    .x = offsetX + totalCellWidth,
-                    .y = offsetY,
-                    .h = verticalBorderHeight,
-                    .w = borderWidth
-                };
 
-
-                rects[current] = rightBorder;
-                current++;
+            // RIGHT
+            if ((walls & RIGHT) != 0 || col == columns - 1) {
+                if (current >= (int)length) {
+                    fprintf(stderr, "rects array overflow at RIGHT, current=%d, max=%zu\n", current, length);
+                    exit(1);
+                }
+                rects[current++] = (SDL_FRect){.x = offsetX + totalCellWidth, .y = offsetY, .w = borderWidth, .h = totalCellHeight};
             }
-            if((BOTTOM & walls) != 0 | row == rows-1){
-                SDL_FRect bottomBorder = {
-                    .x = offsetX ,
-                    .y = offsetY + totalCellHeight,
-                    .h = borderWidth,
-                    .w = totalCellWidth + borderWidth
-                };
 
-
-                rects[current] = bottomBorder;
-                current++;
+            // BOTTOM
+            if ((walls & BOTTOM) != 0 || row == rows - 1) {
+                if (current >= (int)length) {
+                    fprintf(stderr, "rects array overflow at BOTTOM, current=%d, max=%zu\n", current, length);
+                    exit(1);
+                }
+                rects[current++] = (SDL_FRect){.x = offsetX, .y = offsetY + totalCellHeight, .w = totalCellWidth, .h = borderWidth};
             }
-  
         }
     }
 

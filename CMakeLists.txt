@@ -54,6 +54,11 @@ endif()
 
     set(sources
     ${CMAKE_SOURCE_DIR}/src/utils/grid_utils.c
+    ${CMAKE_SOURCE_DIR}/src/utils/rand_utils.c
+
+    ${CMAKE_SOURCE_DIR}/src/aabb.c
+    ${CMAKE_SOURCE_DIR}/src/rooms_bvh.c
+    ${CMAKE_SOURCE_DIR}/src/rooms.c
     ${CMAKE_SOURCE_DIR}/src/cell.c
     ${CMAKE_SOURCE_DIR}/src/rb_tree.c
     ${CMAKE_SOURCE_DIR}/src/sets.c
@@ -102,6 +107,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC -lm ${SDL3_LIBRARIES} ${SDL3_
 set(test_sources ${test_sources}
 # ${CMAKE_CURRENT_SOURCE_DIR}/tests/LinearMath/Vector_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_draw_cells.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_aabb.c
   ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_rb_tree.c
   ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_sets.c
   ${CMAKE_CURRENT_SOURCE_DIR}/test/utils/Tests_grid_utils.c
