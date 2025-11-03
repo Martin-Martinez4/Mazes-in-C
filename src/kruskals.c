@@ -5,6 +5,7 @@
 
 #include "cell.h"
 #include "grid_utils.h"
+#include "rooms.h"
 
 void shuffleEdgeArray(Edge* array, int length) {
   for (int i = length - 1; i >= 1; i--) {
@@ -15,18 +16,55 @@ void shuffleEdgeArray(Edge* array, int length) {
   }
 }
 
-void setUpCells(Cell* cells, int rows, int columns) {
+void setUpCells(Cell* cells, Rooms* rooms, int rows, int columns) {
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < columns; col++) {
       cells[matrix_coords_to_array_coords(row, col, columns)] =
           create_walled_cell(row, col);
     }
   }
+
+  for (int i = 0; i < rooms->length; i++) {
+    Room room = rooms->data[i];
+    int set = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
+
+    int x = room.aabb.x;
+    int y = room.aabb.y;
+    int width = room.aabb.width;
+    int height = room.aabb.height;
+
+    for (int row = y; row < (y + height); row++) {
+      for (int col = x; col < (x + width); col++) {
+        int walls = 0;
+        if (row == y) walls |= TOP;
+        if (row == y + height - 1) walls |= BOTTOM;
+        if (col == x) walls |= LEFT;
+        if (col == x + width - 1) walls |= RIGHT;
+        cells[matrix_coords_to_array_coords(row, col, columns)].walls = walls;
+      }
+    }
+  }
 }
 
-void setUpSets(int* sets, int rows, int columns) {
+void setUpSets(int* sets, Rooms* rooms, int rows, int columns) {
   for (int i = 0; i < rows * columns; i++) {
     sets[i] = i;
+  }
+
+  for (int i = 0; i < rooms->length; i++) {
+    Room room = rooms->data[i];
+    int set = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
+
+    int x = room.aabb.x;
+    int y = room.aabb.y;
+    int width = room.aabb.width;
+    int height = room.aabb.height;
+
+    for (int row = y; row < (y + height - 1); row++) {
+      for (int col = x; col < (x + width - 1); col++) {
+        sets[matrix_coords_to_array_coords(row, col, columns)] = set;
+      }
+    }
   }
 }
 
@@ -73,7 +111,7 @@ void mergeSets(int* sets, int current, int change) {
   }
 }
 
-Cell* kruskalsCreateMaze(MazeStats* mazeStats) {
+Cell* kruskalsCreateMaze(MazeStats* mazeStats, Rooms* rooms) {
   int rows = mazeStats->rows;
   int columns = mazeStats->columns;
   Cell* cells = malloc(sizeof(Cell) * rows * columns);
@@ -82,7 +120,7 @@ Cell* kruskalsCreateMaze(MazeStats* mazeStats) {
     fprintf(stderr, "Error: malloc failed for cells\n");
     return NULL;
   }
-  setUpCells(cells, rows, columns);
+  setUpCells(cells, rooms, rows, columns);
 
   int* sets = malloc(sizeof(int) * rows * columns);
   if (!sets) {
@@ -90,7 +128,7 @@ Cell* kruskalsCreateMaze(MazeStats* mazeStats) {
     free(cells);
     return NULL;
   }
-  setUpSets(sets, rows, columns);
+  setUpSets(sets, rooms, rows, columns);
 
   int edges_len = (rows * (columns - 1)) + ((rows - 1) * columns);
   Edge* edges = malloc(sizeof(Edge) * edges_len);

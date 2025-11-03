@@ -1,7 +1,8 @@
 #include "rooms.h"
-#include <stdio.h>
-#include "rand_utils.h"
 
+#include <stdio.h>
+
+#include "rand_utils.h"
 
 void append_room(Rooms* rooms, Room room) {
   if (rooms->length >= rooms->capacity) {
@@ -14,7 +15,7 @@ void append_room(Rooms* rooms, Room room) {
     }
     rooms->data = d;
   }
-
+  // printf("Appending room %d / %d\n", rooms->length, rooms->capacity);
   rooms->data[rooms->length] = room;
   rooms->length += 1;
 }
@@ -87,8 +88,6 @@ bool bvh_intersects_rooms(BVHNode* nodes, Room* rooms, int nodeIndex,
          bvh_intersects_rooms(nodes, rooms, node->right, newRoom);
 }
 
-
-
 int bvh_insert(BVHNodes* nodes, Rooms* rooms, int nodeIndex, int roomIndex) {
   BVHNode* node = &nodes->data[nodeIndex];
   Room* room = &rooms->data[roomIndex];
@@ -149,8 +148,8 @@ Rooms* makeRooms(MazeStats* mazeStats, double saturation) {
   BVHNodes* nodes = create_bvh_nodes();
 
   while (current_saturation < saturation && rooms->length < max_rooms) {
-    int room_width = rand_triangle_distribution(2, 6, 4);
-    int room_height = rand_triangle_distribution(2, 6, 4);
+    int room_width = rand_triangle_distribution(2, 10, 5);
+    int room_height = rand_triangle_distribution(2, 10, 5);
 
     int room_x = rand_int(0, columns - room_width);
     int room_y = rand_int(0, rows - room_height);
@@ -164,6 +163,8 @@ Rooms* makeRooms(MazeStats* mazeStats, double saturation) {
     if (rooms->length >= 50) {
       // rebuild every 50 rooms
       if (rooms->length % 50 == 0) {
+        // Reset before rebuild
+        nodes->length = 0;
         create_bvh(mazeStats, nodes, rooms);
       }
       // root should be 0
@@ -182,4 +183,6 @@ Rooms* makeRooms(MazeStats* mazeStats, double saturation) {
       current_saturation = (rooms->length * avg_cells_in_room) / total_cells;
     }
   }
+
+  return rooms;
 }

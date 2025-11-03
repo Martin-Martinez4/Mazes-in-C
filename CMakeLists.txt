@@ -107,6 +107,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC -lm ${SDL3_LIBRARIES} ${SDL3_
 set(test_sources ${test_sources}
 # ${CMAKE_CURRENT_SOURCE_DIR}/tests/LinearMath/Vector_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_draw_cells.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_aabb.c
   ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_rb_tree.c
   ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_sets.c
   ${CMAKE_CURRENT_SOURCE_DIR}/test/utils/Tests_grid_utils.c

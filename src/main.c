@@ -15,8 +15,8 @@
 const int WINDOW_WIDTH = 1080;
 const int WINDOW_HEIGHT = 720;
 
-const int CELL_HEIGHT = 50;
-const int CELL_WIDTH = 50;
+const int CELL_HEIGHT = 7;
+const int CELL_WIDTH = 7;
 const int BORDER_WIDTH = 1;
 
 int main(int argc, char* argv[]) {
@@ -58,13 +58,17 @@ int main(int argc, char* argv[]) {
       createMazeStats((int)(WINDOW_WIDTH), (int)(WINDOW_HEIGHT), CELL_HEIGHT,
                       CELL_WIDTH, BORDER_WIDTH);
 
-  Cell* cells = kruskalsCreateMaze(&mazeStats);
+  Rooms* rooms = makeRooms(&mazeStats, 0.1);
+  
+  Cell* cells = kruskalsCreateMaze(&mazeStats, rooms);
 
   // only holds the borders
-  size_t rectsSize = ((3 * mazeStats.rows * mazeStats.columns +
-                       (mazeStats.rows + mazeStats.columns)) -
-                      (mazeStats.rows * mazeStats.columns)) *
-                     sizeof(SDL_FRect);
+//   size_t rectsSize = ((3 * mazeStats.rows * mazeStats.columns +
+//                        (mazeStats.rows + mazeStats.columns)) -
+//                       (mazeStats.rows * mazeStats.columns)) *
+//                      sizeof(SDL_FRect);
+
+size_t rectsSize = 4 * mazeStats.rows * mazeStats.columns  * sizeof(SDL_FRect);
 
   SDL_FRect* rects = (SDL_FRect*)malloc(rectsSize);
   int lenRects = rectsSize / sizeof(SDL_FRect);
