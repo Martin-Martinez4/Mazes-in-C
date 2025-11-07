@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "backtracking.h"
 #include "cell.h"
 #include "draw_cells.h"
 #include "kruskals.h"
@@ -15,9 +16,9 @@
 const int WINDOW_WIDTH = 1080;
 const int WINDOW_HEIGHT = 720;
 
-const int CELL_HEIGHT = 7;
-const int CELL_WIDTH = 7;
-const int BORDER_WIDTH = 1;
+const int CELL_HEIGHT = 10;
+const int CELL_WIDTH = 10;
+const int BORDER_WIDTH = 2;
 
 int main(int argc, char* argv[]) {
   // Seed the random number generator
@@ -59,16 +60,18 @@ int main(int argc, char* argv[]) {
                       CELL_WIDTH, BORDER_WIDTH);
 
   Rooms* rooms = makeRooms(&mazeStats, 0.1);
-  
-  Cell* cells = kruskalsCreateMaze(&mazeStats, rooms);
+
+  //   Cell* cells = kruskalsCreateMaze(&mazeStats, rooms);
+  Cell* cells = backtrackingCreateMaze(&mazeStats, rooms);
 
   // only holds the borders
-//   size_t rectsSize = ((3 * mazeStats.rows * mazeStats.columns +
-//                        (mazeStats.rows + mazeStats.columns)) -
-//                       (mazeStats.rows * mazeStats.columns)) *
-//                      sizeof(SDL_FRect);
+  //   size_t rectsSize = ((3 * mazeStats.rows * mazeStats.columns +
+  //                        (mazeStats.rows + mazeStats.columns)) -
+  //                       (mazeStats.rows * mazeStats.columns)) *
+  //                      sizeof(SDL_FRect);
 
-size_t rectsSize = 4 * mazeStats.rows * mazeStats.columns  * sizeof(SDL_FRect);
+
+  size_t rectsSize = 4 * mazeStats.rows * mazeStats.columns * sizeof(SDL_FRect);
 
   SDL_FRect* rects = (SDL_FRect*)malloc(rectsSize);
   int lenRects = rectsSize / sizeof(SDL_FRect);
