@@ -21,18 +21,18 @@ void append_room(Rooms* rooms, Room room) {
 }
 
 Rooms* create_rooms() {
-  Room* d = malloc(sizeof(Room) * 16);
-  Rooms* rs = malloc(sizeof(Rooms));
-  rs->data = d;
+  Room* d      = malloc(sizeof(Room) * 16);
+  Rooms* rs    = malloc(sizeof(Rooms));
+  rs->data     = d;
   rs->capacity = 16;
-  rs->length = 0;
+  rs->length   = 0;
 
   return rs;
 }
 
 int compare_rooms_by_x(const void* a, const void* b) {
-  const Room* ra = (const Room*)a;
-  const Room* rb = (const Room*)b;
+  const Room* ra = (const Room*) a;
+  const Room* rb = (const Room*) b;
 
   int ca = ra->aabb.x + ra->aabb.width / 2;
   int cb = rb->aabb.x + rb->aabb.width / 2;
@@ -41,8 +41,8 @@ int compare_rooms_by_x(const void* a, const void* b) {
 }
 
 int compare_rooms_by_y(const void* a, const void* b) {
-  const Room* ra = (const Room*)a;
-  const Room* rb = (const Room*)b;
+  const Room* ra = (const Room*) a;
+  const Room* rb = (const Room*) b;
 
   int ca = ra->aabb.y + ra->aabb.width / 2;
   int cb = rb->aabb.y + rb->aabb.width / 2;
@@ -71,8 +71,7 @@ void create_bvh(MazeStats* mazeStats, BVHNodes* nodes, Rooms* rooms) {
   free(indices);
 }
 
-bool bvh_intersects_rooms(BVHNode* nodes, Room* rooms, int nodeIndex,
-                          Room newRoom) {
+bool bvh_intersects_rooms(BVHNode* nodes, Room* rooms, int nodeIndex, Room newRoom) {
   // get current node
   BVHNode* node = &nodes[nodeIndex];
 
@@ -90,31 +89,28 @@ bool bvh_intersects_rooms(BVHNode* nodes, Room* rooms, int nodeIndex,
 
 int bvh_insert(BVHNodes* nodes, Rooms* rooms, int nodeIndex, int roomIndex) {
   BVHNode* node = &nodes->data[nodeIndex];
-  Room* room = &rooms->data[roomIndex];
+  Room* room    = &rooms->data[roomIndex];
 
   // Leaf node → create a new internal node
   if (node->room_index != -1) {
     BVHNode oldLeaf = *node;
 
-    BVHNode newLeaf = {
-        .box = room->aabb, .left = -1, .right = -1, .room_index = roomIndex};
+    BVHNode newLeaf = {.box = room->aabb, .left = -1, .right = -1, .room_index = roomIndex};
 
     append_bvh_node(nodes, newLeaf);
 
     int newLeafIndex = nodes->length - 1;
 
-    node->left = nodeIndex;
-    node->right = newLeafIndex;
+    node->left       = nodeIndex;
+    node->right      = newLeafIndex;
     node->room_index = -1;
-    node->box = aabb_union(oldLeaf.box, newLeaf.box);
+    node->box        = aabb_union(oldLeaf.box, newLeaf.box);
 
     return nodeIndex;
   }
 
-  double expandLeft =
-      aabb_expansion_cost(nodes->data[node->left].box, room->aabb);
-  double expandRight =
-      aabb_expansion_cost(nodes->data[node->right].box, room->aabb);
+  double expandLeft  = aabb_expansion_cost(nodes->data[node->left].box, room->aabb);
+  double expandRight = aabb_expansion_cost(nodes->data[node->right].box, room->aabb);
 
   if (expandLeft < expandRight) {
     bvh_insert(nodes, rooms, node->left, roomIndex);
@@ -123,8 +119,7 @@ int bvh_insert(BVHNodes* nodes, Rooms* rooms, int nodeIndex, int roomIndex) {
   }
 
   // Update bounding box
-  node->box =
-      aabb_union(nodes->data[node->left].box, nodes->data[node->right].box);
+  node->box = aabb_union(nodes->data[node->left].box, nodes->data[node->right].box);
   return nodeIndex;
 }
 
@@ -135,27 +130,26 @@ int bvh_insert(BVHNodes* nodes, Rooms* rooms, int nodeIndex, int roomIndex) {
 */
 Rooms* makeRooms(MazeStats* mazeStats, double saturation) {
   int columns = mazeStats->columns;
-  int rows = mazeStats->rows;
+  int rows    = mazeStats->rows;
 
   double avg_cells_in_room = 16;
-  int total_cells = rows * columns;
+  int total_cells          = rows * columns;
 
   int max_rooms = (total_cells * saturation) / avg_cells_in_room;
 
   double current_saturation = 0;
 
-  Rooms* rooms = create_rooms();
+  Rooms* rooms    = create_rooms();
   BVHNodes* nodes = create_bvh_nodes();
 
   while (current_saturation < saturation && rooms->length < max_rooms) {
-    int room_width = rand_triangle_distribution(2, 10, 5);
+    int room_width  = rand_triangle_distribution(2, 10, 5);
     int room_height = rand_triangle_distribution(2, 10, 5);
 
     int room_x = rand_int(0, columns - room_width);
     int room_y = rand_int(0, rows - room_height);
 
-    AABB aabb = {
-        .x = room_x, .y = room_y, .width = room_width, .height = room_height};
+    AABB aabb = {.x = room_x, .y = room_y, .width = room_width, .height = room_height};
 
     Room r = {.aabb = aabb};
 

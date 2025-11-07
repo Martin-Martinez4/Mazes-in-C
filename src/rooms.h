@@ -32,8 +32,7 @@ int compare_rooms_by_x(const void* a, const void* b);
 int compare_rooms_by_y(const void* a, const void* b);
 void create_bvh(MazeStats* mazeStats, BVHNodes* nodes, Rooms* rooms);
 
-bool bvh_intersects_rooms(BVHNode* nodes, Room* rooms, int nodeIndex,
-                          Room newRoom);
+bool bvh_intersects_rooms(BVHNode* nodes, Room* rooms, int nodeIndex, Room newRoom);
 
 Rooms* makeRooms(MazeStats* mazeStats, double saturation);
 

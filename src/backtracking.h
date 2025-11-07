@@ -5,7 +5,7 @@
 #include "maze_stats.h"
 #include "rooms.h"
 
-Cell* backtrackingCreateMaze(MazeStats* mazeStates, Rooms *rooms);
+Cell* backtrackingCreateMaze(MazeStats* mazeStates, Rooms* rooms);
 void backtrack(Cell* cells, bool* visited, int row, int column, int rows, int columns);
 
 #endif
