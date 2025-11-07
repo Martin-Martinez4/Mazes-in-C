@@ -11,7 +11,7 @@ void shuffleArray(void* array, int length, size_t element_size) {
   for (int i = length - 1; i >= 1; i--) {
     int j = rand() % (i + 1);
 
-    char temp[element_size];
+    char* temp = malloc(element_size);
 
     // swap arr[i] and arr[j]
     memcpy(temp, arr + i * element_size, element_size);
