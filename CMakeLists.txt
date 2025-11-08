@@ -85,13 +85,13 @@ endif()
     ${CMAKE_SOURCE_DIR}/src/aabb.c
     ${CMAKE_SOURCE_DIR}/src/rooms_bvh.c
     ${CMAKE_SOURCE_DIR}/src/rooms.c
-    ${CMAKE_SOURCE_DIR}/src/backtracking.c
-    ${CMAKE_SOURCE_DIR}/src/cell.c
-    ${CMAKE_SOURCE_DIR}/src/rb_tree.c
-    ${CMAKE_SOURCE_DIR}/src/sets.c
+    ${CMAKE_SOURCE_DIR}/src/maze_gen/backtracking.c
+    ${CMAKE_SOURCE_DIR}/src/maze_gen/cell.c
+    ${CMAKE_SOURCE_DIR}/src/utils/rb_tree.c
+    ${CMAKE_SOURCE_DIR}/src/utils/sets.c
     ${CMAKE_SOURCE_DIR}/src/draw_cells.c
-    ${CMAKE_SOURCE_DIR}/src/kruskals.c
-    ${CMAKE_SOURCE_DIR}/src/prims.c
+    ${CMAKE_SOURCE_DIR}/src/maze_gen/kruskals.c
+    ${CMAKE_SOURCE_DIR}/src/maze_gen/prims.c
     
 
     
@@ -119,14 +119,20 @@ endif()
 message("SDL3_IMAGE_INCLUDE_DIRS: ${SDL3_IMAGE_INCLUDE_DIRS}")
 message("SDL3_INCLUDE_DIRS: ${SDL3_INCLUDE_DIRS}")
 
+set(
+  sources_directories
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/maze_gen
+  ${SDL3_IMAGE_INCLUDE_DIRS}
+)
+
 
 
 target_include_directories(
     ${CMAKE_PROJECT_NAME} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
+    ${sources_directories}
     ${SDL3_INCLUDE_DIRS}
-    ${SDL3_IMAGE_INCLUDE_DIRS}
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC -lm ${SDL3_LIBRARIES} ${SDL3_IMAGE_LIBRARIES})
@@ -150,11 +156,9 @@ add_executable(
 target_include_directories(
   ${CMAKE_PROJECT_NAME}_test
   PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
+  ${sources_directories}
   ${CMAKE_CURRENT_SOURCE_DIR}/test/myAssert
   ${CMAKE_CURRENT_SOURCE_DIR}/test/utils
-  ${SDL3_IMAGE_INCLUDE_DIRS}
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME}_test PUBLIC -lm ${SDL3_LIBRARIES} ${SDL3_IMAGE_LIBRARIES})
