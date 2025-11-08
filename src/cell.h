@@ -23,14 +23,13 @@
 // 1110
 #define RIGHT_REMOVER ~RIGHT
 
-
 typedef struct Cell {
   int row;
   int column;
   uint8_t walls;
-}Cell;
+} Cell;
 
-typedef struct Edge{
+typedef struct Edge {
   Cell* cell_ptr;
   uint8_t direction;
   uint8_t opposite_direction;
@@ -40,4 +39,3 @@ Cell create_walled_cell(int row, int column);
 Edge create_edge(Cell* cell, uint8_t direction);
 
 #endif
-

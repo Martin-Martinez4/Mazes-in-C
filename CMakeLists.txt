@@ -50,6 +50,32 @@ else()
   endif()
 
 endif()
+
+# -----------------------
+# Clang-format target
+# -----------------------
+find_program(CLANG_FORMAT_EXECUTABLE clang-format)
+
+if(CLANG_FORMAT_EXECUTABLE)
+    message(STATUS "clang-format found: ${CLANG_FORMAT_EXECUTABLE}")
+
+    # Recursively collect all C source and header files
+    file(GLOB_RECURSE ALL_C_FILES
+        "${CMAKE_SOURCE_DIR}/src/*.c"
+        "${CMAKE_SOURCE_DIR}/src/*.h"
+        "${CMAKE_SOURCE_DIR}/include/*.h"
+        "${CMAKE_SOURCE_DIR}/test/*.c"
+        "${CMAKE_SOURCE_DIR}/test/*.h"
+    )
+
+    add_custom_target(format
+        COMMAND ${CLANG_FORMAT_EXECUTABLE} -i -style=file ${ALL_C_FILES}
+        COMMENT "Formatting all C and H files with clang-format"
+        VERBATIM
+    )
+else()
+    message(WARNING "clang-format not found! 'format' target will be unavailable.")
+endif()
     
 
     set(sources
@@ -65,6 +91,7 @@ endif()
     ${CMAKE_SOURCE_DIR}/src/sets.c
     ${CMAKE_SOURCE_DIR}/src/draw_cells.c
     ${CMAKE_SOURCE_DIR}/src/kruskals.c
+    ${CMAKE_SOURCE_DIR}/src/prims.c
     
 
     

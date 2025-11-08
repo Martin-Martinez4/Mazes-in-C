@@ -2,8 +2,8 @@
 #include "sets.h"
 
 // will have to free elements then Set
-Set* createSet(){
-  Set* s = (Set *)malloc(sizeof(Set));
+Set* createSet() {
+  Set* s      = (Set*) malloc(sizeof(Set));
   s->elements = createRBTree();
 
   return s;
@@ -11,7 +11,7 @@ Set* createSet(){
 
 // add
 // just insert to the RBTree
-void add(Set* A, char* val){
+void add(Set* A, char* val) {
   rbTreeInsert(A->elements, val);
 }
 
@@ -25,19 +25,19 @@ void add(Set* A, char* val){
 // has/find
 // implement on RBTree
 // traverse and try to find
-bool has(Set* A, char* val){
+bool has(Set* A, char* val) {
   return false;
 }
 
-char** getSetValues(Set* A){
-  char **strings = (char **)malloc(sizeof(char *) * A->elements->size);
-  int index = 0;
+char** getSetValues(Set* A) {
+  char** strings = (char**) malloc(sizeof(char*) * A->elements->size);
+  int index      = 0;
   traverseInOrder(A->elements, A->elements->root, strings, &index);
   return strings;
 }
 
 // merge (union is a C key word)
-// get the values of both in a list 
+// get the values of both in a list
 // in order traversal
 // insert all the values in a loop
 // Set* merge(Set* A, Set* B){
@@ -47,10 +47,10 @@ char** getSetValues(Set* A){
 // merge (union is a C key word)
 // get the values of B
 // add values to A
-void mergeInPlace(Set* A, Set* B){
+void mergeInPlace(Set* A, Set* B) {
   char** bValues = getSetValues(B);
 
-  for(int i = 0; i < B->elements->size; i++){
+  for (int i = 0; i < B->elements->size; i++) {
     add(A, bValues[i]);
   }
 }

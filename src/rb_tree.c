@@ -6,26 +6,26 @@
 #include "string.h"
 
 RBNode* createRBNode(RBTree* tree, char* val) {
-  RBNode* node = (RBNode*)malloc(sizeof(RBNode));
+  RBNode* node = (RBNode*) malloc(sizeof(RBNode));
 
-  node->key = val;
+  node->key    = val;
   node->parent = tree->nilNode;
-  node->left = tree->nilNode;
-  node->right = tree->nilNode;
-  node->red = true;
+  node->left   = tree->nilNode;
+  node->right  = tree->nilNode;
+  node->red    = true;
 
   return node;
 }
 
 RBTree* createRBTree() {
-  RBTree* tree = malloc(sizeof(RBTree));
+  RBTree* tree  = malloc(sizeof(RBTree));
   tree->nilNode = malloc(sizeof(RBNode));
 
-  tree->nilNode->red = false;
-  tree->nilNode->left = tree->nilNode;
-  tree->nilNode->right = tree->nilNode;
+  tree->nilNode->red    = false;
+  tree->nilNode->left   = tree->nilNode;
+  tree->nilNode->right  = tree->nilNode;
   tree->nilNode->parent = tree->nilNode;
-  tree->nilNode->key = NULL;
+  tree->nilNode->key    = NULL;
 
   tree->root = tree->nilNode;
   tree->size = 0;
@@ -48,7 +48,7 @@ void leftRotate(RBTree* tree, RBNode* pivotParent) {
     return;
   }
 
-  RBNode* pivot = pivotParent->right;
+  RBNode* pivot      = pivotParent->right;
   pivotParent->right = pivot->left;
 
   if (pivot->left != tree->nilNode) {
@@ -65,7 +65,7 @@ void leftRotate(RBTree* tree, RBNode* pivotParent) {
     pivotParent->parent->right = pivot;
   }
 
-  pivot->left = pivotParent;
+  pivot->left         = pivotParent;
   pivotParent->parent = pivot;
 }
 
@@ -74,7 +74,7 @@ void rightRotate(RBTree* tree, RBNode* pivotParent) {
     return;
   }
 
-  RBNode* pivot = pivotParent->left;
+  RBNode* pivot     = pivotParent->left;
   pivotParent->left = pivot->right;
 
   if (pivot->right != tree->nilNode) {
@@ -91,7 +91,7 @@ void rightRotate(RBTree* tree, RBNode* pivotParent) {
     pivotParent->parent->right = pivot;
   }
 
-  pivot->right = pivotParent;
+  pivot->right        = pivotParent;
   pivotParent->parent = pivot;
 }
 
@@ -110,24 +110,24 @@ void fixTree(RBTree* tree, RBNode* newNode) {
   RBNode* currentNode = newNode;
 
   while (currentNode->parent->red) {
-    RBNode* parent = currentNode->parent;
+    RBNode* parent      = currentNode->parent;
     RBNode* grandparent = parent->parent;
 
     if (parent == grandparent->left) {
       RBNode* uncle = grandparent->right;
 
       if (uncle->red) {
-        parent->red = false;
-        uncle->red = false;
+        parent->red      = false;
+        uncle->red       = false;
         grandparent->red = true;
-        currentNode = grandparent;
+        currentNode      = grandparent;
       } else {
         if (currentNode == parent->right) {
           currentNode = parent;
           leftRotate(tree, currentNode);
           parent = currentNode->parent;
         }
-        parent->red = false;
+        parent->red      = false;
         grandparent->red = true;
         rightRotate(tree, grandparent);
       }
@@ -135,17 +135,17 @@ void fixTree(RBTree* tree, RBNode* newNode) {
       RBNode* uncle = grandparent->left;
 
       if (uncle->red) {
-        parent->red = false;
-        uncle->red = false;
+        parent->red      = false;
+        uncle->red       = false;
         grandparent->red = true;
-        currentNode = grandparent;
+        currentNode      = grandparent;
       } else {
         if (currentNode == parent->left) {
           currentNode = parent;
           rightRotate(tree, currentNode);
           parent = currentNode->parent;
         }
-        parent->red = false;
+        parent->red      = false;
         grandparent->red = true;
         leftRotate(tree, grandparent);
       }
@@ -166,11 +166,11 @@ void rbTreeInsert(RBTree* tree, char* string) {
 
   RBNode* node = createRBNode(tree, string);
 
-  RBNode* parent = tree->nilNode;
+  RBNode* parent  = tree->nilNode;
   RBNode* current = tree->root;
 
   while (current != tree->nilNode) {
-    parent = current;
+    parent  = current;
     int cmp = strcmp(node->key, current->key);
 
     if (cmp > 0) {
@@ -211,8 +211,7 @@ int traverseInOrder(RBTree* tree, RBNode* node, char** strings, int* index) {
   return *index;
 }
 
-int traverseInOrderGetNodes(RBTree* tree, RBNode* node, RBNode** nodes,
-                            int* index) {
+int traverseInOrderGetNodes(RBTree* tree, RBNode* node, RBNode** nodes, int* index) {
   if (node == tree->nilNode) {
     return *index;
   }
@@ -244,10 +243,12 @@ bool searchRBTree(RBTree* tree, RBNode* node, char* string) {
 }
 
 void printTree(RBTree* tree, RBNode* node, int depth) {
-  if (node == tree->nilNode) return;
+  if (node == tree->nilNode)
+    return;
 
   printTree(tree, node->right, depth + 1);
-  for (int i = 0; i < depth; i++) printf("    ");
+  for (int i = 0; i < depth; i++)
+    printf("    ");
   printf("%s (%s)\n", node->key, node->red ? "R" : "B");
   printTree(tree, node->left, depth + 1);
 }

@@ -5,7 +5,6 @@
 #include "cell.h"
 #include "maze_stats.h"
 
-
-Cell* kruskalsCreateMaze(MazeStats* mazeStates, Rooms *rooms);
+Cell* kruskalsCreateMaze(MazeStats* mazeStates, Rooms* rooms);
 
 #endif

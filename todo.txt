@@ -1,3 +1,6 @@
+Comand to format and build:
+  cmake --build . --target format
+
 - Make tests
   - rbTree.c
     - searchRBTree

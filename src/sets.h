@@ -3,7 +3,7 @@
 
 #include "rb_tree.h"
 
-typedef struct Set{
+typedef struct Set {
   RBTree* elements;
 } Set;
 
@@ -25,7 +25,7 @@ bool has(Set* A, char* val);
 char** getSetValues(Set* A);
 
 // merge (union is a C key word)
-// get the values of both in a list 
+// get the values of both in a list
 // in order traversal
 // insert all the values in a loop
 // Set* merge(Set* A, Set* B);
@@ -50,7 +50,5 @@ void mergeInPlace(Set* A, Set* B);
 // For all in A if in B add to new Set
 // For all in B if in A add to new Set
 // Set* symmetricDifference(Set* A, Set* B);
-
-
 
 #endif
