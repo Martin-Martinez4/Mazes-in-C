@@ -59,7 +59,7 @@ int rectsFromCells(Cell* cells, SDL_FRect* rects, size_t length, MazeStats mazeS
           exit(1);
         }
         rects[current++] =
-            (SDL_FRect) {.x = offsetX, .y = offsetY, .w = borderWidth, .h = totalCellHeight};
+            (SDL_FRect){.x = offsetX, .y = offsetY, .w = borderWidth, .h = totalCellHeight};
       }
 
       // TOP
@@ -69,7 +69,7 @@ int rectsFromCells(Cell* cells, SDL_FRect* rects, size_t length, MazeStats mazeS
           exit(1);
         }
         rects[current++] =
-            (SDL_FRect) {.x = offsetX, .y = offsetY, .w = totalCellWidth, .h = borderWidth};
+            (SDL_FRect){.x = offsetX, .y = offsetY, .w = totalCellWidth, .h = borderWidth};
       }
 
       // RIGHT
@@ -78,7 +78,7 @@ int rectsFromCells(Cell* cells, SDL_FRect* rects, size_t length, MazeStats mazeS
           fprintf(stderr, "rects array overflow at RIGHT, current=%d, max=%zu\n", current, length);
           exit(1);
         }
-        rects[current++] = (SDL_FRect) {
+        rects[current++] = (SDL_FRect){
             .x = offsetX + totalCellWidth, .y = offsetY, .w = borderWidth, .h = totalCellHeight};
       }
 
@@ -88,7 +88,7 @@ int rectsFromCells(Cell* cells, SDL_FRect* rects, size_t length, MazeStats mazeS
           fprintf(stderr, "rects array overflow at BOTTOM, current=%d, max=%zu\n", current, length);
           exit(1);
         }
-        rects[current++] = (SDL_FRect) {
+        rects[current++] = (SDL_FRect){
             .x = offsetX, .y = offsetY + totalCellHeight, .w = totalCellWidth, .h = borderWidth};
       }
     }

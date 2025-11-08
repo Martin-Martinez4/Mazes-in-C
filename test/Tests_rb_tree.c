@@ -75,17 +75,17 @@ void Test_traverseInOrder() {
 
   } testCase;
 
-  struct testCase* testCases = (struct testCase[]) {
-      {.theTree = theTree, .root = root1, .want = (char*[]) {"A", "B", "C", "D"}, .length = 4
+  struct testCase* testCases = (struct testCase[]){
+      {.theTree = theTree, .root = root1, .want = (char*[]){"A", "B", "C", "D"}, .length = 4
 
       },
       {.theTree = theTree,
        .root    = root2,
-       .want    = (char*[]) {"3", "7", "8", "10", "11", "18", "22", "26"},
+       .want    = (char*[]){"3", "7", "8", "10", "11", "18", "22", "26"},
        .length  = 8},
       {.theTree = theTree,
        .root    = root3,
-       .want    = (char*[]) {"8", "12", "19", "31", "38", "39", "40", "41"},
+       .want    = (char*[]){"8", "12", "19", "31", "38", "39", "40", "41"},
        .length  = 8
 
       }
@@ -150,46 +150,46 @@ void Test_rbTreeInsert() {
 
   } testCase;
 
-  struct testCase* testCases = (struct testCase[]) {
+  struct testCase* testCases = (struct testCase[]){
       {
           .theTree   = createRBTree(),
-          .vals      = (char*[]) {"5"},
+          .vals      = (char*[]){"5"},
           .length    = 1,
-          .wantVals  = (char*[]) {"5"},
-          .wantIsRed = (bool[]) {false},
+          .wantVals  = (char*[]){"5"},
+          .wantIsRed = (bool[]){false},
       },
       {
           .theTree   = createRBTree(),
-          .vals      = (char*[]) {"5", "4"},
+          .vals      = (char*[]){"5", "4"},
           .length    = 2,
-          .wantVals  = (char*[]) {"4", "5"},
-          .wantIsRed = (bool[]) {true, false},
+          .wantVals  = (char*[]){"4", "5"},
+          .wantIsRed = (bool[]){true, false},
       },
       {
           .theTree = createRBTree(),
-          .vals    = (char*[]) {"5", "4", "3"},
+          .vals    = (char*[]){"5", "4", "3"},
           .length  = 3,
           // "3" < "4" < "5"
-          .wantVals  = (char*[]) {"3", "4", "5"},
-          .wantIsRed = (bool[]) {true, false, true},
+          .wantVals  = (char*[]){"3", "4", "5"},
+          .wantIsRed = (bool[]){true, false, true},
       },
       {
           .theTree = createRBTree(),
-          .vals    = (char*[]) {"10", "5", "1", "7", "6"},
+          .vals    = (char*[]){"10", "5", "1", "7", "6"},
           .length  = 5,
           // Lexicographic order: "1", "10", "5", "6", "7"
-          .wantVals  = (char*[]) {"1", "10", "5", "6", "7"},
-          .wantIsRed = (bool[]) {false, false, true, false,
-                                 true}, // approximate, color checks may differ slightly
+          .wantVals  = (char*[]){"1", "10", "5", "6", "7"},
+          .wantIsRed = (bool[]){false, false, true, false,
+                                true}, // approximate, color checks may differ slightly
       },
       {
           .theTree = createRBTree(),
-          .vals    = (char*[]) {"7", "3", "18", "10", "22", "8", "11", "26"},
+          .vals    = (char*[]){"7", "3", "18", "10", "22", "8", "11", "26"},
           .length  = 8,
           // Lexicographic order: "10", "11", "18", "22", "26", "3", "7", "8"
           // Because: "1" < "2" < "3" < "7" < "8"
-          .wantVals  = (char*[]) {"10", "11", "18", "22", "26", "3", "7", "8"},
-          .wantIsRed = (bool[]) {false, true, true, false, true, false, false, true},
+          .wantVals  = (char*[]){"10", "11", "18", "22", "26", "3", "7", "8"},
+          .wantIsRed = (bool[]){false, true, true, false, true, false, false, true},
       },
   };
 
@@ -266,33 +266,33 @@ void Test_searchRBTree() {
 
   } testCase;
 
-  struct testCase* testCases = (struct testCase[]) {
+  struct testCase* testCases = (struct testCase[]){
       {.theTree    = createRBTree(),
-       .vals       = (char*[]) {"5"},
+       .vals       = (char*[]){"5"},
        .length     = 1,
-       .seachVals  = (char*[]) {"5", "five", "4", "z"},
-       .wants      = (bool[]) {true, false, false, false},
+       .seachVals  = (char*[]){"5", "five", "4", "z"},
+       .wants      = (bool[]){true, false, false, false},
        .testLength = 4},
       {.theTree    = createRBTree(),
-       .vals       = (char*[]) {"5", "4"},
+       .vals       = (char*[]){"5", "4"},
        .length     = 2,
-       .seachVals  = (char*[]) {"5", "five", "4", "z"},
-       .wants      = (bool[]) {true, false, true, false},
+       .seachVals  = (char*[]){"5", "five", "4", "z"},
+       .wants      = (bool[]){true, false, true, false},
        .testLength = 4},
       {.theTree = createRBTree(),
-       .vals    = (char*[]) {"5", "4", "3"},
+       .vals    = (char*[]){"5", "4", "3"},
        .length  = 3,
        // "3" < "4" < "5"
-       .seachVals  = (char*[]) {"5", "five", "4", "3"},
-       .wants      = (bool[]) {true, false, true, true},
+       .seachVals  = (char*[]){"5", "five", "4", "3"},
+       .wants      = (bool[]){true, false, true, true},
        .testLength = 4},
       {.theTree = createRBTree(),
-       .vals    = (char*[]) {"10", "5", "1", "7", "6"},
+       .vals    = (char*[]){"10", "5", "1", "7", "6"},
        .length  = 5,
        // Lexicographic order: "1", "10", "5", "6", "7"
-       .seachVals  = (char*[]) {"10", "5", "1", "7", "6", "5", "five", "4", "3"},
-       .wants      = (bool[]) {true, true, true, true, true, true, false, false,
-                               false}, // approximate, color checks may differ slightly
+       .seachVals  = (char*[]){"10", "5", "1", "7", "6", "5", "five", "4", "3"},
+       .wants      = (bool[]){true, true, true, true, true, true, false, false,
+                              false}, // approximate, color checks may differ slightly
        .testLength = 9}};
 
   int lenTestCases = 4;

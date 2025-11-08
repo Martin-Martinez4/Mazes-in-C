@@ -11,6 +11,7 @@
 #include "cell.h"
 #include "draw_cells.h"
 #include "kruskals.h"
+#include "prims.h"
 #include "maze_stats.h"
 
 const int WINDOW_WIDTH  = 1080;
@@ -60,7 +61,8 @@ int main(int argc, char* argv[]) {
   Rooms* rooms = makeRooms(&mazeStats, 0.1);
 
   //   Cell* cells = kruskalsCreateMaze(&mazeStats, rooms);
-  Cell* cells = backtrackingCreateMaze(&mazeStats, rooms);
+  // Cell* cells = backtrackingCreateMaze(&mazeStats, rooms);
+  Cell* cells = prims_create_maze(&mazeStats, rooms);
 
   // only holds the borders
   //   size_t rectsSize = ((3 * mazeStats.rows * mazeStats.columns +

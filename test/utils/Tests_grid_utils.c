@@ -12,10 +12,10 @@ void Test_coord_conversions() {
     int want;
   } testCase;
 
-  struct testCase* testCases = (struct testCase[]) {{.x = 1, .y = 2, .columns = 5, .want = 7},
-                                                    {.x = 1, .y = 2, .columns = 10, .want = 12},
-                                                    {.x = 4, .y = 10, .columns = 20, .want = 90},
-                                                    {.x = 0, .y = 10, .columns = 20, .want = 10}};
+  struct testCase* testCases = (struct testCase[]){{.x = 1, .y = 2, .columns = 5, .want = 7},
+                                                   {.x = 1, .y = 2, .columns = 10, .want = 12},
+                                                   {.x = 4, .y = 10, .columns = 20, .want = 90},
+                                                   {.x = 0, .y = 10, .columns = 20, .want = 10}};
 
   int lenTestCases = 4;
 
