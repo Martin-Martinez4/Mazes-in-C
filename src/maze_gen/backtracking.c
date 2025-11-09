@@ -135,6 +135,105 @@ void setUpCellsbt(Cell* cells, Rooms* rooms, int rows, int columns) {
   }
 }
 
+// To deal with edge cases of high room saturation.
+void ensure_all_rooms_connected(Cell* cells, bool* visited, Rooms* rooms, int rows, int columns) {
+  if (rooms == NULL)
+    return;
+
+  for (int i = 0; i < rooms->length; i++) {
+    Room room  = rooms->data[i];
+    int x      = room.aabb.x;
+    int y      = room.aabb.y;
+    int width  = room.aabb.width;
+    int height = room.aabb.height;
+
+    bool connected = false;
+
+    // Try to open a doorway on any wall touching the maze
+    for (int row = y; row < y + height && !connected; row++) {
+      for (int col = x; col < x + width && !connected; col++) {
+        // Only consider wall cells (edges of room)
+        if (row != y && row != y + height - 1 && col != x && col != x + width - 1)
+          continue;
+
+        int array_coords = matrix_coords_to_array_coords(row, col, columns);
+
+        // Check neighbors for maze cells
+        int neigh[4][2] = {{row - 1, col}, {row + 1, col}, {row, col - 1}, {row, col + 1}};
+
+        for (int n = 0; n < 4; n++) {
+          int nr = neigh[n][0];
+          int nc = neigh[n][1];
+
+          if (nr >= 0 && nr < rows && nc >= 0 && nc < columns) {
+            int neigh_index = matrix_coords_to_array_coords(nr, nc, columns);
+            if (!visited[neigh_index]) {
+              // open doorway
+              visited[array_coords] = false;
+              connected             = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // Fallback if room is completely sealed
+    if (!connected) {
+      int center_row = y + height / 2;
+      int center_col = x + width / 2;
+
+      int nearest_row = -1, nearest_col = -1;
+      int best_dist = rows * columns;
+
+      for (int row2 = 0; row2 < rows; row2++) {
+        for (int col2 = 0; col2 < columns; col2++) {
+          int idx = matrix_coords_to_array_coords(row2, col2, columns);
+          if (!visited[idx]) { // maze cell
+            int dx = 0, dy = 0;
+            if (col2 < x)
+              dx = x - col2;
+            else if (col2 >= x + width)
+              dx = col2 - (x + width - 1);
+
+            if (row2 < y)
+              dy = y - row2;
+            else if (row2 >= y + height)
+              dy = row2 - (y + height - 1);
+
+            int dist = dx + dy;
+            if (dist < best_dist) {
+              best_dist   = dist;
+              nearest_row = row2;
+              nearest_col = col2;
+            }
+          }
+        }
+      }
+
+      // Carve Manhattan corridor from room center to nearest maze cell
+      if (nearest_row != -1 && nearest_col != -1) {
+        int r = center_row;
+        int c = center_col;
+
+        while (r != nearest_row || c != nearest_col) {
+          int idx      = matrix_coords_to_array_coords(r, c, columns);
+          visited[idx] = false;
+
+          if (r < nearest_row)
+            r++;
+          else if (r > nearest_row)
+            r--;
+          else if (c < nearest_col)
+            c++;
+          else if (c > nearest_col)
+            c--;
+        }
+      }
+    }
+  }
+}
+
 Cell* backtrackingCreateMaze(MazeStats* mazeStates, Rooms* rooms) {
   int columns = mazeStates->columns;
   int rows    = mazeStates->rows;
@@ -174,7 +273,6 @@ Cell* backtrackingCreateMaze(MazeStats* mazeStates, Rooms* rooms) {
 
   Cell* cells = malloc(sizeof(Cell) * columns * rows);
 
-  // ------- Get rid of NULL when handling rooms -------
   setUpCellsbt(cells, rooms, rows, columns);
 
   typedef struct {
@@ -195,13 +293,14 @@ Cell* backtrackingCreateMaze(MazeStats* mazeStates, Rooms* rooms) {
   if (freeCount > 0) {
     CellPos start = freeCells[rand_int(0, freeCount - 1)];
     backtrack(cells, visited, start.r, start.c, rows, columns);
+    ensure_all_rooms_connected(cells, visited, rooms, rows, columns);
   }
 
   // check for cells that are not visited
-  for(int row = 0; row < rows; row++){
-    for(int col = 0; col < columns; col++){
+  for (int row = 0; row < rows; row++) {
+    for (int col = 0; col < columns; col++) {
       int index = matrix_coords_to_array_coords(row, col, columns);
-      if(!visited[index]){
+      if (!visited[index]) {
         backtrack(cells, visited, row, col, rows, columns);
       }
     }
