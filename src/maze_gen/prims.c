@@ -13,9 +13,35 @@ void setUpCells_prims(Cell* cells, Rooms* rooms, int rows, int columns) {
       cells[matrix_coords_to_array_coords(row, col, columns)] = create_walled_cell(row, col);
     }
   }
+
+   if(rooms == NULL) return;
+  for (int i = 0; i < rooms->length; i++) {
+    Room room = rooms->data[i];
+    int set   = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
+
+    int x      = room.aabb.x;
+    int y      = room.aabb.y;
+    int width  = room.aabb.width;
+    int height = room.aabb.height;
+
+    for (int row = y; row < (y + height); row++) {
+      for (int col = x; col < (x + width); col++) {
+        int walls = 0;
+        if (row == y)
+          walls |= TOP;
+        if (row == y + height - 1)
+          walls |= BOTTOM;
+        if (col == x)
+          walls |= LEFT;
+        if (col == x + width - 1)
+          walls |= RIGHT;
+        cells[matrix_coords_to_array_coords(row, col, columns)].walls = walls;
+      }
+    }
+  }
 }
 
-void setup_prims_cells(PrimCell* p_cells, Cell* cells, int rows, int columns) {
+void setup_prims_cells(PrimCell* p_cells, Cell* cells, Rooms* rooms, int rows, int columns) {
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < columns; col++) {
       PrimCell p_c;
@@ -25,6 +51,29 @@ void setup_prims_cells(PrimCell* p_cells, Cell* cells, int rows, int columns) {
       p_cells[matrix_coords_to_array_coords(row, col, columns)] = p_c;
     }
   }
+
+   if(rooms == NULL) return;
+  for (int i = 0; i < rooms->length; i++) {
+    Room room = rooms->data[i];
+    int set   = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
+
+    int x      = room.aabb.x;
+    int y      = room.aabb.y;
+    int width  = room.aabb.width;
+    int height = room.aabb.height;
+
+    for (int row = y; row < (y + height); row++) {
+      for (int col = x; col < (x + width); col++) {
+        int walls = 0;
+        if (row == y || row == y + height - 1 || col == x || col == x + width - 1){
+          continue;
+        }
+        p_cells[matrix_coords_to_array_coords(row, col, columns)].visited = true;
+      }
+    }
+  }
+
+  
 }
 
 int add_neighbors_to_frontier(PrimCell* p_cells, int* frontier, int top_index, int row, int col,
@@ -42,7 +91,8 @@ int add_neighbors_to_frontier(PrimCell* p_cells, int* frontier, int top_index, i
     int index = matrix_coords_to_array_coords(neigh_row, neigh_col, columns);
     if (!p_cells[index].visited && !p_cells[index].in_frontier) {
       frontier[++top_index]      = index;
-      p_cells[index].in_frontier = true; // ensure not double-added
+      // ensure not double-added
+      p_cells[index].in_frontier = true; 
     }
   }
   return top_index;
@@ -138,7 +188,7 @@ Cell* prims_create_maze(MazeStats* mazeStats, Rooms* rooms) {
   }
 
   setUpCells_prims(cells, rooms, rows, columns);
-  setup_prims_cells(p_cells, cells, rows, columns);
+  setup_prims_cells(p_cells, cells, rooms, rows, columns);
 
   // setup array of neighbors (frontier)
   // for now frontier is going to be half the size of the grid

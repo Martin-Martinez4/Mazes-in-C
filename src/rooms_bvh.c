@@ -71,19 +71,36 @@ int build_bvh(BVHNodes* nodes, Rooms* rooms, int* indices, int start, int end) {
     return nodes->length - 1;
   }
 
-  int mid = start + count / 2;
+  bool splitY = (max_y - min_y) > (max_x - min_x);
 
-  int left_index  = build_bvh(nodes, rooms, indices, start, mid);
-  int right_index = build_bvh(nodes, rooms, indices, mid, end);
+    // Sort indices by center along split axis (simple insertion sort; fine for small arrays)
+    for (int i = start + 1; i < end; i++) {
+        int key = indices[i];
+        int key_val = splitY ? (rooms->data[key].aabb.y + rooms->data[key].aabb.height / 2)
+                             : (rooms->data[key].aabb.x + rooms->data[key].aabb.width / 2);
+        int j = i - 1;
+        while (j >= start) {
+            int j_val = splitY ? (rooms->data[indices[j]].aabb.y + rooms->data[indices[j]].aabb.height / 2)
+                               : (rooms->data[indices[j]].aabb.x + rooms->data[indices[j]].aabb.width / 2);
+            if (j_val <= key_val) break;
+            indices[j + 1] = indices[j];
+            j--;
+        }
+        indices[j + 1] = key;
+    }
 
-  // box not leaf (room)
-  BVHNode box;
-  box.box   = compute_AABB(min_x, max_x, min_y, max_y);
-  box.left  = left_index;
-  box.right = right_index;
+    // Split at median
+    int mid = start + count / 2;
+    int left_index  = build_bvh(nodes, rooms, indices, start, mid);
+    int right_index = build_bvh(nodes, rooms, indices, mid, end);
 
-  // not a room
-  box.room_index = -1;
-  append_bvh_node(nodes, box);
-  return nodes->length - 1;
+    // Internal node
+    BVHNode box;
+    box.box        = compute_AABB(min_x, max_x, min_y, max_y);
+    box.left       = left_index;
+    box.right      = right_index;
+    box.room_index = -1;
+    append_bvh_node(nodes, box);
+
+    return nodes->length - 1;
 }
