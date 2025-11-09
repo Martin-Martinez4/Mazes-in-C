@@ -19,7 +19,7 @@ const int WINDOW_HEIGHT = 800;
 
 const int CELL_HEIGHT  = 12;
 const int CELL_WIDTH   = 12;
-const int BORDER_WIDTH = 2;
+const int BORDER_WIDTH = 1;
 
 int main(int argc, char* argv[]) {
   // Seed the random number generator
@@ -58,9 +58,9 @@ int main(int argc, char* argv[]) {
   MazeStats mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
                                         CELL_WIDTH, BORDER_WIDTH);
 
-  Rooms* rooms = makeRooms(&mazeStats, 0.5);
+  Rooms* rooms = makeRooms(&mazeStats, 0.25);
 
-    // Cell* cells = kruskalsCreateMaze(&mazeStats, rooms);
+  // Cell* cells = kruskalsCreateMaze(&mazeStats, rooms);
   Cell* cells = backtrackingCreateMaze(&mazeStats, rooms);
   // Cell* cells = prims_create_maze(&mazeStats, rooms);
 

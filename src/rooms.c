@@ -52,103 +52,116 @@ int compare_rooms_by_y(const void* a, const void* b) {
 }
 
 void quicksort_indices(Rooms* rooms, int* indices, int left, int right, bool sortByY) {
-    if (left >= right) return;
+  if (left >= right)
+    return;
 
-    int pivot = indices[right];
-    int i = left;
+  int pivot = indices[right];
+  int i     = left;
 
-    for (int j = left; j < right; j++) {
-        int a = indices[j];
-        int b = pivot;
-        int va = sortByY ? (rooms->data[a].aabb.y + rooms->data[a].aabb.height/2)
-                         : (rooms->data[a].aabb.x + rooms->data[a].aabb.width/2);
-        int vb = sortByY ? (rooms->data[b].aabb.y + rooms->data[b].aabb.height/2)
-                         : (rooms->data[b].aabb.x + rooms->data[b].aabb.width/2);
-        if (va < vb) {
-            int tmp = indices[i]; indices[i] = indices[j]; indices[j] = tmp;
-            i++;
-        }
+  for (int j = left; j < right; j++) {
+    int a  = indices[j];
+    int b  = pivot;
+    int va = sortByY ? (rooms->data[a].aabb.y + rooms->data[a].aabb.height / 2)
+                     : (rooms->data[a].aabb.x + rooms->data[a].aabb.width / 2);
+    int vb = sortByY ? (rooms->data[b].aabb.y + rooms->data[b].aabb.height / 2)
+                     : (rooms->data[b].aabb.x + rooms->data[b].aabb.width / 2);
+    if (va < vb) {
+      int tmp    = indices[i];
+      indices[i] = indices[j];
+      indices[j] = tmp;
+      i++;
     }
-    int tmp = indices[i]; indices[i] = indices[right]; indices[right] = tmp;
+  }
+  int tmp        = indices[i];
+  indices[i]     = indices[right];
+  indices[right] = tmp;
 
-    quicksort_indices(rooms, indices, left, i-1, sortByY);
-    quicksort_indices(rooms, indices, i+1, right, sortByY);
+  quicksort_indices(rooms, indices, left, i - 1, sortByY);
+  quicksort_indices(rooms, indices, i + 1, right, sortByY);
 }
 
 void create_bvh(MazeStats* mazeStats, BVHNodes* nodes, Rooms* rooms) {
-    int* indices = malloc(sizeof(int) * rooms->length);
-    for (int i = 0; i < rooms->length; i++)
-        indices[i] = i;
+  int* indices = malloc(sizeof(int) * rooms->length);
+  for (int i = 0; i < rooms->length; i++)
+    indices[i] = i;
 
-    // Sort indices, not the room array
-    if (mazeStats->columns <= mazeStats->rows) {
-        quicksort_indices(rooms, indices, 0, rooms->length -1, false);
-    } else {
-        quicksort_indices(rooms, indices, 0, rooms->length -1, true);
-    }
+  // Sort indices, not the room array
+  if (mazeStats->columns <= mazeStats->rows) {
+    quicksort_indices(rooms, indices, 0, rooms->length - 1, false);
+  } else {
+    quicksort_indices(rooms, indices, 0, rooms->length - 1, true);
+  }
 
-    build_bvh(nodes, rooms, indices, 0, rooms->length);
-    free(indices);
+  build_bvh(nodes, rooms, indices, 0, rooms->length);
+  free(indices);
 }
 
 bool bvh_intersects_rooms(BVHNode* nodes, Room* rooms, int nodeIndex, Room newRoom) {
-    if (nodeIndex < 0) return false; // safety check
+  if (nodeIndex < 0)
+    return false;
 
-    BVHNode* node = &nodes[nodeIndex];
+  BVHNode* node = &nodes[nodeIndex];
 
-    // If the new room doesn't intersect this node's bounding box, no need to check children
-    if (!aabb_collides_buffer(node->box, newRoom.aabb, 1)) {
-        return false;
-    }
+  // If the new room doesn't intersect this node's bounding box, no need to check children
+  if (!aabb_collides_buffer(node->box, newRoom.aabb, 0)) {
+    return false;
+  }
 
-    // Leaf node → check actual room
-    if (node->room_index >= 0) {
-        return aabb_collides_buffer(newRoom.aabb, rooms[node->room_index].aabb, 1);
-    }
+  // Leaf node → check actual room
+  if (node->room_index >= 0) {
+    return aabb_collides_buffer(newRoom.aabb, rooms[node->room_index].aabb, 0);
+  }
 
-    // Internal node → check children
-    bool leftHit  = (node->left  != -1) ? bvh_intersects_rooms(nodes, rooms, node->left, newRoom)  : false;
-    bool rightHit = (node->right != -1) ? bvh_intersects_rooms(nodes, rooms, node->right, newRoom) : false;
-    return leftHit || rightHit;
+  // Internal node - check children
+  bool leftHit =
+      (node->left != -1) ? bvh_intersects_rooms(nodes, rooms, node->left, newRoom) : false;
+  bool rightHit =
+      (node->right != -1) ? bvh_intersects_rooms(nodes, rooms, node->right, newRoom) : false;
+  return leftHit || rightHit;
 }
 
 int bvh_insert(BVHNodes* nodes, Rooms* rooms, int nodeIndex, int roomIndex) {
-    BVHNode* node = &nodes->data[nodeIndex];
-    Room* room    = &rooms->data[roomIndex];
+  BVHNode* node = &nodes->data[nodeIndex];
+  Room* room    = &rooms->data[roomIndex];
 
-    // If leaf, replace it with new internal node
-    if (node->room_index != -1) {
-        BVHNode oldLeaf = *node;
+  // current node is a leaf - split it
+  if (node->room_index != -1) {
+    int oldRoomIndex = node->room_index;
+    AABB oldBox      = node->box;
 
-        // Create new leaf for the new room
-        BVHNode newLeaf = {.box = room->aabb, .left = -1, .right = -1, .room_index = roomIndex};
-        append_bvh_node(nodes, newLeaf);
-        int newLeafIndex = nodes->length - 1;
+    // Create two leaf nodes: old + new
+    BVHNode oldLeaf = {.box = oldBox, .left = -1, .right = -1, .room_index = oldRoomIndex};
+    BVHNode newLeaf = {.box = room->aabb, .left = -1, .right = -1, .room_index = roomIndex};
 
-        // Transform current leaf node into internal node
-        node->left       = nodes->length; // allocate new internal node index below
-        node->right      = newLeafIndex;
-        node->room_index = -1;
-        node->box        = aabb_union(oldLeaf.box, newLeaf.box);
+    // Append in correct order
+    append_bvh_node(nodes, oldLeaf);
+    int leftIndex = nodes->length - 1;
 
-        append_bvh_node(nodes, oldLeaf); // move old leaf to end
-        node->left = nodes->length - 1; // point left to old leaf
+    append_bvh_node(nodes, newLeaf);
+    int rightIndex = nodes->length - 1;
 
-        return nodeIndex;
-    }
+    // Turn current node into internal node
+    node             = &nodes->data[nodeIndex];
+    node->left       = leftIndex;
+    node->right      = rightIndex;
+    node->room_index = -1;
+    node->box        = aabb_union(oldLeaf.box, newLeaf.box);
 
-    // Choose which subtree expands less
-    double expandLeft  = aabb_expansion_cost(nodes->data[node->left].box, room->aabb);
-    double expandRight = aabb_expansion_cost(nodes->data[node->right].box, room->aabb);
-
-    if (expandLeft < expandRight) {
-        bvh_insert(nodes, rooms, node->left, roomIndex);
-    } else {
-        bvh_insert(nodes, rooms, node->right, roomIndex);
-    }
-
-    node->box = aabb_union(nodes->data[node->left].box, nodes->data[node->right].box);
     return nodeIndex;
+  }
+
+  // internal node → choose the child that requires the least box growth
+  double expandLeft  = aabb_expansion_cost(nodes->data[node->left].box, room->aabb);
+  double expandRight = aabb_expansion_cost(nodes->data[node->right].box, room->aabb);
+
+  if (expandLeft < expandRight)
+    bvh_insert(nodes, rooms, node->left, roomIndex);
+  else
+    bvh_insert(nodes, rooms, node->right, roomIndex);
+
+  // Update current node’s bounding box
+  node->box = aabb_union(nodes->data[node->left].box, nodes->data[node->right].box);
+  return nodeIndex;
 }
 
 /*
@@ -169,51 +182,84 @@ Rooms* makeRooms(MazeStats* mazeStats, double saturation) {
 
   Rooms* rooms    = create_rooms();
   BVHNodes* nodes = create_bvh_nodes();
-  
+
   int attempts_allowed = rows * columns;
   while (current_saturation < saturation && rooms->length < max_rooms && attempts_allowed >= 0) {
-    
-    
-    
-      int min_room_width = 2;
-      int max_room_width = 10;
-    
-      int min_room_height = 2;
-      int max_room_height = 10;
-    
-      int attempts_per_room = 100;
 
+    int min_room_width = 2;
+    int max_room_width = 10;
 
-    while(attempts_per_room >= 0 ){
+    int min_room_height = 2;
+    int max_room_height = 10;
 
-      int room_width  = rand_triangle_distribution(min_room_width, max_room_width, (max_room_width + min_room_width)/2);
-      int room_height = rand_triangle_distribution(min_room_height, max_room_height, (max_room_height + min_room_height)/2);
-  
+    int attempts_per_room = 100;
+
+    while (attempts_per_room >= 0) {
+
+      int room_width  = rand_triangle_distribution(min_room_width, max_room_width,
+                                                   (max_room_width + min_room_width) / 2);
+      int room_height = rand_triangle_distribution(min_room_height, max_room_height,
+                                                   (max_room_height + min_room_height) / 2);
+
       int room_x = rand_int(0, columns - room_width);
       int room_y = rand_int(0, rows - room_height);
-  
+
       AABB aabb = {.x = room_x, .y = room_y, .width = room_width, .height = room_height};
-  
+
       Room r = {.aabb = aabb};
-  
+
       bool collided = false;
 
+      int rootIndex;
+      if (rooms->length == 50) {
+        // indices for rooms
+        int* indices = malloc(sizeof(int) * rooms->length);
+        for (int i = 0; i < rooms->length; i++)
+          indices[i] = i;
+
+        // reset BVH
+        nodes->length = 0;
+
+        // build BVH
+        rootIndex = build_bvh(nodes, rooms, indices, 0, rooms->length);
+
+        // test new room against BVH
+        collided = bvh_intersects_rooms(nodes->data, rooms->data, rootIndex, r);
+
+        free(indices);
+      } else if (rooms->length >= 50) {
+        // printf("BVH USED\n");
+        collided = bvh_intersects_rooms(nodes->data, rooms->data, rootIndex, r);
+      } else {
+
         for (int i = 0; i < rooms->length; i++) {
-          if (aabb_collides_buffer(r.aabb, rooms->data[i].aabb, 1)) {
+          if (aabb_collides_buffer(r.aabb, rooms->data[i].aabb, 0)) {
             collided = true;
             break;
           }
         }
-      // }
+      }
+
       if (!collided) {
         append_room(rooms, r);
         current_saturation = (rooms->length * avg_cells_in_room) / total_cells;
+
+        int newRoomIndex = rooms->length - 1;
+        if (rooms->length == 1) {
+          // first room → create BVH root as a leaf
+          BVHNode root = {.box = r.aabb, .left = -1, .right = -1, .room_index = newRoomIndex};
+          append_bvh_node(nodes, root);
+          rootIndex = nodes->length - 1;
+        } else if (rooms->length >= 50) {
+          // insert into existing BVH
+          rootIndex = bvh_insert(nodes, rooms, rootIndex, newRoomIndex);
+        }
         break;
       }
 
       attempts_per_room--;
 
-      if(attempts_per_room <= 7){
+      if (attempts_per_room <= 7) {
 
         max_room_width--;
         max_room_height--;
@@ -221,10 +267,10 @@ Rooms* makeRooms(MazeStats* mazeStats, double saturation) {
     }
 
     attempts_allowed--;
-
   }
 
-  printf("Actual Room Saturation Achieved: %f; Target Saturation: %f\n", current_saturation, saturation);
+  printf("Actual Room Saturation Achieved: %f; Target Saturation: %f\n", current_saturation,
+         saturation);
   printf("Number Rooms: %d\n", rooms->length);
   return rooms;
 }

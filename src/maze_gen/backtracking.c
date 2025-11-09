@@ -135,7 +135,6 @@ void setUpCellsbt(Cell* cells, Rooms* rooms, int rows, int columns) {
   }
 }
 
-
 Cell* backtrackingCreateMaze(MazeStats* mazeStates, Rooms* rooms) {
   int columns = mazeStates->columns;
   int rows    = mazeStates->rows;
