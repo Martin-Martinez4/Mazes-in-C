@@ -28,7 +28,7 @@ double aabb_expansion_cost(AABB a, AABB b) {
   return (u.width * u.height) - (a.width * a.height);
 }
 
-bool aabb_collides(AABB aabb1, AABB aabb2) {
-  return aabb1.x < aabb2.x + aabb2.width && aabb1.x + aabb1.width > aabb2.x &&
-         aabb1.y < aabb2.y + aabb2.height && aabb1.y + aabb1.height > aabb2.y;
+bool aabb_collides(AABB a, AABB b) {
+  return !(a.x + a.width - 1 < b.x || b.x + b.width - 1 < a.x || a.y + a.height - 1 < b.y ||
+           b.y + b.height - 1 < a.y);
 }

@@ -104,6 +104,35 @@ void setUpCellsbt(Cell* cells, Rooms* rooms, int rows, int columns) {
       cells[matrix_coords_to_array_coords(row, col, columns)] = create_walled_cell(row, col);
     }
   }
+
+  if (rooms == NULL) {
+    return;
+  }
+
+  for (int i = 0; i < rooms->length; i++) {
+    Room room = rooms->data[i];
+    int set   = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
+
+    int x      = room.aabb.x;
+    int y      = room.aabb.y;
+    int width  = room.aabb.width;
+    int height = room.aabb.height;
+
+    for (int row = y; row < (y + height); row++) {
+      for (int col = x; col < (x + width); col++) {
+        int walls = 0;
+        if (row == y)
+          walls |= TOP;
+        if (row == y + height - 1)
+          walls |= BOTTOM;
+        if (col == x)
+          walls |= LEFT;
+        if (col == x + width - 1)
+          walls |= RIGHT;
+        cells[matrix_coords_to_array_coords(row, col, columns)].walls = walls;
+      }
+    }
+  }
 }
 
 Cell* backtrackingCreateMaze(MazeStats* mazeStates, Rooms* rooms) {
@@ -118,16 +147,67 @@ Cell* backtrackingCreateMaze(MazeStats* mazeStates, Rooms* rooms) {
     }
   }
 
+  if (rooms != NULL) {
+
+    for (int i = 0; i < rooms->length; i++) {
+      Room room = rooms->data[i];
+      int set   = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
+
+      int x      = room.aabb.x;
+      int y      = room.aabb.y;
+      int width  = room.aabb.width;
+      int height = room.aabb.height;
+
+      for (int row = y; row < (y + height); row++) {
+        for (int col = x; col < (x + width); col++) {
+          int walls = 0;
+          if (row == y || row == y + height - 1 || col == x || col == x + width - 1) {
+            continue;
+          } else {
+
+            visited[matrix_coords_to_array_coords(row, col, columns)] = true;
+          }
+        }
+      }
+    }
+  }
+
   Cell* cells = malloc(sizeof(Cell) * columns * rows);
 
   // ------- Get rid of NULL when handling rooms -------
-  setUpCellsbt(cells, NULL, rows, columns);
+  setUpCellsbt(cells, rooms, rows, columns);
 
-  int start_col = rand_int(0, columns - 1);
-  int start_row = rand_int(0, rows - 1);
+  typedef struct {
+    int r, c;
+  } CellPos;
 
-  backtrack(cells, visited, start_row, start_col, rows, columns);
+  int freeCount      = 0;
+  CellPos* freeCells = malloc(sizeof(CellPos) * rows * columns);
 
+  for (int row = 0; row < rows; row++) {
+    for (int col = 0; col < columns; col++) {
+      if (!visited[matrix_coords_to_array_coords(row, col, columns)]) {
+        freeCells[freeCount++] = (CellPos){row, col};
+      }
+    }
+  }
+
+  if (freeCount > 0) {
+    CellPos start = freeCells[rand_int(0, freeCount - 1)];
+    backtrack(cells, visited, start.r, start.c, rows, columns);
+  }
+
+  // check for cells that are not visited
+  for(int row = 0; row < rows; row++){
+    for(int col = 0; col < columns; col++){
+      int index = matrix_coords_to_array_coords(row, col, columns);
+      if(!visited[index]){
+        backtrack(cells, visited, row, col, rows, columns);
+      }
+    }
+  }
+
+  free(freeCells);
   free(visited);
 
   return cells;
