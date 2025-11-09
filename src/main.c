@@ -17,8 +17,8 @@
 const int WINDOW_WIDTH  = 1080;
 const int WINDOW_HEIGHT = 800;
 
-const int CELL_HEIGHT  = 10;
-const int CELL_WIDTH   = 10;
+const int CELL_HEIGHT  = 12;
+const int CELL_WIDTH   = 12;
 const int BORDER_WIDTH = 2;
 
 int main(int argc, char* argv[]) {
@@ -58,11 +58,11 @@ int main(int argc, char* argv[]) {
   MazeStats mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
                                         CELL_WIDTH, BORDER_WIDTH);
 
-  Rooms* rooms = makeRooms(&mazeStats, 0.45);
+  Rooms* rooms = makeRooms(&mazeStats, 0.5);
 
   //   Cell* cells = kruskalsCreateMaze(&mazeStats, rooms);
-  Cell* cells = backtrackingCreateMaze(&mazeStats, rooms);
-  // Cell* cells = prims_create_maze(&mazeStats, rooms);
+  // Cell* cells = backtrackingCreateMaze(&mazeStats, rooms);
+  Cell* cells = prims_create_maze(&mazeStats, rooms);
 
   // only holds the borders
   //   size_t rectsSize = ((3 * mazeStats.rows * mazeStats.columns +
