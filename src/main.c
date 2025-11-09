@@ -60,9 +60,9 @@ int main(int argc, char* argv[]) {
 
   Rooms* rooms = makeRooms(&mazeStats, 0.5);
 
-  //   Cell* cells = kruskalsCreateMaze(&mazeStats, rooms);
-  // Cell* cells = backtrackingCreateMaze(&mazeStats, rooms);
-  Cell* cells = prims_create_maze(&mazeStats, rooms);
+    // Cell* cells = kruskalsCreateMaze(&mazeStats, rooms);
+  Cell* cells = backtrackingCreateMaze(&mazeStats, rooms);
+  // Cell* cells = prims_create_maze(&mazeStats, rooms);
 
   // only holds the borders
   //   size_t rectsSize = ((3 * mazeStats.rows * mazeStats.columns +
