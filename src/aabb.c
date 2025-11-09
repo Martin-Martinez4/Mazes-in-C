@@ -29,8 +29,8 @@ double aabb_expansion_cost(AABB a, AABB b) {
 }
 
 bool aabb_collides_buffer(AABB a, AABB b, int buffer) {
-    return !(a.x + a.width - 1 + buffer < b.x || b.x + b.width - 1 + buffer < a.x ||
-             a.y + a.height - 1 + buffer < b.y || b.y + b.height - 1 + buffer < a.y);
+  return !(a.x + a.width - 1 + buffer < b.x || b.x + b.width - 1 + buffer < a.x ||
+           a.y + a.height - 1 + buffer < b.y || b.y + b.height - 1 + buffer < a.y);
 }
 
 bool aabb_collides(AABB a, AABB b) {

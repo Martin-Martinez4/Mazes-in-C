@@ -73,34 +73,40 @@ int build_bvh(BVHNodes* nodes, Rooms* rooms, int* indices, int start, int end) {
 
   bool splitY = (max_y - min_y) > (max_x - min_x);
 
-    // Sort indices by center along split axis (simple insertion sort; fine for small arrays)
-    for (int i = start + 1; i < end; i++) {
-        int key = indices[i];
-        int key_val = splitY ? (rooms->data[key].aabb.y + rooms->data[key].aabb.height / 2)
-                             : (rooms->data[key].aabb.x + rooms->data[key].aabb.width / 2);
-        int j = i - 1;
-        while (j >= start) {
-            int j_val = splitY ? (rooms->data[indices[j]].aabb.y + rooms->data[indices[j]].aabb.height / 2)
-                               : (rooms->data[indices[j]].aabb.x + rooms->data[indices[j]].aabb.width / 2);
-            if (j_val <= key_val) break;
-            indices[j + 1] = indices[j];
-            j--;
-        }
-        indices[j + 1] = key;
+  // Sort indices by center along split axis (simple insertion sort; fine for small arrays)
+  for (int i = start + 1; i < end; i++) {
+    int key     = indices[i];
+    int key_val = splitY ? (rooms->data[key].aabb.y + rooms->data[key].aabb.height / 2)
+                         : (rooms->data[key].aabb.x + rooms->data[key].aabb.width / 2);
+    int j       = i - 1;
+    while (j >= start) {
+      int j_val = splitY
+                      ? (rooms->data[indices[j]].aabb.y + rooms->data[indices[j]].aabb.height / 2)
+                      : (rooms->data[indices[j]].aabb.x + rooms->data[indices[j]].aabb.width / 2);
+      if (j_val <= key_val) {
+
+        break;
+      }
+      indices[j + 1] = indices[j];
+      j--;
     }
+    indices[j + 1] = key;
+  }
 
-    // Split at median
-    int mid = start + count / 2;
-    int left_index  = build_bvh(nodes, rooms, indices, start, mid);
-    int right_index = build_bvh(nodes, rooms, indices, mid, end);
+  // Split at median
+  int mid         = start + count / 2;
+  int left_index  = build_bvh(nodes, rooms, indices, start, mid);
+  int right_index = build_bvh(nodes, rooms, indices, mid, end);
 
-    // Internal node
-    BVHNode box;
-    box.box        = compute_AABB(min_x, max_x, min_y, max_y);
-    box.left       = left_index;
-    box.right      = right_index;
-    box.room_index = -1;
-    append_bvh_node(nodes, box);
+  // Internal node
+  BVHNode box;
+  box.left       = left_index;
+  box.right      = right_index;
+  box.room_index = -1;
+  AABB left_box  = nodes->data[left_index].box;
+  AABB right_box = nodes->data[right_index].box;
+  box.box        = aabb_union(left_box, right_box);
+  append_bvh_node(nodes, box);
 
-    return nodes->length - 1;
+  return nodes->length - 1;
 }

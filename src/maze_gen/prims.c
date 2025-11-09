@@ -14,7 +14,8 @@ void setUpCells_prims(Cell* cells, Rooms* rooms, int rows, int columns) {
     }
   }
 
-   if(rooms == NULL) return;
+  if (rooms == NULL)
+    return;
   for (int i = 0; i < rooms->length; i++) {
     Room room = rooms->data[i];
     int set   = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
@@ -52,7 +53,8 @@ void setup_prims_cells(PrimCell* p_cells, Cell* cells, Rooms* rooms, int rows, i
     }
   }
 
-   if(rooms == NULL) return;
+  if (rooms == NULL)
+    return;
   for (int i = 0; i < rooms->length; i++) {
     Room room = rooms->data[i];
     int set   = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
@@ -65,15 +67,13 @@ void setup_prims_cells(PrimCell* p_cells, Cell* cells, Rooms* rooms, int rows, i
     for (int row = y; row < (y + height); row++) {
       for (int col = x; col < (x + width); col++) {
         int walls = 0;
-        if (row == y || row == y + height - 1 || col == x || col == x + width - 1){
+        if (row == y || row == y + height - 1 || col == x || col == x + width - 1) {
           continue;
         }
         p_cells[matrix_coords_to_array_coords(row, col, columns)].visited = true;
       }
     }
   }
-
-  
 }
 
 int add_neighbors_to_frontier(PrimCell* p_cells, int* frontier, int top_index, int row, int col,
@@ -90,9 +90,9 @@ int add_neighbors_to_frontier(PrimCell* p_cells, int* frontier, int top_index, i
     }
     int index = matrix_coords_to_array_coords(neigh_row, neigh_col, columns);
     if (!p_cells[index].visited && !p_cells[index].in_frontier) {
-      frontier[++top_index]      = index;
+      frontier[++top_index] = index;
       // ensure not double-added
-      p_cells[index].in_frontier = true; 
+      p_cells[index].in_frontier = true;
     }
   }
   return top_index;

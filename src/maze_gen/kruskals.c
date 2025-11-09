@@ -23,7 +23,8 @@ void setUpCells(Cell* cells, Rooms* rooms, int rows, int columns) {
     }
   }
 
-  if(rooms == NULL) return;
+  if (rooms == NULL)
+    return;
   for (int i = 0; i < rooms->length; i++) {
     Room room = rooms->data[i];
     int set   = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
