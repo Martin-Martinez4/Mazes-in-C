@@ -14,7 +14,7 @@ BVHNodes* create_bvh_nodes() {
   return rs;
 }
 
-void append_bvh_node(BVHNodes* BVHNodes, BVHNode node) {
+int append_bvh_node(BVHNodes* BVHNodes, BVHNode node) {
   if (BVHNodes->length >= BVHNodes->capacity) {
     BVHNodes->capacity *= 2;
     BVHNode* d = realloc(BVHNodes->data, BVHNodes->capacity * sizeof(BVHNode));
@@ -28,6 +28,8 @@ void append_bvh_node(BVHNodes* BVHNodes, BVHNode node) {
 
   BVHNodes->data[BVHNodes->length] = node;
   BVHNodes->length += 1;
+
+  return BVHNodes->length++;
 }
 
 int build_bvh(BVHNodes* nodes, Rooms* rooms, int* indices, int start, int end) {

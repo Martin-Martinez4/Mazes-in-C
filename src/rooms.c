@@ -124,42 +124,35 @@ int bvh_insert(BVHNodes* nodes, Rooms* rooms, int nodeIndex, int roomIndex) {
   BVHNode* node = &nodes->data[nodeIndex];
   Room* room    = &rooms->data[roomIndex];
 
-  // current node is a leaf - split it
+  // If leaf, replace it with a new internal node
   if (node->room_index != -1) {
-    int oldRoomIndex = node->room_index;
-    AABB oldBox      = node->box;
+    BVHNode oldLeaf = *node;
 
-    // Create two leaf nodes: old + new
-    BVHNode oldLeaf = {.box = oldBox, .left = -1, .right = -1, .room_index = oldRoomIndex};
-    BVHNode newLeaf = {.box = room->aabb, .left = -1, .right = -1, .room_index = roomIndex};
+    // Create new leaf for the new room
+    BVHNode newLeaf  = {.box = room->aabb, .left = -1, .right = -1, .room_index = roomIndex};
+    int newLeafIndex = append_bvh_node(nodes, newLeaf);
 
-    // Append in correct order
-    append_bvh_node(nodes, oldLeaf);
-    int leftIndex = nodes->length - 1;
-
-    append_bvh_node(nodes, newLeaf);
-    int rightIndex = nodes->length - 1;
-
-    // Turn current node into internal node
-    node             = &nodes->data[nodeIndex];
-    node->left       = leftIndex;
-    node->right      = rightIndex;
+    // Transform current leaf into internal node
+    // move old leaf to new index
+    node->left       = append_bvh_node(nodes, oldLeaf);
+    node->right      = newLeafIndex;
     node->room_index = -1;
     node->box        = aabb_union(oldLeaf.box, newLeaf.box);
 
     return nodeIndex;
   }
 
-  // internal node → choose the child that requires the least box growth
+  // If internal, pick child that expands less
   double expandLeft  = aabb_expansion_cost(nodes->data[node->left].box, room->aabb);
   double expandRight = aabb_expansion_cost(nodes->data[node->right].box, room->aabb);
 
-  if (expandLeft < expandRight)
+  if (expandLeft < expandRight) {
     bvh_insert(nodes, rooms, node->left, roomIndex);
-  else
+  } else {
     bvh_insert(nodes, rooms, node->right, roomIndex);
+  }
 
-  // Update current node’s bounding box
+  // Update internal node's box
   node->box = aabb_union(nodes->data[node->left].box, nodes->data[node->right].box);
   return nodeIndex;
 }

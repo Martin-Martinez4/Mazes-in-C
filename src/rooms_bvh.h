@@ -20,7 +20,7 @@ typedef struct BVHNodes {
 
 BVHNodes* create_bvh_nodes();
 
-void append_bvh_node(BVHNodes* BVHNodes, BVHNode node);
+int append_bvh_node(BVHNodes* BVHNodes, BVHNode node);
 
 int build_bvh(BVHNodes* nodes, Rooms* rooms, int* indices, int start, int end);
 
