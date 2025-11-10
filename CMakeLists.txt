@@ -51,6 +51,20 @@ else()
 
 endif()
 
+# Find headers
+find_path(SDL3_TTF_INCLUDE_DIR SDL3_ttf/SDL_ttf.h /usr/local/include /usr/include)
+
+# Find library
+find_library(SDL3_TTF_LIBRARY NAMES SDL3_ttf PATHS /usr/local/lib /usr/lib)
+
+if(NOT SDL3_TTF_INCLUDE_DIR OR NOT SDL3_TTF_LIBRARY)
+    message(FATAL_ERROR "SDL3_ttf not found! Make sure it is installed.")
+endif()
+
+message(STATUS "SDL3_ttf include: ${SDL3_TTF_INCLUDE_DIR}")
+message(STATUS "SDL3_ttf lib: ${SDL3_TTF_LIBRARY}")
+
+
 # -----------------------
 # Clang-format target
 # -----------------------
@@ -76,6 +90,8 @@ if(CLANG_FORMAT_EXECUTABLE)
 else()
     message(WARNING "clang-format not found! 'format' target will be unavailable.")
 endif()
+
+
     
 
     set(sources
@@ -93,13 +109,15 @@ endif()
     ${CMAKE_SOURCE_DIR}/src/maze_gen/kruskals.c
     ${CMAKE_SOURCE_DIR}/src/maze_gen/prims.c
     
-
+    
     
     )
     
     set(app_sources
- 
-      ${CMAKE_SOURCE_DIR}/src/main.c
+    
+    ${CMAKE_SOURCE_DIR}/src/main.c
+    # Do not include, import to main using relative path
+    # ${CMAKE_SOURCE_DIR}/src/ui/clay_renderer_SDL3.c
       
     )
 
@@ -121,7 +139,9 @@ message("SDL3_INCLUDE_DIRS: ${SDL3_INCLUDE_DIRS}")
 
 set(
   sources_directories
+  
   ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/ui
   ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
   ${CMAKE_CURRENT_SOURCE_DIR}/src/maze_gen
   ${SDL3_IMAGE_INCLUDE_DIRS}
@@ -131,11 +151,16 @@ set(
 
 target_include_directories(
     ${CMAKE_PROJECT_NAME} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/clay_ui
     ${sources_directories}
     ${SDL3_INCLUDE_DIRS}
+    ${SDL3_TTF_INCLUDE_DIR}
 )
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC -lm ${SDL3_LIBRARIES} ${SDL3_IMAGE_LIBRARIES})
+message(sdl_ttf lib: ${SDL3_TTF_LIBRARY})
+
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC  ${SDL3_TTF_LIBRARY} ${SDL3_LIBRARIES} ${SDL3_IMAGE_LIBRARIES} -lm)
+
 
 #--- Test executable ---
 set(test_sources ${test_sources}
@@ -161,7 +186,7 @@ target_include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/test/utils
 )
 
-target_link_libraries(${CMAKE_PROJECT_NAME}_test PUBLIC -lm ${SDL3_LIBRARIES} ${SDL3_IMAGE_LIBRARIES})
+target_link_libraries(${CMAKE_PROJECT_NAME}_test PUBLIC ${SDL3_LIBRARIES} ${SDL3_IMAGE_LIBRARIES} -lm)
 
 
 
