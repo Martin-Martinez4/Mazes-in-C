@@ -6,12 +6,13 @@
 
 void shuffleArray(void* array, int length, size_t element_size) {
   // just to get the pointer ot the first thing
-  char* arr = (char*) array;
+  if (length <= 1 || element_size == 0) return;
+
+  unsigned char* arr = (unsigned char*) array;
+  unsigned char temp[element_size];
 
   for (int i = length - 1; i >= 1; i--) {
     int j = rand() % (i + 1);
-
-    char* temp = malloc(element_size);
 
     // swap arr[i] and arr[j]
     memcpy(temp, arr + i * element_size, element_size);

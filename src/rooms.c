@@ -121,30 +121,47 @@ bool bvh_intersects_rooms(BVHNode* nodes, Room* rooms, int nodeIndex, Room newRo
 }
 
 int bvh_insert(BVHNodes* nodes, Rooms* rooms, int nodeIndex, int roomIndex) {
-  BVHNode* node = &nodes->data[nodeIndex];
-  Room* room    = &rooms->data[roomIndex];
+  // BVHNode* node = &nodes->data[nodeIndex];
+  // Room* room    = &rooms->data[roomIndex];
 
   // If leaf, replace it with a new internal node
-  if (node->room_index != -1) {
-    BVHNode oldLeaf = *node;
+  if (nodes->data[nodeIndex].room_index != -1) {
+     BVHNode oldLeaf = nodes->data[nodeIndex];
 
     // Create new leaf for the new room
-    BVHNode newLeaf  = {.box = room->aabb, .left = -1, .right = -1, .room_index = roomIndex};
+    BVHNode newLeaf = {.box = rooms->data[roomIndex].aabb, .left = -1, .right = -1, .room_index = roomIndex};
     int newLeafIndex = append_bvh_node(nodes, newLeaf);
+
+    int oldLeafIndex = append_bvh_node(nodes, oldLeaf);
+
+    
+
+     BVHNode* node = &nodes->data[nodeIndex];
 
     // Transform current leaf into internal node
     // move old leaf to new index
-    node->left       = append_bvh_node(nodes, oldLeaf);
+    node->left       = oldLeafIndex;
     node->right      = newLeafIndex;
     node->room_index = -1;
-    node->box        = aabb_union(oldLeaf.box, newLeaf.box);
+    node->box = aabb_union(nodes->data[oldLeafIndex].box,
+                               nodes->data[newLeafIndex].box);
+
 
     return nodeIndex;
   }
 
+  BVHNode* node = &nodes->data[nodeIndex];
+  
+  // bounds check (defensive)
+  if (node->left < 0 || node->right < 0) {
+    // handle error: malformed BVH node
+    return nodeIndex;
+  }
+
+
   // If internal, pick child that expands less
-  double expandLeft  = aabb_expansion_cost(nodes->data[node->left].box, room->aabb);
-  double expandRight = aabb_expansion_cost(nodes->data[node->right].box, room->aabb);
+  double expandLeft  = aabb_expansion_cost(nodes->data[node->left].box, rooms->data[roomIndex].aabb);
+  double expandRight = aabb_expansion_cost(nodes->data[node->right].box, rooms->data[roomIndex].aabb);
 
   if (expandLeft < expandRight) {
     bvh_insert(nodes, rooms, node->left, roomIndex);
@@ -153,6 +170,7 @@ int bvh_insert(BVHNodes* nodes, Rooms* rooms, int nodeIndex, int roomIndex) {
   }
 
   // Update internal node's box
+   node = &nodes->data[nodeIndex];
   node->box = aabb_union(nodes->data[node->left].box, nodes->data[node->right].box);
   return nodeIndex;
 }
@@ -162,6 +180,7 @@ int bvh_insert(BVHNodes* nodes, Rooms* rooms, int nodeIndex, int roomIndex) {
 
   -
 */
+
 Rooms* makeRooms(MazeStats* mazeStats, double saturation) {
   int columns = mazeStats->columns;
   int rows    = mazeStats->rows;

@@ -138,8 +138,9 @@ clay_sdl3->textEngine = textEngine;
 
   MazeStats mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
                                         CELL_WIDTH, BORDER_WIDTH);
-
+  printf("size is Maze Stats Created");
   Rooms* rooms = makeRooms(&mazeStats, 0.25);
+    printf("size is rooms Created");
 
   // Cell* cells = kruskalsCreateMaze(&mazeStats, rooms);
   Cell* cells = backtrackingCreateMaze(&mazeStats, rooms);
@@ -156,9 +157,9 @@ clay_sdl3->textEngine = textEngine;
   SDL_FRect* rects = (SDL_FRect*) malloc(rectsSize);
   int lenRects     = rectsSize / sizeof(SDL_FRect);
 
-  // printf("size is: %d\n", (int)lenRects);
-  // printf("rows is: %d\n", mazeStats.rows);
-  // printf("columns is: %d\n", mazeStats.columns);
+  printf("size is: %d\n", (int)lenRects);
+  printf("rows is: %d\n", mazeStats.rows);
+  printf("columns is: %d\n", mazeStats.columns);
 
   //    int cellsToDraw =  rectsFromStats(rects, lenRects, mazeStats);
   int cellsToDraw = rectsFromCells(cells, rects, lenRects, mazeStats);
@@ -181,6 +182,8 @@ clay_sdl3->textEngine = textEngine;
   });
 
   int width, height;
+
+  bool menuVisible = false;
 
   while (!done) {
     SDL_Event event;
@@ -214,32 +217,56 @@ clay_sdl3->textEngine = textEngine;
     SDL_RenderFillRects(renderer, rects, cellsToDraw);
 
     Clay_BeginLayout();
-    CLAY(
-      CLAY_ID("OuterContainer"),
-      {
-        .backgroundColor = {43, 41, 51, 255 },
-        .layout = {
-            .layoutDirection = CLAY_TOP_TO_BOTTOM,
-            .sizing = layoutExpand,
-            .padding = CLAY_PADDING_ALL(16),
-            .childGap = 16
+
+    
+
+      CLAY(
+        CLAY_ID("OuterContainer"),
+        {
+          .backgroundColor = {43, 41, 51, 0 },
+          .layout = {
+              .layoutDirection = CLAY_TOP_TO_BOTTOM,
+              .sizing = layoutExpand,
+              .padding = CLAY_PADDING_ALL(16),
+              .childGap = 16
+          }
         }
-      }
-    ){
+      ){
+
+        if(!menuVisible){
       CLAY(
         CLAY_ID("HeaderBar"),
         {
           .backgroundColor = {90, 90, 90, 255},
-          .layout = {
-            .sizing = {
-              .width = CLAY_SIZING_GROW(0),
-              .height = CLAY_SIZING_FIXED(60)
-            }
 
+          .layout = {
+              .layoutDirection = CLAY_TOP_TO_BOTTOM,
+              .sizing = {
+                .width = CLAY_SIZING_FIXED(20),
+                .height = CLAY_SIZING_FIXED(20)
+              },
+              
           }
         }
       ){}
-    };
+    }else{
+
+        CLAY(
+          CLAY_ID("HeaderBar"),
+          {
+            .backgroundColor = {90, 90, 90, 255},
+            .layout = {
+              .sizing = {
+                .width = CLAY_SIZING_GROW(0),
+                .height = CLAY_SIZING_FIXED(60)
+              }
+  
+            }
+          }
+        ){}
+      };
+    }
+
 
     Clay_RenderCommandArray renderCommands =  Clay_EndLayout();
 

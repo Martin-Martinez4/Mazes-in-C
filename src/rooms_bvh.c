@@ -16,6 +16,7 @@ BVHNodes* create_bvh_nodes() {
 
 int append_bvh_node(BVHNodes* BVHNodes, BVHNode node) {
   if (BVHNodes->length >= BVHNodes->capacity) {
+    int old_capacity = BVHNodes->capacity;
     BVHNodes->capacity *= 2;
     BVHNode* d = realloc(BVHNodes->data, BVHNodes->capacity * sizeof(BVHNode));
     if (!d) {
@@ -23,13 +24,19 @@ int append_bvh_node(BVHNodes* BVHNodes, BVHNode node) {
       fprintf(stderr, "Failed to realloc BVHNodes array\n");
       exit(1);
     }
+    for (int i = old_capacity; i < BVHNodes->capacity; i++) {
+            d[i] = (BVHNode){0};
+            d[i].left = -1;
+            d[i].right = -1;
+            d[i].room_index = -1;
+        }
     BVHNodes->data = d;
   }
 
   BVHNodes->data[BVHNodes->length] = node;
   BVHNodes->length += 1;
 
-  return BVHNodes->length++;
+  return BVHNodes->length - 1; 
 }
 
 int build_bvh(BVHNodes* nodes, Rooms* rooms, int* indices, int start, int end) {
@@ -101,14 +108,19 @@ int build_bvh(BVHNodes* nodes, Rooms* rooms, int* indices, int start, int end) {
   int right_index = build_bvh(nodes, rooms, indices, mid, end);
 
   // Internal node
-  BVHNode box;
-  box.left       = left_index;
-  box.right      = right_index;
-  box.room_index = -1;
-  AABB left_box  = nodes->data[left_index].box;
-  AABB right_box = nodes->data[right_index].box;
-  box.box        = aabb_union(left_box, right_box);
-  append_bvh_node(nodes, box);
+  BVHNode box = {0};
+box.left       = left_index;
+box.right      = right_index;
+box.room_index = -1;
 
-  return nodes->length - 1;
+// union of child boxes (after checking indices)
+if (left_index >= 0 && right_index >= 0) {
+    box.box = aabb_union(nodes->data[left_index].box, nodes->data[right_index].box);
+} else {
+    // fallback: degenerate box
+    box.box = compute_AABB(0, 0, 0, 0);
+}
+
+int idx = append_bvh_node(nodes, box);
+return idx;
 }
