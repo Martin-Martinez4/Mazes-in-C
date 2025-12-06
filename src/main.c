@@ -246,6 +246,9 @@ clay_sdl3->textEngine = textEngine;
     // SDL_Clay_RenderClayCommands(Clay_SDL3RendererData *rendererData, Clay_RenderCommandArray *rcommands)
 
     SDL_Clay_RenderClayCommands(clay_sdl3, &renderCommands);
+    SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
+
+    SDL_RenderFillRects(renderer, rects, cellsToDraw);
 
     SDL_RenderPresent(renderer);
 

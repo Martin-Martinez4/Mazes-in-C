@@ -254,8 +254,14 @@ Rooms* makeRooms(MazeStats* mazeStats, double saturation) {
 
       if (attempts_per_room <= 7) {
 
-        max_room_width--;
-        max_room_height--;
+        if(max_room_width > 1){
+
+          max_room_width--;
+        }
+        if(max_room_height > 1){
+
+          max_room_height--;
+        }
       }
     }
 
