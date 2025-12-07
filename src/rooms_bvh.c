@@ -25,18 +25,18 @@ int append_bvh_node(BVHNodes* BVHNodes, BVHNode node) {
       exit(1);
     }
     for (int i = old_capacity; i < BVHNodes->capacity; i++) {
-            d[i] = (BVHNode){0};
-            d[i].left = -1;
-            d[i].right = -1;
-            d[i].room_index = -1;
-        }
+      d[i]            = (BVHNode){0};
+      d[i].left       = -1;
+      d[i].right      = -1;
+      d[i].room_index = -1;
+    }
     BVHNodes->data = d;
   }
 
   BVHNodes->data[BVHNodes->length] = node;
   BVHNodes->length += 1;
 
-  return BVHNodes->length - 1; 
+  return BVHNodes->length - 1;
 }
 
 int build_bvh(BVHNodes* nodes, Rooms* rooms, int* indices, int start, int end) {
@@ -108,19 +108,19 @@ int build_bvh(BVHNodes* nodes, Rooms* rooms, int* indices, int start, int end) {
   int right_index = build_bvh(nodes, rooms, indices, mid, end);
 
   // Internal node
-  BVHNode box = {0};
-box.left       = left_index;
-box.right      = right_index;
-box.room_index = -1;
+  BVHNode box    = {0};
+  box.left       = left_index;
+  box.right      = right_index;
+  box.room_index = -1;
 
-// union of child boxes (after checking indices)
-if (left_index >= 0 && right_index >= 0) {
+  // union of child boxes (after checking indices)
+  if (left_index >= 0 && right_index >= 0) {
     box.box = aabb_union(nodes->data[left_index].box, nodes->data[right_index].box);
-} else {
+  } else {
     // fallback: degenerate box
     box.box = compute_AABB(0, 0, 0, 0);
-}
+  }
 
-int idx = append_bvh_node(nodes, box);
-return idx;
+  int idx = append_bvh_node(nodes, box);
+  return idx;
 }

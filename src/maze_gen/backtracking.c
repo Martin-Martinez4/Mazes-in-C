@@ -6,7 +6,8 @@
 
 void shuffleArray(void* array, int length, size_t element_size) {
   // just to get the pointer ot the first thing
-  if (length <= 1 || element_size == 0) return;
+  if (length <= 1 || element_size == 0)
+    return;
 
   unsigned char* arr = (unsigned char*) array;
   unsigned char temp[element_size];

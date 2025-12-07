@@ -21,38 +21,37 @@
 
 #include "./ui/clay_renderer_SDL3.c"
 
-
 void MyClayErrorHandler(Clay_ErrorData errorData) {
-    const char *typeName = "Unknown";
+  const char* typeName = "Unknown";
 
-    switch (errorData.errorType) {
-        case CLAY_ERROR_TYPE_TEXT_MEASUREMENT_FUNCTION_NOT_PROVIDED:
-            typeName = "TEXT_MEASUREMENT_FUNCTION_NOT_PROVIDED";
-            break;
-        case CLAY_ERROR_TYPE_ARENA_CAPACITY_EXCEEDED:
-            typeName = "ARENA_CAPACITY_EXCEEDED";
-            break;
-        case CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED:
-            typeName = "ELEMENTS_CAPACITY_EXCEEDED";
-            break;
-        case CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED:
-            typeName = "TEXT_MEASUREMENT_CAPACITY_EXCEEDED";
-            break;
-        case CLAY_ERROR_TYPE_DUPLICATE_ID:
-            typeName = "DUPLICATE_ID";
-            break;
-        case CLAY_ERROR_TYPE_FLOATING_CONTAINER_PARENT_NOT_FOUND:
-            typeName = "FLOATING_CONTAINER_PARENT_NOT_FOUND";
-            break;
-        case CLAY_ERROR_TYPE_PERCENTAGE_OVER_1:
-            typeName = "PERCENTAGE_OVER_1";
-            break;
-        case CLAY_ERROR_TYPE_INTERNAL_ERROR:
-            typeName = "INTERNAL_ERROR";
-            break;
-        default:
-            break;
-    }
+  switch (errorData.errorType) {
+  case CLAY_ERROR_TYPE_TEXT_MEASUREMENT_FUNCTION_NOT_PROVIDED:
+    typeName = "TEXT_MEASUREMENT_FUNCTION_NOT_PROVIDED";
+    break;
+  case CLAY_ERROR_TYPE_ARENA_CAPACITY_EXCEEDED:
+    typeName = "ARENA_CAPACITY_EXCEEDED";
+    break;
+  case CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED:
+    typeName = "ELEMENTS_CAPACITY_EXCEEDED";
+    break;
+  case CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED:
+    typeName = "TEXT_MEASUREMENT_CAPACITY_EXCEEDED";
+    break;
+  case CLAY_ERROR_TYPE_DUPLICATE_ID:
+    typeName = "DUPLICATE_ID";
+    break;
+  case CLAY_ERROR_TYPE_FLOATING_CONTAINER_PARENT_NOT_FOUND:
+    typeName = "FLOATING_CONTAINER_PARENT_NOT_FOUND";
+    break;
+  case CLAY_ERROR_TYPE_PERCENTAGE_OVER_1:
+    typeName = "PERCENTAGE_OVER_1";
+    break;
+  case CLAY_ERROR_TYPE_INTERNAL_ERROR:
+    typeName = "INTERNAL_ERROR";
+    break;
+  default:
+    break;
+  }
 }
 
 const int WINDOW_WIDTH  = 1080;
@@ -71,22 +70,21 @@ int main(int argc, char* argv[]) {
 
   printf("RUNNING\n");
 
-  SDL_Window* window; 
+  SDL_Window* window;
   bool done = false;
 
   // Initialize SDL3
-  SDL_Init(SDL_INIT_VIDEO); 
+  SDL_Init(SDL_INIT_VIDEO);
 
   if (!TTF_Init()) {
     SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF_Init failed: %s", SDL_GetError());
     return -1;
   }
 
-
   // Create an application window with the following settings:
-  window = SDL_CreateWindow("An SDL3 window", // window title
-                            WINDOW_WIDTH,     // width, in pixels
-                            WINDOW_HEIGHT,    // height, in pixels
+  window = SDL_CreateWindow("An SDL3 window",                        // window title
+                            WINDOW_WIDTH,                            // width, in pixels
+                            WINDOW_HEIGHT,                           // height, in pixels
                             SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE // flags - see below
   );
 
@@ -104,43 +102,46 @@ int main(int argc, char* argv[]) {
   }
 
   TTF_TextEngine* textEngine = TTF_CreateRendererTextEngine(renderer);
-if (!textEngine) {
+  if (!textEngine) {
     SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to create text engine: %s", SDL_GetError());
     return -1;
-}
+  }
 
-// load font
-TTF_Font* font = TTF_OpenFont("resources/Roboto-Regular.ttf", 24);
-if (!font) {
+  // load font
+  TTF_Font* font = TTF_OpenFont("resources/Roboto-Regular.ttf", 24);
+  if (!font) {
     SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to load font: %s", SDL_GetError());
     return -1;
-}
+  }
 
-TTF_Font **fonts = SDL_calloc(1, sizeof(TTF_Font *));
-if (!fonts) {
+  TTF_Font** fonts = SDL_calloc(1, sizeof(TTF_Font*));
+  if (!fonts) {
     SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Out of memory!");
     return -1;
-}
+  }
 
-// Load a font and assign it to the first slot
-fonts[0] = TTF_OpenFont("resources/Roboto-Regular.ttf", 24);
-if (!fonts[0]) {
+  // Load a font and assign it to the first slot
+  fonts[0] = TTF_OpenFont("resources/Roboto-Regular.ttf", 24);
+  if (!fonts[0]) {
     SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to load font: %s", SDL_GetError());
     return -1;
-}
+  }
 
-Clay_SDL3RendererData *clay_sdl3 = SDL_calloc(1, sizeof(*clay_sdl3));
-if (!clay_sdl3) { SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Out of memory"); return 1; }
+  Clay_SDL3RendererData* clay_sdl3 = SDL_calloc(1, sizeof(*clay_sdl3));
+  if (!clay_sdl3) {
+    SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Out of memory");
+    return 1;
+  }
 
-clay_sdl3->renderer   = renderer;
-clay_sdl3->fonts      = fonts;
-clay_sdl3->textEngine = textEngine;
+  clay_sdl3->renderer   = renderer;
+  clay_sdl3->fonts      = fonts;
+  clay_sdl3->textEngine = textEngine;
 
   MazeStats mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
                                         CELL_WIDTH, BORDER_WIDTH);
   printf("size is Maze Stats Created");
   Rooms* rooms = makeRooms(&mazeStats, 0.25);
-    printf("size is rooms Created");
+  printf("size is rooms Created");
 
   // Cell* cells = kruskalsCreateMaze(&mazeStats, rooms);
   Cell* cells = backtrackingCreateMaze(&mazeStats, rooms);
@@ -157,7 +158,7 @@ clay_sdl3->textEngine = textEngine;
   SDL_FRect* rects = (SDL_FRect*) malloc(rectsSize);
   int lenRects     = rectsSize / sizeof(SDL_FRect);
 
-  printf("size is: %d\n", (int)lenRects);
+  printf("size is: %d\n", (int) lenRects);
   printf("rows is: %d\n", mazeStats.rows);
   printf("columns is: %d\n", mazeStats.columns);
 
@@ -168,41 +169,82 @@ clay_sdl3->textEngine = textEngine;
 
   uint64_t clayRequiredMemory = Clay_MinMemorySize();
 
-  Clay_Arena clayMem = (Clay_Arena){
-    .memory = malloc(clayRequiredMemory),
-    .capacity = clayRequiredMemory
-  };
+  Clay_Arena clayMem =
+      (Clay_Arena){.memory = malloc(clayRequiredMemory), .capacity = clayRequiredMemory};
 
-  Clay_Initialize(clayMem, (Clay_Dimensions) {
-    .width = (float)WINDOW_WIDTH,
-    .height = (float)WINDOW_HEIGHT
-  }, (Clay_ErrorHandler){
-    .errorHandlerFunction = MyClayErrorHandler,
-    .userData = NULL
-  });
+  Clay_Initialize(
+      clayMem, (Clay_Dimensions){.width = (float) WINDOW_WIDTH, .height = (float) WINDOW_HEIGHT},
+      (Clay_ErrorHandler){.errorHandlerFunction = MyClayErrorHandler, .userData = NULL});
 
   int width, height;
 
   bool menuVisible = false;
 
   while (!done) {
+
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
-      if (event.type == SDL_EVENT_QUIT) {
+      switch (event.type) {
+      case SDL_EVENT_QUIT:
         done = true;
+        break;
+
+      case SDL_EVENT_KEY_UP:
+        if (event.key.scancode == SDL_SCANCODE_SPACE) {
+          SDL_Log("Space pressed!");
+          // Do something when space is released
+        }
+        break;
+
+      case SDL_EVENT_WINDOW_RESIZED:
+        Clay_SetLayoutDimensions(
+            (Clay_Dimensions){(float) event.window.data1, (float) event.window.data2});
+        break;
+
+      case SDL_EVENT_MOUSE_MOTION:
+        // Update Clay pointer position every frame
+        Clay_Vector2 mousePosition = (Clay_Vector2){(float) event.motion.x, (float) event.motion.y};
+        Clay_SetPointerState(mousePosition, false);
+        break;
+
+      case SDL_EVENT_MOUSE_BUTTON_DOWN:
+        // Update Clay pointer state with the new pressed state
+        if (event.button.button == SDL_BUTTON_LEFT) {
+          Clay_SetPointerState((Clay_Vector2){(float) event.button.x, (float) event.button.y},
+                               true);
+
+          // Check if pointer is over HeaderBar
+          if (Clay_PointerOver(Clay_GetElementId(CLAY_STRING("HeaderBarToggle")))) {
+            menuVisible = !menuVisible;
+            SDL_Log("HeaderBar clicked! menuVisible = %s", menuVisible ? "true" : "false");
+          }
+        }
+        break;
+
+      case SDL_EVENT_MOUSE_BUTTON_UP:
+        if (event.button.button == SDL_BUTTON_LEFT) {
+          Clay_SetPointerState((Clay_Vector2){(float) event.button.x, (float) event.button.y},
+                               false);
+        }
+        break;
+
+      case SDL_EVENT_MOUSE_WHEEL:
+        // Optionally update scroll containers
+        // Clay_UpdateScrollContainers(true, (Clay_Vector2){ event.wheel.x, event.wheel.y }, 0.01f);
+        break;
+
+      default:
+        break;
       }
     }
 
     SDL_GetWindowSize(window, &width, &height);
-    Clay_SetLayoutDimensions((Clay_Dimensions){
-      .width = width,
-      .height = height
-    });
+    Clay_SetLayoutDimensions((Clay_Dimensions){.width = width, .height = height});
     // Do game logic, present a frame, etc.
 
     // fill with black background
-    
+
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
@@ -218,68 +260,115 @@ clay_sdl3->textEngine = textEngine;
 
     Clay_BeginLayout();
 
-    
+    CLAY(CLAY_ID("OuterContainer"), {.backgroundColor = {43, 41, 51, 0},
+                                     .layout          = {.layoutDirection = CLAY_TOP_TO_BOTTOM,
+                                                         .sizing          = layoutExpand,
+                                                         .padding         = CLAY_PADDING_ALL(16),
+                                                         .childGap        = 16}}) {
 
-      CLAY(
-        CLAY_ID("OuterContainer"),
-        {
-          .backgroundColor = {43, 41, 51, 0 },
-          .layout = {
-              .layoutDirection = CLAY_TOP_TO_BOTTOM,
-              .sizing = layoutExpand,
-              .padding = CLAY_PADDING_ALL(16),
-              .childGap = 16
+      if (!menuVisible) {
+        CLAY(CLAY_ID("HeaderBarToggle"),
+             {.backgroundColor = {90, 90, 90, 255},
+
+              .layout = {
+                  .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                  .sizing = {.width = CLAY_SIZING_FIXED(20), .height = CLAY_SIZING_FIXED(20)},
+
+              }}) {
+          CLAY_AUTO_ID({.layout = {.padding = {5, 0, 0, 0},
+                                   .sizing  = {.width  = CLAY_SIZING_FIXED(20),
+                                               .height = CLAY_SIZING_FIXED(20)}},
+
+                        // .backgroundColor = { 0, 180, 0, 255 },
+
+                        .cornerRadius = CLAY_CORNER_RADIUS(5)}) {
+            CLAY_TEXT(CLAY_STRING("+"),
+                      CLAY_TEXT_CONFIG({.fontId        = 0,
+                                        .fontSize      = 20,
+                                        .textColor     = {255, 255, 255, 255},
+                                        .textAlignment = CLAY_TEXT_ALIGN_CENTER}));
           }
         }
-      ){
+      } else {
 
-        if(!menuVisible){
-      CLAY(
-        CLAY_ID("HeaderBar"),
-        {
-          .backgroundColor = {90, 90, 90, 255},
+        CLAY(CLAY_ID("HeaderBar"),
+             {.backgroundColor = {90, 90, 90, 255},
 
-          .layout = {
-              .layoutDirection = CLAY_TOP_TO_BOTTOM,
-              .sizing = {
-                .width = CLAY_SIZING_FIXED(20),
-                .height = CLAY_SIZING_FIXED(20)
-              },
-              
-          }
-        }
-      ){}
-    }else{
+              .layout = {.padding = CLAY_PADDING_ALL(5),
 
-        CLAY(
-          CLAY_ID("HeaderBar"),
-          {
-            .backgroundColor = {90, 90, 90, 255},
-            .layout = {
-              .sizing = {
-                .width = CLAY_SIZING_GROW(0),
-                .height = CLAY_SIZING_FIXED(60)
-              }
-  
+                         .sizing = {.width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_FIXED(60)}
+
+              }}) {
+          CLAY(CLAY_ID("HeaderBarToggle"),
+               {.backgroundColor = {180, 90, 90, 150},
+                .layout          = {
+                             .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                             .sizing = {.width = CLAY_SIZING_FIXED(20), .height = CLAY_SIZING_FIXED(20)},
+                             .childAlignment = {.y = CLAY_ALIGN_Y_CENTER, .x = CLAY_ALIGN_X_CENTER},
+                             .padding        = CLAY_PADDING_ALL(0)}}) {
+            CLAY_AUTO_ID({.layout = {.padding = {5, 10, 0, 0},
+                                     .sizing  = {.width  = CLAY_SIZING_FIXED(20),
+                                                 .height = CLAY_SIZING_FIXED(20)}},
+
+                          // .backgroundColor = { 0, 180, 0, 255 },
+
+                          .cornerRadius = CLAY_CORNER_RADIUS(5)}) {
+              CLAY_TEXT(CLAY_STRING("-"),
+                        CLAY_TEXT_CONFIG({.fontId        = 0,
+                                          .fontSize      = 20,
+                                          .textColor     = {255, 255, 255, 255},
+                                          .textAlignment = CLAY_TEXT_ALIGN_CENTER}));
             }
           }
-        ){}
+
+          CLAY(CLAY_ID("opts"),
+               {
+                   .layout =
+                       {
+
+                           .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                           .childGap        = 16,
+                           .padding         = {16, 16, 16, 16},
+                           .sizing = {.width = CLAY_SIZING_FIT(), .height = CLAY_SIZING_FIT()}},
+                   .backgroundColor = {200, 90, 200, 150},
+
+               }) {
+
+            CLAY(CLAY_ID("opt"),
+                 {.backgroundColor = {180, 90, 180, 150},
+                  .layout = {.sizing  = {.width = CLAY_SIZING_GROW(), .height = CLAY_SIZING_FIT()},
+                             .padding = CLAY_PADDING_ALL(0)}}) {
+              CLAY_AUTO_ID(
+                  {.layout = {.padding = {5, 10, 0, 0},
+                              .sizing  = {.width = CLAY_SIZING_FIT(), .height = CLAY_SIZING_FIT()}},
+
+                   // .backgroundColor = { 0, 180, 0, 255 },
+
+                   .cornerRadius = CLAY_CORNER_RADIUS(5)}) {
+               CLAY_TEXT(CLAY_STRING("COPY"),
+                        CLAY_TEXT_CONFIG({.fontId        = 0,
+                                          .fontSize      = 20,
+                                          .textColor     = {255, 255, 255, 255}}));
+              }
+            }
+          }
+        }
       };
     }
 
+    Clay_RenderCommandArray renderCommands = Clay_EndLayout();
 
-    Clay_RenderCommandArray renderCommands =  Clay_EndLayout();
-
-    // SDL_Clay_RenderClayCommands(Clay_SDL3RendererData *rendererData, Clay_RenderCommandArray *rcommands)
-
-    SDL_Clay_RenderClayCommands(clay_sdl3, &renderCommands);
+    // SDL_Clay_RenderClayCommands(Clay_SDL3RendererData *rendererData, Clay_RenderCommandArray
+    // *rcommands)
     SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
 
     SDL_RenderFillRects(renderer, rects, cellsToDraw);
+    SDL_Clay_RenderClayCommands(clay_sdl3, &renderCommands);
+    // SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
+
+    // SDL_RenderFillRects(renderer, rects, cellsToDraw);
 
     SDL_RenderPresent(renderer);
-
-
   }
 
   // Close and destroy the window
