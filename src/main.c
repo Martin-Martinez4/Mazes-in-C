@@ -15,44 +15,18 @@
 #include "prims.h"
 #include "maze_stats.h"
 
-#define CLAY_IMPLEMENTATION
+#define NK_INCLUDE_STANDARD_IO
+#define NK_INCLUDE_DEFAULT_ALLOCATOR
+#define NK_INCLUDE_FONT_BAKING
+#define NK_INCLUDE_DEFAULT_FONT
+#define NK_IMPLEMENTATION
+#define NK_INCLUDE_COMMAND_USERDATA
+#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
 
-#include "clay.h"
+#include "nuklear.h"
 
-#include "./ui/clay_renderer_SDL3.c"
-
-void MyClayErrorHandler(Clay_ErrorData errorData) {
-  const char* typeName = "Unknown";
-
-  switch (errorData.errorType) {
-  case CLAY_ERROR_TYPE_TEXT_MEASUREMENT_FUNCTION_NOT_PROVIDED:
-    typeName = "TEXT_MEASUREMENT_FUNCTION_NOT_PROVIDED";
-    break;
-  case CLAY_ERROR_TYPE_ARENA_CAPACITY_EXCEEDED:
-    typeName = "ARENA_CAPACITY_EXCEEDED";
-    break;
-  case CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED:
-    typeName = "ELEMENTS_CAPACITY_EXCEEDED";
-    break;
-  case CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED:
-    typeName = "TEXT_MEASUREMENT_CAPACITY_EXCEEDED";
-    break;
-  case CLAY_ERROR_TYPE_DUPLICATE_ID:
-    typeName = "DUPLICATE_ID";
-    break;
-  case CLAY_ERROR_TYPE_FLOATING_CONTAINER_PARENT_NOT_FOUND:
-    typeName = "FLOATING_CONTAINER_PARENT_NOT_FOUND";
-    break;
-  case CLAY_ERROR_TYPE_PERCENTAGE_OVER_1:
-    typeName = "PERCENTAGE_OVER_1";
-    break;
-  case CLAY_ERROR_TYPE_INTERNAL_ERROR:
-    typeName = "INTERNAL_ERROR";
-    break;
-  default:
-    break;
-  }
-}
+#define NK_SDL3_RENDERER_IMPLEMENTATION
+#include "nuklear_sdl3_renderer.h"
 
 const int WINDOW_WIDTH  = 1080;
 const int WINDOW_HEIGHT = 800;
@@ -61,8 +35,17 @@ const int CELL_HEIGHT  = 12;
 const int CELL_WIDTH   = 12;
 const int BORDER_WIDTH = 1;
 
+struct nk_sdl_app {
+  SDL_Window* window;
+  SDL_Renderer* renderer;
+  struct nk_context* ctx;
+  struct nk_colorf bg;
+  enum nk_anti_aliasing AA;
+};
+
 int main(int argc, char* argv[]) {
   // Seed the random number generator
+
   srand((unsigned int) time(NULL));
 
   int r  = rand();      // random number
@@ -127,15 +110,94 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  Clay_SDL3RendererData* clay_sdl3 = SDL_calloc(1, sizeof(*clay_sdl3));
-  if (!clay_sdl3) {
-    SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Out of memory");
+  struct nk_context* ctx = nk_sdl_init(window, renderer, nk_sdl_allocator());
+  if (!ctx) {
+    SDL_LogError(SDL_LOG_CATEGORY_ERROR, "nk_sdl3_init failed");
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
     return 1;
   }
+  enum nk_anti_aliasing AA;
+  int font_scale = 1;
+  {
+    /* This scaling logic was kept simple for the demo purpose.
+     * On some platforms, this might not be the exact scale
+     * that you want to use. For more information, see:
+     * https://wiki.libsdl.org/SDL3/README-highdpi */
+    const float scale = SDL_GetWindowDisplayScale(window);
+    SDL_SetRenderScale(renderer, scale, scale);
+    font_scale = scale;
+  }
 
-  clay_sdl3->renderer   = renderer;
-  clay_sdl3->fonts      = fonts;
-  clay_sdl3->textEngine = textEngine;
+  ctx = nk_sdl_init(window, renderer, nk_sdl_allocator());
+  ctx = ctx;
+
+#if 0
+    {
+        /* If you don't want to use advanced Nuklear font baking API
+         * you can use simple ASCII debug font provided by SDL
+         * just change the `#if 0` above to `#if 1` */
+        nk_sdl_style_set_debug_font(ctx);
+
+        /* Note that since debug font is extremely small (only 8x8 pixels),
+         * scaling it does not make much sense. The font would appear blurry. */
+        NK_UNUSED(font_scale);
+
+        /* You may wish to change a few style options, here are few recommendations: */
+        ctx->style.button.rounding = 0.0f;
+        ctx->style.menu_button.rounding = 0.0f;
+        ctx->style.property.rounding = 0.0f;
+        ctx->style.property.border = 0.0f;
+        ctx->style.option.border = -1.0f;
+        ctx->style.checkbox.border = -1.0f;
+        ctx->style.property.dec_button.border = -2.0f;
+        ctx->style.property.inc_button.border = -2.0f;
+        ctx->style.tab.tab_minimize_button.border = -2.0f;
+        ctx->style.tab.tab_maximize_button.border = -2.0f;
+        ctx->style.tab.node_minimize_button.border = -2.0f;
+        ctx->style.tab.node_maximize_button.border = -2.0f;
+        ctx->style.checkbox.spacing = 5.0f;
+
+        /* It's better to disable anti-aliasing when using small fonts */
+        app->AA = NK_ANTI_ALIASING_OFF;
+    }
+#else
+  {
+    struct nk_font_atlas* atlas;
+    struct nk_font_config config = nk_font_config(0);
+    struct nk_font* font;
+
+    /* set up the font atlas and add desired font; note that font sizes are
+     * multiplied by font_scale to produce better results at higher DPIs */
+    atlas = nk_sdl_font_stash_begin(ctx);
+    font  = nk_font_atlas_add_default(atlas, 13 * font_scale, &config);
+    /*font = nk_font_atlas_add_from_file(atlas, "../../../extra_font/DroidSans.ttf", 14 *
+     * font_scale, &config);*/
+    /*font = nk_font_atlas_add_from_file(atlas, "../../../extra_font/Roboto-Regular.ttf", 16 *
+     * font_scale, &config);*/
+    /*font = nk_font_atlas_add_from_file(atlas, "../../../extra_font/kenvector_future_thin.ttf", 13
+     * * font_scale, &config);*/
+    /*font = nk_font_atlas_add_from_file(atlas, "../../../extra_font/ProggyClean.ttf", 12 *
+     * font_scale, &config);*/
+    /*font = nk_font_atlas_add_from_file(atlas, "../../../extra_font/ProggyTiny.ttf", 10 *
+     * font_scale, &config);*/
+    /*font = nk_font_atlas_add_from_file(atlas, "../../../extra_font/Cousine-Regular.ttf", 13 *
+     * font_scale, &config);*/
+    nk_sdl_font_stash_end(ctx);
+
+    /* this hack makes the font appear to be scaled down to the desired
+     * size and is only necessary when font_scale > 1 */
+    font->handle.height /= font_scale;
+    /*nk_style_load_all_cursors(ctx, atlas->cursors);*/
+    nk_style_set_font(ctx, &font->handle);
+
+    AA = NK_ANTI_ALIASING_ON;
+  }
+#endif
+
+  // 0 = Backtracking, 1 = Prim, 2 = Kruskal
+  int algoSelected = 0;
 
   MazeStats mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
                                         CELL_WIDTH, BORDER_WIDTH);
@@ -167,83 +229,86 @@ int main(int argc, char* argv[]) {
 
   SDL_FRect background = {.x = 0, .y = 0, .h = mazeStats.canvasHeight, .w = mazeStats.canvasWidth};
 
-  uint64_t clayRequiredMemory = Clay_MinMemorySize();
-
-  Clay_Arena clayMem =
-      (Clay_Arena){.memory = malloc(clayRequiredMemory), .capacity = clayRequiredMemory};
-
-  Clay_Initialize(
-      clayMem, (Clay_Dimensions){.width = (float) WINDOW_WIDTH, .height = (float) WINDOW_HEIGHT},
-      (Clay_ErrorHandler){.errorHandlerFunction = MyClayErrorHandler, .userData = NULL});
-
   int width, height;
 
-  bool menuVisible = false;
+  bool menuVisible  = true;
+  bool menuExpanded = false;
 
   while (!done) {
 
     SDL_Event event;
 
+    nk_input_begin(ctx);
+
     while (SDL_PollEvent(&event)) {
-      switch (event.type) {
-      case SDL_EVENT_QUIT:
+      if (event.type == SDL_EVENT_QUIT)
         done = true;
-        break;
+      nk_sdl_handle_event(ctx, &event);
 
-      case SDL_EVENT_KEY_UP:
-        if (event.key.scancode == SDL_SCANCODE_SPACE) {
-          SDL_Log("Space pressed!");
-          // Do something when space is released
+      switch (event.type) {
+      case SDL_EVENT_KEY_DOWN:
+        if (event.key.scancode == SDL_SCANCODE_M) {
+          menuVisible = !menuVisible;
         }
-        break;
-
-      case SDL_EVENT_WINDOW_RESIZED:
-        Clay_SetLayoutDimensions(
-            (Clay_Dimensions){(float) event.window.data1, (float) event.window.data2});
-        break;
-
-      case SDL_EVENT_MOUSE_MOTION:
-        // Update Clay pointer position every frame
-        Clay_Vector2 mousePosition = (Clay_Vector2){(float) event.motion.x, (float) event.motion.y};
-        Clay_SetPointerState(mousePosition, false);
-        break;
-
-      case SDL_EVENT_MOUSE_BUTTON_DOWN:
-        // Update Clay pointer state with the new pressed state
-        if (event.button.button == SDL_BUTTON_LEFT) {
-          Clay_SetPointerState((Clay_Vector2){(float) event.button.x, (float) event.button.y},
-                               true);
-
-          // Check if pointer is over HeaderBar
-          if (Clay_PointerOver(Clay_GetElementId(CLAY_STRING("HeaderBarToggle")))) {
-            menuVisible = !menuVisible;
-            SDL_Log("HeaderBar clicked! menuVisible = %s", menuVisible ? "true" : "false");
-          }
-        }
-        break;
-
-      case SDL_EVENT_MOUSE_BUTTON_UP:
-        if (event.button.button == SDL_BUTTON_LEFT) {
-          Clay_SetPointerState((Clay_Vector2){(float) event.button.x, (float) event.button.y},
-                               false);
-        }
-        break;
-
-      case SDL_EVENT_MOUSE_WHEEL:
-        // Optionally update scroll containers
-        // Clay_UpdateScrollContainers(true, (Clay_Vector2){ event.wheel.x, event.wheel.y }, 0.01f);
-        break;
-
-      default:
-        break;
       }
     }
 
+    nk_input_end(ctx);
+
     SDL_GetWindowSize(window, &width, &height);
-    Clay_SetLayoutDimensions((Clay_Dimensions){.width = width, .height = height});
     // Do game logic, present a frame, etc.
 
-    // fill with black background
+    if (menuVisible) {
+
+      // fill with black background
+      if (nk_begin(ctx, "HeaderBar", nk_rect(10, 10, 24, 24),
+                   NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_BACKGROUND)) {
+
+        // row with height 48px
+        nk_layout_row_dynamic(ctx, 24, 1);
+
+        // Save old padding & alignment
+        struct nk_vec2 old_padding       = ctx->style.button.padding;
+        enum nk_text_alignment old_align = ctx->style.button.text_alignment;
+
+        // Temporarily change button style
+        ctx->style.button.padding        = nk_vec2(0, 0);
+        ctx->style.button.text_alignment = NK_TEXT_CENTERED;
+        if (nk_button_label(ctx, "-")) {
+          menuExpanded = !menuExpanded;
+          SDL_Log("Toggled menu: %s", menuExpanded ? "expanded" : "hidden");
+        }
+
+        // Restore old style
+        ctx->style.button.padding        = old_padding;
+        ctx->style.button.text_alignment = old_align;
+      }
+      nk_end(ctx);
+
+      /* ----------------- Optional menu ----------------- */
+      if (menuExpanded) {
+        if (nk_begin(ctx, "Menu", nk_rect(10, 36, 240, 220),
+                     NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_BACKGROUND)) {
+
+          nk_layout_row_dynamic(ctx, 20, 1);
+          nk_label(ctx, "Algorithms", NK_TEXT_LEFT);
+
+          nk_layout_row_dynamic(ctx, 20, 1);
+          if (nk_option_label(ctx, "Backtracking", algoSelected == 0))
+            algoSelected = 0;
+          if (nk_option_label(ctx, "Prim's", algoSelected == 1))
+            algoSelected = 1;
+          if (nk_option_label(ctx, "Kruskal's", algoSelected == 2))
+            algoSelected = 2;
+
+          nk_layout_row_dynamic(ctx, 20, 1);
+          if (nk_button_label(ctx, "Generate Maze")) {
+            SDL_Log("Generate Maze clicked (algo=%d)", algoSelected);
+          }
+        }
+        nk_end(ctx);
+      }
+    }
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
@@ -258,120 +323,46 @@ int main(int argc, char* argv[]) {
 
     SDL_RenderFillRects(renderer, rects, cellsToDraw);
 
-    Clay_BeginLayout();
-
-    CLAY(CLAY_ID("OuterContainer"), {.backgroundColor = {43, 41, 51, 0},
-                                     .layout          = {.layoutDirection = CLAY_TOP_TO_BOTTOM,
-                                                         .sizing          = layoutExpand,
-                                                         .padding         = CLAY_PADDING_ALL(16),
-                                                         .childGap        = 16}}) {
-
-      if (!menuVisible) {
-        CLAY(CLAY_ID("HeaderBarToggle"),
-             {.backgroundColor = {90, 90, 90, 255},
-
-              .layout = {
-                  .layoutDirection = CLAY_TOP_TO_BOTTOM,
-                  .sizing = {.width = CLAY_SIZING_FIXED(20), .height = CLAY_SIZING_FIXED(20)},
-
-              }}) {
-          CLAY_AUTO_ID({.layout = {.padding = {5, 0, 0, 0},
-                                   .sizing  = {.width  = CLAY_SIZING_FIXED(20),
-                                               .height = CLAY_SIZING_FIXED(20)}},
-
-                        // .backgroundColor = { 0, 180, 0, 255 },
-
-                        .cornerRadius = CLAY_CORNER_RADIUS(5)}) {
-            CLAY_TEXT(CLAY_STRING("+"),
-                      CLAY_TEXT_CONFIG({.fontId        = 0,
-                                        .fontSize      = 20,
-                                        .textColor     = {255, 255, 255, 255},
-                                        .textAlignment = CLAY_TEXT_ALIGN_CENTER}));
-          }
-        }
-      } else {
-
-        CLAY(CLAY_ID("HeaderBar"),
-             {.backgroundColor = {90, 90, 90, 255},
-
-              .layout = {.padding = CLAY_PADDING_ALL(5),
-
-                         .sizing = {.width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_FIXED(60)}
-
-              }}) {
-          CLAY(CLAY_ID("HeaderBarToggle"),
-               {.backgroundColor = {180, 90, 90, 150},
-                .layout          = {
-                             .layoutDirection = CLAY_TOP_TO_BOTTOM,
-                             .sizing = {.width = CLAY_SIZING_FIXED(20), .height = CLAY_SIZING_FIXED(20)},
-                             .childAlignment = {.y = CLAY_ALIGN_Y_CENTER, .x = CLAY_ALIGN_X_CENTER},
-                             .padding        = CLAY_PADDING_ALL(0)}}) {
-            CLAY_AUTO_ID({.layout = {.padding = {5, 10, 0, 0},
-                                     .sizing  = {.width  = CLAY_SIZING_FIXED(20),
-                                                 .height = CLAY_SIZING_FIXED(20)}},
-
-                          // .backgroundColor = { 0, 180, 0, 255 },
-
-                          .cornerRadius = CLAY_CORNER_RADIUS(5)}) {
-              CLAY_TEXT(CLAY_STRING("-"),
-                        CLAY_TEXT_CONFIG({.fontId        = 0,
-                                          .fontSize      = 20,
-                                          .textColor     = {255, 255, 255, 255},
-                                          .textAlignment = CLAY_TEXT_ALIGN_CENTER}));
-            }
-          }
-
-          CLAY(CLAY_ID("opts"),
-               {
-                   .layout =
-                       {
-
-                           .layoutDirection = CLAY_TOP_TO_BOTTOM,
-                           .childGap        = 16,
-                           .padding         = {16, 16, 16, 16},
-                           .sizing = {.width = CLAY_SIZING_FIT(), .height = CLAY_SIZING_FIT()}},
-                   .backgroundColor = {200, 90, 200, 150},
-
-               }) {
-
-            CLAY(CLAY_ID("opt"),
-                 {.backgroundColor = {180, 90, 180, 150},
-                  .layout = {.sizing  = {.width = CLAY_SIZING_GROW(), .height = CLAY_SIZING_FIT()},
-                             .padding = CLAY_PADDING_ALL(0)}}) {
-              CLAY_AUTO_ID(
-                  {.layout = {.padding = {5, 10, 0, 0},
-                              .sizing  = {.width = CLAY_SIZING_FIT(), .height = CLAY_SIZING_FIT()}},
-
-                   // .backgroundColor = { 0, 180, 0, 255 },
-
-                   .cornerRadius = CLAY_CORNER_RADIUS(5)}) {
-               CLAY_TEXT(CLAY_STRING("COPY"),
-                        CLAY_TEXT_CONFIG({.fontId        = 0,
-                                          .fontSize      = 20,
-                                          .textColor     = {255, 255, 255, 255}}));
-              }
-            }
-          }
-        }
-      };
-    }
-
-    Clay_RenderCommandArray renderCommands = Clay_EndLayout();
-
     // SDL_Clay_RenderClayCommands(Clay_SDL3RendererData *rendererData, Clay_RenderCommandArray
     // *rcommands)
     SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
 
     SDL_RenderFillRects(renderer, rects, cellsToDraw);
-    SDL_Clay_RenderClayCommands(clay_sdl3, &renderCommands);
     // SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
 
     // SDL_RenderFillRects(renderer, rects, cellsToDraw);
+    nk_sdl_render(ctx, NK_ANTI_ALIASING_ON);
 
     SDL_RenderPresent(renderer);
   }
 
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  SDL_RenderClear(renderer);
+
+  //  SDL_SetRenderDrawColor(renderer, 250, 249, 246, 255);
+  SDL_SetRenderDrawColor(renderer, 15, 15, 15, 255);
+  int status = SDL_RenderFillRect(renderer, &background);
+
+  // SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
+  // SDL_SetRenderDrawColor(renderer, 125, 120, 120, 255);
+  SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
+
+  SDL_RenderFillRects(renderer, rects, cellsToDraw);
+
+  // SDL_Clay_RenderClayCommands(Clay_SDL3RendererData *rendererData, Clay_RenderCommandArray
+  // *rcommands)
+  SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
+
+  SDL_RenderFillRects(renderer, rects, cellsToDraw);
+  // SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
+
+  // SDL_RenderFillRects(renderer, rects, cellsToDraw);
+
+  SDL_RenderPresent(renderer);
+
   // Close and destroy the window
+  nk_sdl_shutdown(ctx);
+  SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
 
   // Clean up
