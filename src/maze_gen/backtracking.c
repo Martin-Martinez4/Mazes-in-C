@@ -5,21 +5,24 @@
 #include "rand_utils.h"
 
 void shuffleArray(void* array, int length, size_t element_size) {
-  // just to get the pointer ot the first thing
-  if (length <= 1 || element_size == 0)
-    return;
+    if (length <= 1 || element_size == 0)
+        return;
 
-  unsigned char* arr = (unsigned char*) array;
-  unsigned char temp[element_size];
+    unsigned char* arr = (unsigned char*) array;
+    unsigned char* temp = (unsigned char*) malloc(element_size);
+    if (!temp)
+        return; // allocation failed
 
-  for (int i = length - 1; i >= 1; i--) {
-    int j = rand() % (i + 1);
+    for (int i = length - 1; i >= 1; i--) {
+        int j = rand() % (i + 1);
 
-    // swap arr[i] and arr[j]
-    memcpy(temp, arr + i * element_size, element_size);
-    memcpy(arr + i * element_size, arr + j * element_size, element_size);
-    memcpy(arr + j * element_size, temp, element_size);
-  }
+        // swap arr[i] and arr[j]
+        memcpy(temp, arr + i * element_size, element_size);
+        memcpy(arr + i * element_size, arr + j * element_size, element_size);
+        memcpy(arr + j * element_size, temp, element_size);
+    }
+
+    free(temp);
 }
 
 void backtrack(Cell* cells, bool* visited, int row, int column, int rows, int columns) {

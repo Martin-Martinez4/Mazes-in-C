@@ -219,7 +219,7 @@ Rooms* makeRooms(MazeStats* mazeStats, double saturation) {
 
       bool collided = false;
 
-      int rootIndex;
+      static int rootIndex = -1;
       if (rooms->length == 50) {
         // indices for rooms
         int* indices = malloc(sizeof(int) * rooms->length);
