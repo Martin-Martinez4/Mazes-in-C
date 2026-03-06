@@ -199,6 +199,7 @@ int main(int argc, char* argv[]) {
   // 0 = Backtracking, 1 = Prim, 2 = Kruskal
   int algoSelected = 0;
 
+  // --- Here ---
   MazeStats mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
                                         CELL_WIDTH, BORDER_WIDTH);
   printf("size is Maze Stats Created");
@@ -226,8 +227,9 @@ int main(int argc, char* argv[]) {
 
   //    int cellsToDraw =  rectsFromStats(rects, lenRects, mazeStats);
   int cellsToDraw = rectsFromCells(cells, rects, lenRects, mazeStats);
+  // --- To Here ---
 
-  SDL_FRect background = {.x = 0, .y = 0, .h = mazeStats.canvasHeight, .w = mazeStats.canvasWidth};
+  // SDL_FRect background = {.x = 0, .y = 0, .h = mazeStats.canvasHeight, .w = mazeStats.canvasWidth};
 
   int width, height;
 
@@ -313,52 +315,16 @@ int main(int argc, char* argv[]) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    //  SDL_SetRenderDrawColor(renderer, 250, 249, 246, 255);
-    SDL_SetRenderDrawColor(renderer, 15, 15, 15, 255);
-    int status = SDL_RenderFillRect(renderer, &background);
-
-    // SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
-    // SDL_SetRenderDrawColor(renderer, 125, 120, 120, 255);
     SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
-
     SDL_RenderFillRects(renderer, rects, cellsToDraw);
 
-    // SDL_Clay_RenderClayCommands(Clay_SDL3RendererData *rendererData, Clay_RenderCommandArray
-    // *rcommands)
-    SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
-
-    SDL_RenderFillRects(renderer, rects, cellsToDraw);
-    // SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
-
-    // SDL_RenderFillRects(renderer, rects, cellsToDraw);
+   
     nk_sdl_render(ctx, NK_ANTI_ALIASING_ON);
 
     SDL_RenderPresent(renderer);
   }
 
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-  SDL_RenderClear(renderer);
-
-  //  SDL_SetRenderDrawColor(renderer, 250, 249, 246, 255);
-  SDL_SetRenderDrawColor(renderer, 15, 15, 15, 255);
-  int status = SDL_RenderFillRect(renderer, &background);
-
-  // SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
-  // SDL_SetRenderDrawColor(renderer, 125, 120, 120, 255);
-  SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
-
-  SDL_RenderFillRects(renderer, rects, cellsToDraw);
-
-  // SDL_Clay_RenderClayCommands(Clay_SDL3RendererData *rendererData, Clay_RenderCommandArray
-  // *rcommands)
-  SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
-
-  SDL_RenderFillRects(renderer, rects, cellsToDraw);
-  // SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
-
-  // SDL_RenderFillRects(renderer, rects, cellsToDraw);
-
-  SDL_RenderPresent(renderer);
+ 
 
   // Close and destroy the window
   nk_sdl_shutdown(ctx);
