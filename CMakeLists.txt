@@ -62,6 +62,7 @@ set(sources
     ${CMAKE_SOURCE_DIR}/src/aabb.c
     ${CMAKE_SOURCE_DIR}/src/rooms_bvh.c
     ${CMAKE_SOURCE_DIR}/src/rooms.c
+    ${CMAKE_SOURCE_DIR}/src/create_maze.c
     ${CMAKE_SOURCE_DIR}/src/maze_gen/backtracking.c
     ${CMAKE_SOURCE_DIR}/src/maze_gen/cell.c
     ${CMAKE_SOURCE_DIR}/src/utils/rb_tree.c
@@ -69,6 +70,13 @@ set(sources
     ${CMAKE_SOURCE_DIR}/src/draw_cells.c
     ${CMAKE_SOURCE_DIR}/src/maze_gen/kruskals.c
     ${CMAKE_SOURCE_DIR}/src/maze_gen/prims.c
+    ${CMAKE_SOURCE_DIR}/src/ui/init_nk.c
+    ${CMAKE_SOURCE_DIR}/src/ui/layout_nk.c
+    ${CMAKE_SOURCE_DIR}/src/ui/ui_state.c
+    ${CMAKE_SOURCE_DIR}/src/ui/init_font.c
+
+
+
 )
 
 set(app_sources
@@ -137,6 +145,8 @@ target_include_directories(
     ${sources_directories}
     ${CMAKE_CURRENT_SOURCE_DIR}/test/myAssert
     ${CMAKE_CURRENT_SOURCE_DIR}/test/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/nuklear
+
 )
 
 if(WIN32)

@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 // pass by value is good enough for now
-MazeStats createMazeStats(int canvasWidth, int canvasHeight, int cellWidth, int cellHeight,
+MazeStats* createMazeStats(int canvasWidth, int canvasHeight, int cellWidth, int cellHeight,
                           int borderWidth) {
   // typedef struct MazeStats{
   //     int canvasWidth;
@@ -23,25 +23,26 @@ MazeStats createMazeStats(int canvasWidth, int canvasHeight, int cellWidth, int 
   // printf("totalCellHeight : %d\n", totalCellHeight);
   // printf("totalCellWidth : %d\n", totalCellWidth);
   // printf("canvasWidth : %d\n", canvasWidth);
+  MazeStats* m = malloc(sizeof(MazeStats));
 
-  struct MazeStats m = {.canvasWidth     = canvasWidth,
-                        .canvasHeight    = canvasHeight,
-                        .totalCellHeight = totalCellHeight,
-                        .totalCellWidth  = totalCellWidth,
-                        .rows            = (int) ((canvasHeight - borderWidth) / totalCellHeight),
-                        .columns         = (int) ((canvasWidth - borderWidth) / totalCellWidth),
-                        .borderWidth     = borderWidth};
+  m->canvasWidth     = canvasWidth;
+                        m->canvasHeight    = canvasHeight;
+                        m->totalCellHeight = totalCellHeight;
+                        m->totalCellWidth  = totalCellWidth;
+                        m->rows            = (int) ((canvasHeight - borderWidth) / totalCellHeight);
+                        m->columns         = (int) ((canvasWidth - borderWidth) / totalCellWidth);
+                        m->borderWidth     = borderWidth;
 
   return m;
 }
 
-int rectsFromCells(Cell* cells, SDL_FRect* rects, size_t length, MazeStats mazeStats) {
-  int borderWidth     = mazeStats.borderWidth;
-  int totalCellHeight = mazeStats.totalCellHeight;
-  int totalCellWidth  = mazeStats.totalCellWidth;
+int rectsFromCells(Cell* cells, SDL_FRect* rects, size_t length, MazeStats* mazeStats) {
+  int borderWidth     = mazeStats->borderWidth;
+  int totalCellHeight = mazeStats->totalCellHeight;
+  int totalCellWidth  = mazeStats->totalCellWidth;
 
-  int rows    = mazeStats.rows;
-  int columns = mazeStats.columns;
+  int rows    = mazeStats->rows;
+  int columns = mazeStats->columns;
 
   int current = 0;
 
