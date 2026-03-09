@@ -5,5 +5,8 @@ uiState state = {
     .algoSelected = KRUSKALS,
     .menuExpanded = false,
     .menuVisible = true,
-    .redrawMaze = false
+    .redrawMaze = false,
+    .export = false,
+    .fileName = {0},
+    .fileNameLen = 0
 };

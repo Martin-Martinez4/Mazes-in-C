@@ -74,9 +74,7 @@ set(sources
     ${CMAKE_SOURCE_DIR}/src/ui/layout_nk.c
     ${CMAKE_SOURCE_DIR}/src/ui/ui_state.c
     ${CMAKE_SOURCE_DIR}/src/ui/init_font.c
-
-
-
+    ${CMAKE_SOURCE_DIR}/src/file/export.c
 )
 
 set(app_sources
@@ -99,6 +97,8 @@ set(sources_directories
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ui
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/src/maze_gen
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/file
+
 )
 
 target_include_directories(

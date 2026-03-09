@@ -8,6 +8,9 @@ typedef struct  {
     bool menuVisible;
     bool menuExpanded;
     bool redrawMaze;
+    bool export;
+    char fileName[256];
+    int fileNameLen;
 } uiState;
 
 extern uiState state;

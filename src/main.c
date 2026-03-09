@@ -10,6 +10,7 @@
 #include "draw_cells.h"
 #include "maze_stats.h"
 #include "create_maze.h"
+#include "export.h"
 
 #include "config_nk.h"
 
@@ -28,11 +29,12 @@ const int BORDER_WIDTH = 1;
 
 int main(int argc, char* argv[]) {
   // Seed the random number generator
-
   srand((unsigned int) time(NULL));
 
-  int r  = rand();      // random number
-  int r2 = rand() % 10; // random number from 0 to 9
+  // random number
+  // int r  = rand();
+  // // random number from 0 to 9
+  // int r2 = rand() % 10;
 
   printf("RUNNING\n");
 
@@ -48,6 +50,7 @@ int main(int argc, char* argv[]) {
                             WINDOW_HEIGHT,                           // height, in pixels
                             SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE // flags - see below
   );
+  SDL_StartTextInput(window);
 
   // Check that the window was successfully created
   if (window == NULL) {
@@ -84,15 +87,18 @@ int main(int argc, char* argv[]) {
     nk_input_begin(ctx);
 
     while (SDL_PollEvent(&event)) {
-      if (event.type == SDL_EVENT_QUIT)
+      if (event.type == SDL_EVENT_QUIT) {
+
         done = true;
+      }
       nk_sdl_handle_event(ctx, &event);
+      // nk_input_char(ctx, 'A');
 
       switch (event.type) {
       case SDL_EVENT_KEY_DOWN:
-        if (event.key.scancode == SDL_SCANCODE_M) {
-          state.menuVisible = !state.menuVisible;
-        }
+        // if (event.key.scancode == SDL_SCANCODE_M) {
+        //   state.menuVisible = !state.menuVisible;
+        // }
       }
     }
 
@@ -105,9 +111,9 @@ int main(int argc, char* argv[]) {
 
     renderNk(ctx);
 
-    if(state.redrawMaze){
-      cells = createCells(mazeStats, state.algoSelected, 0.25);
-      rects = createSDLRects(mazeStats, cells, &cellsToDraw);
+    if (state.redrawMaze) {
+      cells            = createCells(mazeStats, state.algoSelected, 0.25);
+      rects            = createSDLRects(mazeStats, cells, &cellsToDraw);
       state.redrawMaze = false;
     }
 
@@ -116,6 +122,13 @@ int main(int argc, char* argv[]) {
     SDL_RenderFillRects(renderer, rects, cellsToDraw);
 
     nk_sdl_render(ctx, NK_ANTI_ALIASING_ON);
+
+    if (state.export) {
+      printf("Exporting: %s\n", state.fileName);
+      exportMaze(mazeStats, cells, state.fileName);
+      state.export = false;
+
+    }
 
     SDL_RenderPresent(renderer);
   }
