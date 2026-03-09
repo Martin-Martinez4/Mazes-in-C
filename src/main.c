@@ -23,9 +23,10 @@
 
 const int WINDOW_WIDTH  = 1080;
 const int WINDOW_HEIGHT = 800;
+// const int WINDOW_HEIGHT = 1080;
 
-const int CELL_HEIGHT  = 12;
-const int CELL_WIDTH   = 12;
+const int CELL_HEIGHT  = 8;
+const int CELL_WIDTH   = 8;
 const int BORDER_WIDTH = 1;
 
 int main(int argc, char* argv[]) {
@@ -74,7 +75,7 @@ int main(int argc, char* argv[]) {
   MazeStats* mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
                                          CELL_WIDTH, BORDER_WIDTH);
 
-  Cell* cells = createCells(mazeStats, state.algoSelected, 0.25);
+  Cell* cells = createCells(mazeStats, state.algoSelected, 0.05);
 
   int cellsToDraw;
   SDL_FRect* rects = createSDLRects(mazeStats, cells, &cellsToDraw);
@@ -128,7 +129,6 @@ int main(int argc, char* argv[]) {
       printf("Exporting: %s\n", state.fileName);
       exportMaze(mazeStats, cells, state.fileName);
       state.export = false;
-
     }
 
     SDL_RenderPresent(renderer);

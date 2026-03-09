@@ -75,6 +75,8 @@ set(sources
     ${CMAKE_SOURCE_DIR}/src/ui/ui_state.c
     ${CMAKE_SOURCE_DIR}/src/ui/init_font.c
     ${CMAKE_SOURCE_DIR}/src/file/export.c
+    ${CMAKE_SOURCE_DIR}/src/file/load.c
+
 )
 
 set(app_sources
