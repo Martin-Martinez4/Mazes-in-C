@@ -22,7 +22,7 @@ else()
         # Paths to SDL3, SDL3_image, SDL3_ttf CMake config directories
         set(SDL3_DIR "C:/SDL3/cmake" CACHE PATH "Path to SDL3Config.cmake")
         set(SDL3_image_DIR "C:/SDL3_image/cmake" CACHE PATH "Path to SDL3_imageConfig.cmake")
-        set(SDL3_TTF_DIR "C:/SDL3_ttf/cmake" CACHE PATH "Path to SDL3_ttfConfig.cmake")
+        set(SDL3_ttf_DIR "C:/SDL3_ttf/cmake" CACHE PATH "Path to SDL3_ttfConfig.cmake")
     endif()
 
     # Find SDL3, SDL3_image, SDL3_ttf packages

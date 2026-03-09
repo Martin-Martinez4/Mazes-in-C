@@ -1,10 +1,11 @@
 #include "export.h"
+#include "stdlib.h"
 #include "stddef.h"
 #include "stdio.h"
 
 int exportMaze(MazeStats* mazeStats, Cell* cells, char* filePath) {
   size_t len = mazeStats->rows * mazeStats->columns;
-  int c[len + 6];
+  int* c = malloc((len + 6) * sizeof(int));
   // m
   c[0] = 109;
   // a
@@ -26,17 +27,23 @@ int exportMaze(MazeStats* mazeStats, Cell* cells, char* filePath) {
   //     printf("c: %d\n", c[i]);
   //   }
 
+  printf("Malloc'd etd");
   FILE* file = fopen(filePath, "wb");
   if (!file) {
+    fclose(file);
+    free(c);
     perror("Failed to open file");
     return 1;
   }
 
   size_t written = fwrite(c, sizeof(int), len + 6, file);
   if (written != len+6) {
+    fclose(file);
+    free(c);
     perror("Failed to write all data");
   }
 
   fclose(file);
+  free(c);
   return 0;
 }

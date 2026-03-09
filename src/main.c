@@ -1,3 +1,4 @@
+#include <SDL3/SDL_main.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
@@ -94,12 +95,12 @@ int main(int argc, char* argv[]) {
       nk_sdl_handle_event(ctx, &event);
       // nk_input_char(ctx, 'A');
 
-      switch (event.type) {
-      case SDL_EVENT_KEY_DOWN:
-        // if (event.key.scancode == SDL_SCANCODE_M) {
-        //   state.menuVisible = !state.menuVisible;
-        // }
-      }
+      // switch (event.type) {
+      // case SDL_EVENT_KEY_DOWN:
+      //   // if (event.key.scancode == SDL_SCANCODE_M) {
+      //   //   state.menuVisible = !state.menuVisible;
+      //   // }
+      // }
     }
 
     nk_input_end(ctx);
