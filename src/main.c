@@ -12,6 +12,7 @@
 #include "maze_stats.h"
 #include "create_maze.h"
 #include "export.h"
+#include "load.h"
 
 #include "config_nk.h"
 
@@ -96,12 +97,14 @@ int main(int argc, char* argv[]) {
       nk_sdl_handle_event(ctx, &event);
       // nk_input_char(ctx, 'A');
 
-      // switch (event.type) {
-      // case SDL_EVENT_KEY_DOWN:
-      //   // if (event.key.scancode == SDL_SCANCODE_M) {
-      //   //   state.menuVisible = !state.menuVisible;
-      //   // }
-      // }
+      switch (event.type) {
+      case SDL_EVENT_KEY_DOWN:
+        if (event.key.scancode == SDL_SCANCODE_0) {
+          printf("columns: %d; rows: %d", mazeStats->columns, mazeStats->rows);
+          cells = loadMaze(mazeStats, &cellsToDraw, "./maze4.maze");
+          rects = createSDLRects(mazeStats, cells, &cellsToDraw);
+        }
+      }
     }
 
     nk_input_end(ctx);

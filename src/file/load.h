@@ -3,6 +3,6 @@
 #include "cell.h"
 #include "maze_stats.h"
 
-int loadMaze(MazeStats* mazeStats,  int* cellsCreated, char* filePath);
+Cell* loadMaze(MazeStats* mazeStats, int* cellsCreated, char* filePath);
 
 #endif
