@@ -76,6 +76,8 @@ set(sources
     ${CMAKE_SOURCE_DIR}/src/ui/init_font.c
     ${CMAKE_SOURCE_DIR}/src/file/export.c
     ${CMAKE_SOURCE_DIR}/src/file/load.c
+    ${CMAKE_SOURCE_DIR}/src/noise/noise.c
+
 
 )
 
@@ -100,6 +102,8 @@ set(sources_directories
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/src/maze_gen
     ${CMAKE_CURRENT_SOURCE_DIR}/src/file
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/noise
+
 
 )
 
