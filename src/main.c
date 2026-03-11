@@ -1,46 +1,59 @@
-#include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3/SDL.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
-#include <math.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-#include "backtracking.h"
 #include "cell.h"
 #include "draw_cells.h"
-#include "kruskals.h"
-#include "prims.h"
 #include "maze_stats.h"
+#include "create_maze.h"
+#include "export.h"
+#include "load.h"
+
+#include "config_nk.h"
+
+#include "init_nk.h"
+#include "nuklear.h"
+#include "nuklear_sdl3_renderer.h"
+#include "layout_nk.h"
+#include "init_font.h"
 
 const int WINDOW_WIDTH  = 1080;
 const int WINDOW_HEIGHT = 800;
+// const int WINDOW_HEIGHT = 1080;
 
-const int CELL_HEIGHT  = 12;
-const int CELL_WIDTH   = 12;
+const int CELL_HEIGHT  = 8;
+const int CELL_WIDTH   = 8;
 const int BORDER_WIDTH = 1;
 
 int main(int argc, char* argv[]) {
   // Seed the random number generator
   srand((unsigned int) time(NULL));
 
-  int r  = rand();      // random number
-  int r2 = rand() % 10; // random number from 0 to 9
+  // random number
+  // int r  = rand();
+  // // random number from 0 to 9
+  // int r2 = rand() % 10;
 
   printf("RUNNING\n");
 
-  SDL_Window* window; // Declare a pointer
+  SDL_Window* window;
   bool done = false;
 
-  SDL_Init(SDL_INIT_VIDEO); // Initialize SDL3
+  // Initialize SDL3
+  SDL_Init(SDL_INIT_VIDEO);
 
   // Create an application window with the following settings:
-  window = SDL_CreateWindow("An SDL3 window", // window title
-                            WINDOW_WIDTH,     // width, in pixels
-                            WINDOW_HEIGHT,    // height, in pixels
-                            SDL_WINDOW_OPENGL // flags - see below
+  window = SDL_CreateWindow("An SDL3 window",                        // window title
+                            WINDOW_WIDTH,                            // width, in pixels
+                            WINDOW_HEIGHT,                           // height, in pixels
+                            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE // flags - see below
   );
+  SDL_StartTextInput(window);
 
   // Check that the window was successfully created
   if (window == NULL) {
@@ -55,64 +68,89 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  MazeStats mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
-                                        CELL_WIDTH, BORDER_WIDTH);
+  init_SDLFont(renderer);
 
-  Rooms* rooms = makeRooms(&mazeStats, 0.25);
+  struct nk_context* ctx = initNk(window, renderer);
 
-  // Cell* cells = kruskalsCreateMaze(&mazeStats, rooms);
-  Cell* cells = backtrackingCreateMaze(&mazeStats, rooms);
-  // Cell* cells = prims_create_maze(&mazeStats, rooms);
+  // Initial Maze Creation
+  MazeStats* mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
+                                         CELL_WIDTH, BORDER_WIDTH);
 
-  // only holds the borders
-  //   size_t rectsSize = ((3 * mazeStats.rows * mazeStats.columns +
-  //                        (mazeStats.rows + mazeStats.columns)) -
-  //                       (mazeStats.rows * mazeStats.columns)) *
-  //                      sizeof(SDL_FRect);
+  Cell* cells = createCells(mazeStats, state.algoSelected, 0.05);
 
-  size_t rectsSize = 4 * mazeStats.rows * mazeStats.columns * sizeof(SDL_FRect);
+  int cellsToDraw;
+  SDL_FRect* rects = createSDLRects(mazeStats, cells, &cellsToDraw);
 
-  SDL_FRect* rects = (SDL_FRect*) malloc(rectsSize);
-  int lenRects     = rectsSize / sizeof(SDL_FRect);
-
-  // printf("size is: %d\n", (int)lenRects);
-  // printf("rows is: %d\n", mazeStats.rows);
-  // printf("columns is: %d\n", mazeStats.columns);
-
-  //    int cellsToDraw =  rectsFromStats(rects, lenRects, mazeStats);
-  int cellsToDraw = rectsFromCells(cells, rects, lenRects, mazeStats);
-
-  SDL_FRect background = {.x = 0, .y = 0, .h = mazeStats.canvasHeight, .w = mazeStats.canvasWidth};
+  int width, height;
 
   while (!done) {
+
     SDL_Event event;
+
+    nk_input_begin(ctx);
 
     while (SDL_PollEvent(&event)) {
       if (event.type == SDL_EVENT_QUIT) {
+
         done = true;
       }
+      nk_sdl_handle_event(ctx, &event);
+      // nk_input_char(ctx, 'A');
+
+      // switch (event.type) {
+      // case SDL_EVENT_KEY_DOWN:
+      //   if (event.key.scancode == SDL_SCANCODE_0) {
+      //     printf("columns: %d; rows: %d", mazeStats->columns, mazeStats->rows);
+      //     cells = loadMaze(mazeStats, &cellsToDraw, "./maze4.maze");
+      //     rects = createSDLRects(mazeStats, cells, &cellsToDraw);
+      //   }
+      // }
     }
 
-    // Do game logic, present a frame, etc.
+    nk_input_end(ctx);
 
-    // fill with black background
+    SDL_GetWindowSize(window, &width, &height);
+
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    //  SDL_SetRenderDrawColor(renderer, 250, 249, 246, 255);
-    SDL_SetRenderDrawColor(renderer, 15, 15, 15, 255);
-    int status = SDL_RenderFillRect(renderer, &background);
+    renderNk(ctx);
 
-    // SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
-    // SDL_SetRenderDrawColor(renderer, 125, 120, 120, 255);
+    if (state.redrawMaze) {
+      cells            = createCells(mazeStats, state.algoSelected, 0.25);
+      rects            = createSDLRects(mazeStats, cells, &cellsToDraw);
+      state.redrawMaze = false;
+    }
+
+    // Draw Maze Walls
     SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
-
     SDL_RenderFillRects(renderer, rects, cellsToDraw);
+
+    nk_sdl_render(ctx, NK_ANTI_ALIASING_ON);
+
+    if (state.export) {
+      printf("Exporting: %s\n", state.fileName);
+      exportMaze(mazeStats, cells, state.fileName);
+      state.export = false;
+    }
+    if (state.upload) {
+      printf("Loading: %s\n", state.uploadFileName);
+      Cell* cTemp = loadMaze(mazeStats, &cellsToDraw, state.uploadFileName);
+      if(!cTemp){
+        printf("Failed to load file: %s\n", state.uploadFileName);
+      }else{
+        cells = cTemp;
+        rects = createSDLRects(mazeStats, cells, &cellsToDraw);
+      }
+      state.upload = false;
+    }
 
     SDL_RenderPresent(renderer);
   }
 
   // Close and destroy the window
+  nk_sdl_shutdown(ctx);
+  SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
 
   // Clean up

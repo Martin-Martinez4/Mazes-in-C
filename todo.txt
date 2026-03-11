@@ -29,3 +29,6 @@ Comand to format and build:
 
 
 - See if UI is feasible to create using only SDL3
+
+-devel SDL releases where used on Windows
+SDL3_ttf-devel-3.2.2-mingw.tar.gz
