@@ -41,13 +41,16 @@ void renderNk(struct nk_context* ctx) {
 
     /* ----------------- Optional menu ----------------- */
     if (state.menuExpanded) {
-      if (nk_begin(ctx, "Menu", nk_rect(10, 36, 240, 220),
+
+      struct nk_vec2 old_spacing = ctx->style.window.spacing;
+
+      if (nk_begin(ctx, "Menu", nk_rect(10, 36, 240, 360),
                    NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_BACKGROUND)) {
 
-        nk_layout_row_dynamic(ctx, 20, 1);
+        nk_layout_row_dynamic(ctx, 0, 4);
         nk_label(ctx, "Algorithms", NK_TEXT_LEFT);
 
-        nk_layout_row_dynamic(ctx, 20, 1);
+        nk_layout_row_dynamic(ctx, 0, 1);
         if (nk_option_label(ctx, "Backtracking", state.algoSelected == BACKTRACKING))
           state.algoSelected = BACKTRACKING;
         if (nk_option_label(ctx, "Prim's", state.algoSelected == PRIMS))
@@ -55,20 +58,34 @@ void renderNk(struct nk_context* ctx) {
         if (nk_option_label(ctx, "Kruskal's", state.algoSelected == KRUSKALS))
           state.algoSelected = KRUSKALS;
 
-        nk_layout_row_dynamic(ctx, 20, 1);
         if (nk_button_label(ctx, "Generate Maze")) {
           SDL_Log("Generate Maze clicked (algo=%d)", state.algoSelected);
           state.redrawMaze = true;
         }
-        nk_layout_row_dynamic(ctx, 30, 1);
+        nk_layout_row_dynamic(ctx, 5, 1);
+        nk_spacing(ctx, 1);
+
+        nk_layout_row_dynamic(ctx, 0, 1);
         nk_edit_string_zero_terminated(ctx, NK_EDIT_FIELD, state.fileName, sizeof(state.fileName),
                                        nk_filter_default);
         if (nk_button_label(ctx, "Export")) {
 
           state.export = true;
+          state.upload = false;
+        }
+        nk_layout_row_dynamic(ctx, 5, 1);
+        nk_spacing(ctx, 1);
+        
+        nk_layout_row_dynamic(ctx, 0, 1);
+        nk_edit_string_zero_terminated(ctx, NK_EDIT_FIELD, state.uploadFileName,
+                                       sizeof(state.uploadFileName), nk_filter_default);
+        if (nk_button_label(ctx, "Load")) {
+          state.upload = true;
+          state.export = false;
         }
       }
       nk_end(ctx);
+      ctx->style.window.spacing = old_spacing;
     }
   }
 }

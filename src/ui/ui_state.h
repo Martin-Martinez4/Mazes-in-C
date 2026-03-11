@@ -11,6 +11,9 @@ typedef struct  {
     bool export;
     char fileName[256];
     int fileNameLen;
+    bool upload;
+    char uploadFileName[256];
+    int uploadFileNameLen;
 } uiState;
 
 extern uiState state;

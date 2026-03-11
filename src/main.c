@@ -97,14 +97,14 @@ int main(int argc, char* argv[]) {
       nk_sdl_handle_event(ctx, &event);
       // nk_input_char(ctx, 'A');
 
-      switch (event.type) {
-      case SDL_EVENT_KEY_DOWN:
-        if (event.key.scancode == SDL_SCANCODE_0) {
-          printf("columns: %d; rows: %d", mazeStats->columns, mazeStats->rows);
-          cells = loadMaze(mazeStats, &cellsToDraw, "./maze4.maze");
-          rects = createSDLRects(mazeStats, cells, &cellsToDraw);
-        }
-      }
+      // switch (event.type) {
+      // case SDL_EVENT_KEY_DOWN:
+      //   if (event.key.scancode == SDL_SCANCODE_0) {
+      //     printf("columns: %d; rows: %d", mazeStats->columns, mazeStats->rows);
+      //     cells = loadMaze(mazeStats, &cellsToDraw, "./maze4.maze");
+      //     rects = createSDLRects(mazeStats, cells, &cellsToDraw);
+      //   }
+      // }
     }
 
     nk_input_end(ctx);
@@ -132,6 +132,17 @@ int main(int argc, char* argv[]) {
       printf("Exporting: %s\n", state.fileName);
       exportMaze(mazeStats, cells, state.fileName);
       state.export = false;
+    }
+    if (state.upload) {
+      printf("Loading: %s\n", state.uploadFileName);
+      Cell* cTemp = loadMaze(mazeStats, &cellsToDraw, state.uploadFileName);
+      if(!cTemp){
+        printf("Failed to load file: %s\n", state.uploadFileName);
+      }else{
+        cells = cTemp;
+        rects = createSDLRects(mazeStats, cells, &cellsToDraw);
+      }
+      state.upload = false;
     }
 
     SDL_RenderPresent(renderer);
