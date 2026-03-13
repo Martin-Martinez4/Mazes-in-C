@@ -22,3 +22,9 @@ int rand_triangle_distribution(double min, double max, double mode) {
 int rand_int(int min, int max) {
   return min + rand() % (max - min + 1);
 }
+
+float randomFloatInRange(float min, float max){
+  float random = (float)rand() / (float)RAND_MAX;
+  float range = max -min;
+  return (random * range) + min;
+}

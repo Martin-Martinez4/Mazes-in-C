@@ -1,8 +1,10 @@
 #include "noise.h"
 #include "grid_utils.h"
+#include "rand_utils.h"
 #include "stdlib.h"
 #include "math.h"
 #include "stdio.h"
+#include "vec2.h"
 
 uint32_t hash(int x, int y) {
   uint32_t h = x;
@@ -67,6 +69,39 @@ float bilerpFromRowCol(int row, int col, float* scalePtr) {
   float y = rowScaled - floor(rowScaled);
 
   return bilerp(f00, f10, f01, f11, x, y);
+}
+
+float perlinBilerp(int row, int col, float* scalePtr) {
+
+  float scale = (scalePtr) ? *scalePtr : 0.05f;
+
+  // rand vec2 instead of hash
+  vec2 g00 = {.x = randomFloatInRange(-1, 1), .y = randomFloatInRange(-1, 1)};
+  vec2 g10 = {.x = randomFloatInRange(-1, 1), .y = randomFloatInRange(-1, 1)};
+  vec2 g01 = {.x = randomFloatInRange(-1, 1), .y = randomFloatInRange(-1, 1)};
+  vec2 g11 = {.x = randomFloatInRange(-1, 1), .y = randomFloatInRange(-1, 1)};
+
+  float colScaled = col * (scale);
+  float rowScaled = row * (scale);
+
+  // x and y must be [0, 1]
+  float x = colScaled - floor(colScaled);
+  float y = rowScaled - floor(rowScaled);
+
+  vec2 pointVec = {.x = x, .y = y};
+
+  vec2 bottomLeft  = {.x = 0.f, .y = 0.f};
+  vec2 bottomRight = {.x = 1.f, .y = 0.f};
+  vec2 topLeft     = {.x = 0.f, .y = 1.f};
+  vec2 topRight    = {.x = 1.f, .y = 1.f};
+
+  vec2 d00 = subtractVec2(bottomLeft, pointVec);
+  vec2 d10 = subtractVec2(bottomRight, pointVec);
+
+  vec2 d01 = subtractVec2(topLeft, pointVec);
+  vec2 d11 = subtractVec2(topRight, pointVec);
+
+  return bilerp(dot(g00, d00), dot(g10, d10), dot(g01, d01), dot(g11, d11), x, y);
 }
 
 float* applyNoise(int rows, int cols, float* scalePtr, NoiseFunc noiseFunc, void* params) {

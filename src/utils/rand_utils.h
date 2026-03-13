@@ -6,5 +6,6 @@
 
 int rand_triangle_distribution(double min, double max, double mode);
 int rand_int(int min, int max);
+float randomFloatInRange(float min, float max);
 
 #endif

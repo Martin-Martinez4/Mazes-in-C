@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 
   float scale = 0.864f;
   float* noiseGrid =
-      applyNoise(mazeStats->rows, mazeStats->columns, &scale, bilerpFromRowCol, NULL);
+      applyNoise(mazeStats->rows, mazeStats->columns, &scale, perlinBilerp, NULL);
 
   SDL_Texture* texture =
       SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,

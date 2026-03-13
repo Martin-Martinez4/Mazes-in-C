@@ -77,7 +77,7 @@ set(sources
     ${CMAKE_SOURCE_DIR}/src/file/export.c
     ${CMAKE_SOURCE_DIR}/src/file/load.c
     ${CMAKE_SOURCE_DIR}/src/noise/noise.c
-
+    ${CMAKE_SOURCE_DIR}/src/noise/vec2.c
 
 )
 
