@@ -137,6 +137,7 @@ set(test_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_rb_tree.c
     ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_sets.c
     ${CMAKE_CURRENT_SOURCE_DIR}/test/utils/Tests_grid_utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/noise/Tests_noise.c
 )
 
 add_executable(
@@ -151,6 +152,7 @@ target_include_directories(
     ${sources_directories}
     ${CMAKE_CURRENT_SOURCE_DIR}/test/myAssert
     ${CMAKE_CURRENT_SOURCE_DIR}/test/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/noise
     ${CMAKE_CURRENT_SOURCE_DIR}/external/nuklear
 
 )

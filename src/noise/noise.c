@@ -2,6 +2,7 @@
 #include "grid_utils.h"
 #include "stdlib.h"
 #include "math.h"
+#include "stdio.h"
 
 uint32_t hash(int x, int y) {
   uint32_t h = x;
@@ -42,15 +43,21 @@ float bilerp(float f00, float f10, float f01, float f11, float x, float y) {
   return lerp(a, b, y);
 }
 
-float bilerpFromRowCol(int row, int col, float* scalePtr){
+float bilerpFromRowCol(int row, int col, float* scalePtr) {
 
   float scale = (scalePtr) ? *scalePtr : 0.05f;
 
-  float f00 = hash(row, col);
-  float f10 = hash(row, col + 1);
-  float f01 = hash(row + 1, col);
-  float f11 = hash(row + 1, col + 1);
+  // -1 to 1
+  // float f00 = (hash(row, col) / 4294967295.0f) * 2.0f - 1.0f;
+  // float f10 = (hash(row, col + 1) / 4294967295.0f) * 2.0f - 1.0f;
+  // float f01 = (hash(row + 1, col) / 4294967295.0f) * 2.0f - 1.0f;
+  // float f11 = (hash(row + 1, col + 1) / 4294967295.0f) * 2.0f - 1.0f;
 
+  // 0 to 1
+  float f00 = (hash(row, col) / 4294967295.0f);
+  float f10 = (hash(row, col + 1) / 4294967295.0f);
+  float f01 = (hash(row + 1, col) / 4294967295.0f);
+  float f11 = (hash(row + 1, col + 1) / 4294967295.0f);
 
   float colScaled = col * (scale);
   float rowScaled = row * (scale);
@@ -62,13 +69,15 @@ float bilerpFromRowCol(int row, int col, float* scalePtr){
   return bilerp(f00, f10, f01, f11, x, y);
 }
 
-float* applyNoise(int rows, int cols, float* scalePtr, NoiseFunc noiseFunc, void* params){
+float* applyNoise(int rows, int cols, float* scalePtr, NoiseFunc noiseFunc, void* params) {
 
   float* noiseGrid = malloc(sizeof(float) * rows * cols);
 
-  for(size_t row = 0; row < rows; row++){
-    for(size_t col = 0; col < cols; col++){
+  for (size_t row = 0; row < rows; row++) {
+    for (size_t col = 0; col < cols; col++) {
       noiseGrid[matrix_coords_to_array_coords(row, col, cols)] = noiseFunc(row, col, scalePtr);
     }
   }
+
+  return noiseGrid;
 }

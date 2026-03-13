@@ -6,5 +6,6 @@
 #include "Tests_sets.h"
 #include "Tests_grid_utils.h"
 #include "Tests_aabb.h"
+#include "Tests_noise.h"
 
 #endif

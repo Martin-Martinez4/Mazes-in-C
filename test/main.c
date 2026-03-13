@@ -6,6 +6,7 @@ int main() {
   rb_tree_run_tests();
   sets_run_tests();
   grid_utils_run_tests();
+  noise_run_tests();
   printf("Program continues...\n");
   return 0;
 }

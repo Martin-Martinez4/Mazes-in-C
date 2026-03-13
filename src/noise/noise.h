@@ -3,7 +3,7 @@
 
 #include "stdint.h"
 
-typedef float (*NoiseFunc)(float x, float y, void* params);
+typedef float (*NoiseFunc)(int x, int y, float* scalePtr);
 
 uint32_t hash(int x, int y);
 uint32_t squirrel3(int x, int y, uint32_t seed);
