@@ -78,9 +78,9 @@ int main(int argc, char* argv[]) {
   MazeStats* mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
                                          CELL_WIDTH, BORDER_WIDTH);
 
-  Cell* cells = createCells(mazeStats, state.algoSelected, 0.05);
+  Cell* cells = createCells(mazeStats, state.algoSelected, 0.2f);
 
-  float scale = 0.864f;
+  float scale = 0.05f;
   float* noiseGrid =
       applyNoise(mazeStats->rows, mazeStats->columns, &scale, perlinBilerp, NULL);
 

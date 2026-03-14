@@ -6,7 +6,7 @@ typedef struct vec2 {
   float y;
 } vec2;
 
-float dot2D(vec2 v1, vec2 v2);
+float dotVec2(vec2 v1, vec2 v2);
 vec2 subtract2D(vec2 v1, vec2 v2);
 
 

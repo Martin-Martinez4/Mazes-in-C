@@ -45,63 +45,75 @@ float bilerp(float f00, float f10, float f01, float f11, float x, float y) {
   return lerp(a, b, y);
 }
 
+// Note to self:
+// regions have more than one cell
+// scale decides how many cells are in a region
+// x0 and y0 are hashed because the is the region's x and y
 float bilerpFromRowCol(int row, int col, float* scalePtr) {
 
   float scale = (scalePtr) ? *scalePtr : 0.05f;
 
-  // -1 to 1
-  // float f00 = (hash(row, col) / 4294967295.0f) * 2.0f - 1.0f;
-  // float f10 = (hash(row, col + 1) / 4294967295.0f) * 2.0f - 1.0f;
-  // float f01 = (hash(row + 1, col) / 4294967295.0f) * 2.0f - 1.0f;
-  // float f11 = (hash(row + 1, col + 1) / 4294967295.0f) * 2.0f - 1.0f;
-
-  // 0 to 1
-  float f00 = (hash(row, col) / 4294967295.0f);
-  float f10 = (hash(row, col + 1) / 4294967295.0f);
-  float f01 = (hash(row + 1, col) / 4294967295.0f);
-  float f11 = (hash(row + 1, col + 1) / 4294967295.0f);
-
   float colScaled = col * (scale);
   float rowScaled = row * (scale);
+  int x0           = (int) floor(colScaled);
+  int y0           = (int) floor(rowScaled);
+
+  float x = colScaled - x0;
+  float y = rowScaled - y0;
+
+  // 0 to 1
+  float f00 = (hash(x0, y0) / 4294967295.0f);
+  float f10 = (hash(x0 + 1, y0) / 4294967295.0f);
+  float f01 = (hash(x0, y0 + 1) / 4294967295.0f);
+  float f11 = (hash(x0 + 1, y0 + 1) / 4294967295.0f);
 
   // x and y must be [0, 1]
-  float x = colScaled - floor(colScaled);
-  float y = rowScaled - floor(rowScaled);
 
   return bilerp(f00, f10, f01, f11, x, y);
 }
 
+vec2 gradient(int x, int y) {
+  uint32_t h = hash(x, y);
+
+  float angle = (h % 360) * (3.147f / 180.0f);
+
+  vec2 g = {cosf(angle), sinf(angle)};
+  return g;
+}
+
 float perlinBilerp(int row, int col, float* scalePtr) {
 
-  float scale = (scalePtr) ? *scalePtr : 0.05f;
+  float scale     = (scalePtr) ? *scalePtr : 0.05f;
+  float colScaled = col * scale;
+  float rowScaled = row * scale;
 
-  // rand vec2 instead of hash
-  vec2 g00 = {.x = randomFloatInRange(-1, 1), .y = randomFloatInRange(-1, 1)};
-  vec2 g10 = {.x = randomFloatInRange(-1, 1), .y = randomFloatInRange(-1, 1)};
-  vec2 g01 = {.x = randomFloatInRange(-1, 1), .y = randomFloatInRange(-1, 1)};
-  vec2 g11 = {.x = randomFloatInRange(-1, 1), .y = randomFloatInRange(-1, 1)};
+  int x0 = floor(colScaled);
+  int y0 = floor(rowScaled);
 
-  float colScaled = col * (scale);
-  float rowScaled = row * (scale);
+  int x1 = x0 + 1;
+  int y1 = y0 + 1;
 
-  // x and y must be [0, 1]
-  float x = colScaled - floor(colScaled);
-  float y = rowScaled - floor(rowScaled);
+  // fractional position inside cell
+  float x = colScaled - x0;
+  float y = rowScaled - y0;
 
-  vec2 pointVec = {.x = x, .y = y};
+  vec2 g00 = gradient(x0, y0);
+  vec2 g10 = gradient(x1, y0);
+  vec2 g01 = gradient(x0, y1);
+  vec2 g11 = gradient(x1, y1);
 
   vec2 bottomLeft  = {.x = 0.f, .y = 0.f};
   vec2 bottomRight = {.x = 1.f, .y = 0.f};
   vec2 topLeft     = {.x = 0.f, .y = 1.f};
   vec2 topRight    = {.x = 1.f, .y = 1.f};
 
-  vec2 d00 = subtractVec2(bottomLeft, pointVec);
-  vec2 d10 = subtractVec2(bottomRight, pointVec);
+  vec2 d00 = {x, y};
+  vec2 d10 = {x - 1, y};
+  vec2 d01 = {x, y - 1};
+  vec2 d11 = {x - 1, y - 1};
 
-  vec2 d01 = subtractVec2(topLeft, pointVec);
-  vec2 d11 = subtractVec2(topRight, pointVec);
-
-  return bilerp(dot(g00, d00), dot(g10, d10), dot(g01, d01), dot(g11, d11), x, y);
+  return bilerp((dotVec2(g00, d00) + 1.f) / 2, (dotVec2(g10, d10) + 1.f) / 2,
+                (dotVec2(g01, d01) + 1.f) / 2, (dotVec2(g11, d11) + 1.f) / 2, x, y);
 }
 
 float* applyNoise(int rows, int cols, float* scalePtr, NoiseFunc noiseFunc, void* params) {
