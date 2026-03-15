@@ -2,6 +2,7 @@
 #define H_UI_UI_STATE
 
 #include <stdbool.h>
+#include <nuklear.h>
 
 typedef struct  {
     int algoSelected;
@@ -14,6 +15,7 @@ typedef struct  {
     bool upload;
     char uploadFileName[256];
     int uploadFileNameLen;
+    nk_bool mCheck;
 } uiState;
 
 extern uiState state;

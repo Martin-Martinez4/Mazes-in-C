@@ -78,11 +78,11 @@ int main(int argc, char* argv[]) {
   MazeStats* mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
                                          CELL_WIDTH, BORDER_WIDTH);
 
-  Cell* cells = createCells(mazeStats, state.algoSelected, 0.2f);
+  Cell* cells = createCells(mazeStats, state.algoSelected, 0.5f);
 
   float scale = 0.05f;
   float* noiseGrid =
-      applyNoise(mazeStats->rows, mazeStats->columns, &scale, perlinBilerp, NULL);
+      applyNoise(mazeStats->rows, mazeStats->columns, &scale, simplexBilerp, NULL);
 
   SDL_Texture* texture =
       SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
@@ -130,41 +130,43 @@ int main(int argc, char* argv[]) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    if (!seeNoise) {
+    renderNk(ctx);
 
-      renderNk(ctx);
+    if (state.redrawMaze) {
+      cells            = createCells(mazeStats, state.algoSelected, 0.25);
+      rects            = createSDLRects(mazeStats, cells, &cellsToDraw);
+      state.redrawMaze = false;
+    }
 
-      if (state.redrawMaze) {
-        cells            = createCells(mazeStats, state.algoSelected, 0.25);
-        rects            = createSDLRects(mazeStats, cells, &cellsToDraw);
-        state.redrawMaze = false;
-      }
-
+    
+    if (!state.mCheck) {
+      
+      
       // Draw Maze Walls
       SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
       SDL_RenderFillRects(renderer, rects, cellsToDraw);
-
-      nk_sdl_render(ctx, NK_ANTI_ALIASING_ON);
-
-      if (state.export) {
-        printf("Exporting: %s\n", state.fileName);
-        exportMaze(mazeStats, cells, state.fileName);
-        state.export = false;
-      }
-      if (state.upload) {
-        printf("Loading: %s\n", state.uploadFileName);
-        Cell* cTemp = loadMaze(mazeStats, &cellsToDraw, state.uploadFileName);
-        if (!cTemp) {
-          printf("Failed to load file: %s\n", state.uploadFileName);
-        } else {
-          cells = cTemp;
-          rects = createSDLRects(mazeStats, cells, &cellsToDraw);
-        }
-        state.upload = false;
-      }
+      
     } else {
-
+      
       SDL_RenderTexture(renderer, texture, NULL, &dst);
+      
+    }
+    nk_sdl_render(ctx, NK_ANTI_ALIASING_ON);
+    if (state.export) {
+      printf("Exporting: %s\n", state.fileName);
+      exportMaze(mazeStats, cells, state.fileName);
+      state.export = false;
+    }
+    if (state.upload) {
+      printf("Loading: %s\n", state.uploadFileName);
+      Cell* cTemp = loadMaze(mazeStats, &cellsToDraw, state.uploadFileName);
+      if (!cTemp) {
+        printf("Failed to load file: %s\n", state.uploadFileName);
+      } else {
+        cells = cTemp;
+        rects = createSDLRects(mazeStats, cells, &cellsToDraw);
+      }
+      state.upload = false;
     }
 
     SDL_RenderPresent(renderer);

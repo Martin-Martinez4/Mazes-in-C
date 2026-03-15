@@ -55,8 +55,8 @@ float bilerpFromRowCol(int row, int col, float* scalePtr) {
 
   float colScaled = col * (scale);
   float rowScaled = row * (scale);
-  int x0           = (int) floor(colScaled);
-  int y0           = (int) floor(rowScaled);
+  int x0          = (int) floor(colScaled);
+  int y0          = (int) floor(rowScaled);
 
   float x = colScaled - x0;
   float y = rowScaled - y0;
@@ -75,7 +75,7 @@ float bilerpFromRowCol(int row, int col, float* scalePtr) {
 vec2 gradient(int x, int y) {
   uint32_t h = hash(x, y);
 
-  float angle = (h % 360) * (3.147f / 180.0f);
+  float angle = (h % 360) * (3.14159265f / 180.0f);
 
   vec2 g = {cosf(angle), sinf(angle)};
   return g;
@@ -114,6 +114,63 @@ float perlinBilerp(int row, int col, float* scalePtr) {
 
   return bilerp((dotVec2(g00, d00) + 1.f) / 2, (dotVec2(g10, d10) + 1.f) / 2,
                 (dotVec2(g01, d01) + 1.f) / 2, (dotVec2(g11, d11) + 1.f) / 2, x, y);
+}
+
+float simplexBilerp(int row, int col, float* scalePtr) {
+  float scale = (scalePtr) ? *scalePtr : 0.05f;
+
+  float x = col * scale;
+  float y = row * scale;
+
+  float s = (x + y) * F2;
+
+  // lattice coordinate i,j
+  int i = floor(x + s);
+  int j = floor(y + s);
+
+  // unskew to get cell origin
+  float t = (i + j) * G2;
+
+  // unskew
+  float x0 = i - t;
+  float y0 = j - t;
+
+  // distance from initial x and unskewed i (x0) nad j (y0)
+  float dx0 = x - x0;
+  float dy0 = y - y0;
+
+  int i1, j1;
+  if (dx0 > dy0) {
+    i1 = 1;
+    j1 = 0;
+  } else {
+    i1 = 0;
+    j1 = 1;
+  }
+
+  // offsets at corners
+  // dx1 is the distance from the input point to the second simplex corner
+  // dx1 is the distance from the input point to the second simplex corner
+  float dx1 = dx0 - i1 + G2;
+  float dy1 = dy0 - j1 + G2;
+  // The offset is larger because corner2 is further away in the lattice, and the
+  // 2 * G2 term compensates for the extra skew correction needed for that larger move.
+  float dx2 = dx0 - 1.0f + 2.0f * G2;
+  float dy2 = dy0 - 1.0f + 2.0f * G2;
+
+  vec2 g0 = gradient(i, j);
+  vec2 g1 = gradient(i + i1, j + j1);
+  vec2 g2 = gradient(i + 1, j + 1);
+
+  float t0 = 0.5 - dx0 * dx0 - dy0 * dy0;
+  float t1 = 0.5 - dx1 * dx1 - dy1 * dy1;
+  float t2 = 0.5 - dx2 * dx2 - dy2 * dy2;
+
+  float contrib0 = (t0 < 0 ? 0 : t0 *  dotVec2(g0, (vec2) {dx0, dy0}));
+  float contrib1 = (t1 < 0 ? 0 : t1 *  dotVec2(g1, (vec2) {dx1, dy1}));
+  float contrib2 = (t2 < 0 ? 0 : t2 *  dotVec2(g2, (vec2) {dx2, dy2}));
+  float noise    = 5.0f * (contrib0 + contrib1 + contrib2);
+  return (noise + 1.0f) * 0.5f;
 }
 
 float* applyNoise(int rows, int cols, float* scalePtr, NoiseFunc noiseFunc, void* params) {

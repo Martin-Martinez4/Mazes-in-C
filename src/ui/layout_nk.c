@@ -1,9 +1,9 @@
 #include "layout_nk.h"
 #include "ui_state.h"
-#include "nuklear.h"
 #include "create_maze.h"
 #include <SDL3/SDL.h>
 #include "stdio.h"
+#include "stdbool.h"
 
 // static int text_len[9];
 // static char text[9][64];
@@ -44,7 +44,7 @@ void renderNk(struct nk_context* ctx) {
 
       struct nk_vec2 old_spacing = ctx->style.window.spacing;
 
-      if (nk_begin(ctx, "Menu", nk_rect(10, 36, 240, 360),
+      if (nk_begin(ctx, "Menu", nk_rect(10, 36, 240, 380),
                    NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_BACKGROUND)) {
 
         nk_layout_row_dynamic(ctx, 0, 4);
@@ -57,6 +57,8 @@ void renderNk(struct nk_context* ctx) {
           state.algoSelected = PRIMS;
         if (nk_option_label(ctx, "Kruskal's", state.algoSelected == KRUSKALS))
           state.algoSelected = KRUSKALS;
+
+        nk_checkbox_label(ctx, "See Noise", &state.mCheck);
 
         if (nk_button_label(ctx, "Generate Maze")) {
           SDL_Log("Generate Maze clicked (algo=%d)", state.algoSelected);
@@ -75,7 +77,7 @@ void renderNk(struct nk_context* ctx) {
         }
         nk_layout_row_dynamic(ctx, 5, 1);
         nk_spacing(ctx, 1);
-        
+
         nk_layout_row_dynamic(ctx, 0, 1);
         nk_edit_string_zero_terminated(ctx, NK_EDIT_FIELD, state.uploadFileName,
                                        sizeof(state.uploadFileName), nk_filter_default);
