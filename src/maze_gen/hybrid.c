@@ -1,12 +1,9 @@
-#include "kruskals.h"
-
-#include <stdio.h>
+#include "hybrid.h"
+#include "noise.h"
 #include <stdlib.h>
+#include <stdio.h>
 
-#include "cell.h"
-#include "grid_utils.h"
-#include "rooms.h"
-
+// copy from kruskal's implementation
 void shuffleEdgeArray(Edge* array, int length) {
   for (int i = length - 1; i >= 1; i--) {
     int j     = rand() % (i + 1);
@@ -23,10 +20,8 @@ void setUpCells(Cell* cells, Rooms* rooms, int rows, int columns) {
     }
   }
 
-  if (rooms == NULL){
+  if (rooms == NULL)
     return;
-
-  }
   for (int i = 0; i < rooms->length; i++) {
     Room room = rooms->data[i];
     int set   = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
@@ -61,7 +56,6 @@ void setUpSets(int* sets, Rooms* rooms, int rows, int columns) {
   if (rooms == NULL) {
     return;
   }
-
   for (int i = 0; i < rooms->length; i++) {
     Room room = rooms->data[i];
     int set   = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
@@ -124,10 +118,42 @@ void mergeSets(int* sets, int current, int change) {
   }
 }
 
-Cell* kruskalsCreateMaze(MazeStats* mazeStats, Rooms* rooms) {
-  int rows    = mazeStats->rows;
-  int columns = mazeStats->columns;
-  Cell* cells = malloc(sizeof(Cell) * rows * columns);
+void setUpEdges(Edge* edges, Cell* cells, int rows, int columns) {
+  int indx = 0;
+  for (int row = 0; row < rows; row++) {
+    for (int col = 0; col < columns; col++) {
+      Cell* c = &cells[matrix_coords_to_array_coords(row, col, columns)];
+
+      // Right neighbor
+      if (col + 1 < columns)
+        edges[indx++] = create_edge(c, RIGHT);
+      // Bottom neighbor
+      if (row + 1 < rows)
+        edges[indx++] = create_edge(c, BOTTOM);
+    }
+  }
+
+  shuffleEdgeArray(edges, (rows * (columns - 1)) + ((rows - 1) * columns));
+}
+
+int prim_step(ScratchBuffer scratch, Cell* cells, float* noise, int* sets, int row, int column, int columns) {
+    int current_coord = matrix_coords_to_array_coords(row, column, columns);
+
+    int neigh_coord_1 = matrix_coords_to_array_coords(row + 1, column, columns);
+    int neigh_coord_2 = matrix_coords_to_array_coords(row, column + 1, columns);
+    int neigh_coord_3 = matrix_coords_to_array_coords(row - 1, column, columns);
+    int neigh_coord_3 = matrix_coords_to_array_coords(row, column - 1, columns);
+}
+
+int kruskal_step(ScratchBuffer scratch, Cell* cells, float* noise, int* sets, int row, int column) {}
+
+Cell* create_maze_hybrid(MazeStats* mazeStats, Rooms* rooms, AlgoStepFunc** algoStepFuncs,
+                         int size) {
+  // divide 1 by the number of algos
+  float divide = 1.0f / size;
+  int rows     = mazeStats->rows;
+  int columns  = mazeStats->columns;
+  Cell* cells  = malloc(sizeof(Cell) * rows * columns);
 
   if (!cells) {
     fprintf(stderr, "Error: malloc failed for cells\n");
@@ -141,70 +167,16 @@ Cell* kruskalsCreateMaze(MazeStats* mazeStats, Rooms* rooms) {
     free(cells);
     return NULL;
   }
+
+  // Set keeps track of state of overall maze
   setUpSets(sets, rooms, rows, columns);
 
+  // maybe change later?
   int edges_len = (rows * (columns - 1)) + ((rows - 1) * columns);
-  Edge* edges   = malloc(sizeof(Edge) * edges_len);
-  if (!edges) {
-    fprintf(stderr, "Error: malloc failed for edges\n");
-    free(cells);
-    free(sets);
-    return NULL;
-  }
-  setUpEdges(edges, cells, rows, columns);
+  ScratchBuffer scratch;
+  scratch.edges = malloc(edges_len * sizeof(Edge));
 
-  int top = edges_len - 1;
-
-  while (top >= 0) {
-    Edge e        = edges[top];
-    Cell* current = e.cell_ptr;
-
-    int neighbor_row;
-    int neighbor_column;
-
-    int current_row    = current->row;
-    int current_column = current->column;
-
-    switch (e.direction) {
-    case RIGHT:
-      neighbor_row    = current_row;
-      neighbor_column = current_column + 1;
-      break;
-
-    case BOTTOM:
-      neighbor_row    = current_row + 1;
-      neighbor_column = current_column;
-      break;
-
-    default:
-      fprintf(stderr, "Error: invalid direction %u in kruskalsCreateMaze()\n",
-              e.opposite_direction);
-      abort(); // or exit(EXIT_FAILURE);
-    }
-
-    if (neighbor_row >= 0 && neighbor_row < rows && neighbor_column >= 0 &&
-        neighbor_column < columns) {
-      int current_coords  = matrix_coords_to_array_coords(current_row, current_column, columns);
-      int neighbor_coords = matrix_coords_to_array_coords(neighbor_row, neighbor_column, columns);
-
-      // get sets
-      int neighbor_set = find(sets, neighbor_coords);
-      int current_set  = find(sets, current_coords);
-
-      if (neighbor_set != current_set) {
-        // remove walls
-        cells[current_coords].walls &= ~e.direction;
-        cells[neighbor_coords].walls &= ~e.opposite_direction;
-
-        // merge sets
-        mergeSets(sets, current_set, neighbor_set);
-      }
-    }
-
-    top--;
-  }
-  free(edges);
-  free(sets);
-
-  return cells;
+  // Figure out later how to get noise info
+  float scale      = 0.05f;
+  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, simplexBilerp, NULL);
 }
