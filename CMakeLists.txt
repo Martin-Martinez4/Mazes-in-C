@@ -76,6 +76,8 @@ set(sources
     ${CMAKE_SOURCE_DIR}/src/ui/init_font.c
     ${CMAKE_SOURCE_DIR}/src/file/export.c
     ${CMAKE_SOURCE_DIR}/src/file/load.c
+    ${CMAKE_SOURCE_DIR}/src/noise/noise.c
+    ${CMAKE_SOURCE_DIR}/src/noise/vec2.c
 
 )
 
@@ -100,6 +102,8 @@ set(sources_directories
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/src/maze_gen
     ${CMAKE_CURRENT_SOURCE_DIR}/src/file
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/noise
+
 
 )
 
@@ -133,6 +137,7 @@ set(test_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_rb_tree.c
     ${CMAKE_CURRENT_SOURCE_DIR}/test/Tests_sets.c
     ${CMAKE_CURRENT_SOURCE_DIR}/test/utils/Tests_grid_utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/noise/Tests_noise.c
 )
 
 add_executable(
@@ -147,6 +152,7 @@ target_include_directories(
     ${sources_directories}
     ${CMAKE_CURRENT_SOURCE_DIR}/test/myAssert
     ${CMAKE_CURRENT_SOURCE_DIR}/test/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/noise
     ${CMAKE_CURRENT_SOURCE_DIR}/external/nuklear
 
 )

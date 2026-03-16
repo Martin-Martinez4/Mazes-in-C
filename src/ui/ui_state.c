@@ -11,6 +11,6 @@ uiState state = {
     .fileNameLen = 0,
     .upload = false,
     .uploadFileName = {0},
-    .uploadFileNameLen = 0
-
+    .uploadFileNameLen = 0,
+    .mCheck = nk_false
 };
