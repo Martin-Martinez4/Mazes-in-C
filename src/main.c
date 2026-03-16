@@ -11,6 +11,7 @@
 #include "draw_cells.h"
 #include "maze_stats.h"
 #include "create_maze.h"
+#include "hybrid.h"
 #include "export.h"
 #include "load.h"
 #include "noise.h"
@@ -78,7 +79,9 @@ int main(int argc, char* argv[]) {
   MazeStats* mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
                                          CELL_WIDTH, BORDER_WIDTH);
 
-  Cell* cells = createCells(mazeStats, state.algoSelected, 0.5f);
+  // Cell* cells = createCells(mazeStats, state.algoSelected, 0.0f);
+
+  Cell* cells = create_maze_hybrid(mazeStats, 0.0f, (AlgoStepFunc**){ prim_step }, 1);
 
   float scale = 0.05f;
   float* noiseGrid =
@@ -117,8 +120,8 @@ int main(int argc, char* argv[]) {
           cells = loadMaze(mazeStats, &cellsToDraw, "./maze4.maze");
           rects = createSDLRects(mazeStats, cells, &cellsToDraw);
         }
-        else if(event.key.scancode == SDL_SCANCODE_N){
-          seeNoise = !seeNoise;
+        else if(event.key.scancode == SDL_SCANCODE_M){
+          state.menuVisible = !state.menuVisible;
         }
       }
     }

@@ -70,6 +70,7 @@ set(sources
     ${CMAKE_SOURCE_DIR}/src/draw_cells.c
     ${CMAKE_SOURCE_DIR}/src/maze_gen/kruskals.c
     ${CMAKE_SOURCE_DIR}/src/maze_gen/prims.c
+    ${CMAKE_SOURCE_DIR}/src/maze_gen/hybrid.c
     ${CMAKE_SOURCE_DIR}/src/ui/init_nk.c
     ${CMAKE_SOURCE_DIR}/src/ui/layout_nk.c
     ${CMAKE_SOURCE_DIR}/src/ui/ui_state.c
