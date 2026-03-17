@@ -120,17 +120,22 @@ void mergeSets_h(int* sets, int current, int change) {
 }
 
 // so many parameters
-int add_neighbors_to_frontier_h(int* frontier, int frontier_index, Cell* cells, float* noise,
-                                int* sets, int current_coord, int columns) {
+int add_neighbors_to_frontier_h(int* frontier, bool* in_frontier, int frontier_index, Cell* cells,
+                                float* noise, int* sets, int current_coord, int columns, int rows) {
   int row;
   int column;
   array_coords_to_matrix_coords(current_coord, columns, &row, &column);
+  printf("before: %d ", frontier_index);
   // check for out of bounds and all that later
   // thought if not viable coord should be a negative number.
-  int neigh_coord_1 = matrix_coords_to_array_coords(row + 1, column, columns);
-  int neigh_coord_2 = matrix_coords_to_array_coords(row, column + 1, columns);
-  int neigh_coord_3 = matrix_coords_to_array_coords(row - 1, column, columns);
-  int neigh_coord_4 = matrix_coords_to_array_coords(row, column - 1, columns);
+  int neigh_coord_1 =
+      row + 1 >= rows ? -1 : matrix_coords_to_array_coords(row + 1, column, columns);
+  int neigh_coord_2 =
+      column + 1 >= columns ? -1 : matrix_coords_to_array_coords(row, column + 1, columns);
+  int neigh_coord_3 = row - 1 < 0 ? -1 : matrix_coords_to_array_coords(row - 1, column, columns);
+  ;
+  int neigh_coord_4 = column - 1 < 0 ? -1 : matrix_coords_to_array_coords(row, column - 1, columns);
+  ;
 
   int neigh_cords[4] = {neigh_coord_1, neigh_coord_2, neigh_coord_3, neigh_coord_4};
 
@@ -138,68 +143,117 @@ int add_neighbors_to_frontier_h(int* frontier, int frontier_index, Cell* cells, 
 
     int coord = neigh_cords[i];
     if (coord >= 0) {
-      if (sets[coord] != sets[current_coord] && cells[coord].walls == ALL_WALLS) {
+      if (!in_frontier[coord] && cells[coord].walls == ALL_WALLS) {
         frontier[++frontier_index] = coord;
+        in_frontier[coord]         = true;
       }
     }
   }
+  printf("after: %d\n", frontier_index);
 
   return frontier_index;
 }
 
-void carve_to_visited_neighbor_h(Cell* cells, int current_index, int columns, int rows) {
-  int row, col;
-  array_coords_to_matrix_coords(current_index, columns, &row, &col);
-
+void carve_to_visited_neighbor_h(Cell* cells, bool* in_frontier, int current_index, int columns,
+                                 int rows) {
+  // [row][column] - row-major order
+  // TOP BOTTOM LEFT RIGHT
+  int current_row;
+  int current_col;
+  array_coords_to_matrix_coords(current_index, columns, &current_row, &current_col);
   const int d_coords[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-  const int wall_dir[4]    = {TOP, BOTTOM, LEFT, RIGHT};
-  const int opp_dir[4]     = {BOTTOM, TOP, RIGHT, LEFT};
 
   int eligibles[4];
-  int count = 0;
+  int eligibles_index = -1;
 
   for (int i = 0; i < 4; i++) {
-    int nr = row + d_coords[i][0];
-    int nc = col + d_coords[i][1];
+    int neigh_row = current_row + d_coords[i][0];
+    int neigh_col = current_col + d_coords[i][1];
 
-    if (nr < 0 || nr >= rows || nc < 0 || nc >= columns)
+    if (neigh_row < 0 || neigh_row >= rows || neigh_col < 0 || neigh_col >= columns) {
       continue;
+    }
 
-    int n_index = matrix_coords_to_array_coords(nr, nc, columns);
+    int neigh_index = matrix_coords_to_array_coords(neigh_row, neigh_col, columns);
+    // But Prim must carve to a visited neighbor.
+    if (cells[neigh_index].walls != ALL_WALLS) {
+      switch (i) {
+      case 0:
+        eligibles[++eligibles_index] = TOP;
+        break;
 
-    // Neighbor is **already in maze**
-    if (cells[n_index].walls != ALL_WALLS) {
-      eligibles[count++] = i;
+      case 1:
+        eligibles[++eligibles_index] = BOTTOM;
+        break;
+
+      case 2:
+        eligibles[++eligibles_index] = LEFT;
+        break;
+
+      case 3:
+        eligibles[++eligibles_index] = RIGHT;
+        break;
+
+      default:
+        break;
+      }
     }
   }
 
-  if (count == 0)
-    return; // no neighbor in maze to carve into
+  if (eligibles_index > -1) {
+    Cell* current_cell = &cells[matrix_coords_to_array_coords(current_row, current_col, columns)];
+    Cell* n_cell;
+    int dir = eligibles[rand() % (eligibles_index + 1)];
 
-  int chosen  = eligibles[rand() % count];
-  int n_row   = row + d_coords[chosen][0];
-  int n_col   = col + d_coords[chosen][1];
-  int n_index = matrix_coords_to_array_coords(n_row, n_col, columns);
+    switch (dir) {
+    case LEFT:
+      current_cell->walls &= ~LEFT;
+      n_cell = &cells[matrix_coords_to_array_coords(current_row, current_col - 1, columns)];
+      n_cell->walls &= ~RIGHT;
+      break;
 
-  // carve walls
-  cells[current_index].walls &= ~wall_dir[chosen];
-  cells[n_index].walls &= ~opp_dir[chosen];
+    case RIGHT:
+      current_cell->walls &= ~RIGHT;
+      n_cell = &cells[matrix_coords_to_array_coords(current_row, current_col + 1, columns)];
+      n_cell->walls &= ~LEFT;
+      break;
+
+    case TOP:
+      current_cell->walls &= ~TOP;
+      n_cell = &cells[matrix_coords_to_array_coords(current_row - 1, current_col, columns)];
+      n_cell->walls &= ~BOTTOM;
+      break;
+
+    case BOTTOM:
+      current_cell->walls &= ~BOTTOM;
+      n_cell = &cells[matrix_coords_to_array_coords(current_row + 1, current_col, columns)];
+      n_cell->walls &= ~TOP;
+      break;
+
+    default:
+      break;
+    }
+  }
 }
+
 
 int prim_step(ScratchBuffer* scratch, Cell* cells, float* noise, int* sets, int row, int column,
               int columns, int rows) {
-  int frontier_index = -1;
+  bool* in_frontier = calloc(columns * rows, sizeof(bool));
+
   int* frontier      = (int*) scratch->edges;
+  int frontier_index = -1;
 
   int current_coord = matrix_coords_to_array_coords(row, column, columns);
 
-  frontier_index = add_neighbors_to_frontier_h(frontier, frontier_index, cells, noise, sets,
-                                               current_coord, columns);
+  frontier[++frontier_index] = current_coord;
+  in_frontier[current_coord] = true;
+  cells[current_coord].walls = 0;
 
-  while (frontier_index >= 0) {
+  do {
     // copied from prims.c
-    int random_index  = rand() % (frontier_index + 1);
-    int current_index = frontier[random_index];
+    int random_index = rand() % (frontier_index + 1);
+    current_coord    = frontier[random_index];
 
     // swap top with rand; random selection from stack
     int temp                 = frontier[frontier_index];
@@ -207,10 +261,16 @@ int prim_step(ScratchBuffer* scratch, Cell* cells, float* noise, int* sets, int 
     frontier[random_index]   = temp;
     frontier_index--;
 
-    carve_to_visited_neighbor_h(cells, current_index, rows, columns);
-    frontier_index = add_neighbors_to_frontier_h(frontier, frontier_index, cells, noise, sets,
-                                                 current_index, columns);
-  }
+    carve_to_visited_neighbor_h(cells, in_frontier, current_coord, columns, rows);
+    in_frontier[current_coord] = false;
+
+    frontier_index = add_neighbors_to_frontier_h(frontier, in_frontier, frontier_index, cells,
+                                                 noise, sets, current_coord, columns, rows);
+  } while (frontier_index >= 0);
+
+  free(in_frontier);
+
+  return current_coord;
 }
 
 int kruskal_step(ScratchBuffer scratch, Cell* cells, float* noise, int* sets, int row, int column,
