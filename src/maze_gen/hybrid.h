@@ -30,7 +30,7 @@ typedef struct MazeState {
 typedef void (*AlgoStepFunc)(Cell* cells, int rows, int cols, MazeState* maze_state);
 
 void prim_step(Cell* cells, int rows, int cols, MazeState* maze_state);
-void backtrack_step(Cell* cells, int rows, int cols, MazeState* maze_state);
+void backtrack_region(Cell* cells, int rows, int cols, MazeState* maze_state);
 
 Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFunc* algoStepFuncs,
                          int num_algos);

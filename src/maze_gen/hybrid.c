@@ -386,54 +386,51 @@ int move_to_parent(int index, int parent_dir, int rows, int cols) {
   return parent_idx;
 }
 
-void backtrack_step(Cell* cells, int rows, int cols, MazeState* maze_state) {
-  int current_index = maze_state->current_index;
-  printf("current_index: %d\n", current_index);
-  if (current_index == -1) {
-    return;
-  }
+void backtrack_region(Cell* cells, int rows, int cols, MazeState* maze_state) {
+    while (maze_state->current_index != -1) {
+        int current_index = maze_state->current_index;
 
-  int unvisited[4];
-  int count = 0;
+        int unvisited[4];
+        int count = 0;
 
-  uint8_t directions[] = {TOP, RIGHT, BOTTOM, LEFT};
+        uint8_t directions[] = {TOP, RIGHT, BOTTOM, LEFT};
 
-  for (int i = 0; i < 4; i++) {
-    uint8_t dir = directions[i];
-    int n_index = neighbor_index(current_index, dir, rows, cols);
+        for (int i = 0; i < 4; i++) {
+            uint8_t dir = directions[i];
+            int n_index = neighbor_index(current_index, dir, rows, cols);
 
-    if (n_index >= 0 && !maze_state->visited[n_index]) {
-      unvisited[count++] = dir;
+            if (n_index >= 0 && !maze_state->visited[n_index] &&
+                maze_state->current_algo_index == (int)maze_state->noise[n_index]) {
+                unvisited[count++] = dir;
+            }
+        }
+
+        if (count > 0) {
+            uint8_t chosen_dir = unvisited[rand() % count];
+            int next_index     = neighbor_index(current_index, chosen_dir, rows, cols);
+
+            // Carve walls
+            cells[current_index].walls &= ~chosen_dir;
+            cells[next_index].walls &= ~opposite_direction(chosen_dir);
+
+            maze_state->visited[next_index] = true;
+            maze_state->number_visited++;
+
+            // Push current onto stack
+            maze_state->parent_dirs_stack[++maze_state->parent_dirs_stack_size] = current_index;
+
+            // Move to neighbor
+            maze_state->current_index = next_index;
+        } else {
+            // Backtrack
+            if (maze_state->parent_dirs_stack_size >= 0) {
+                maze_state->current_index =
+                    maze_state->parent_dirs_stack[maze_state->parent_dirs_stack_size--];
+            } else {
+                maze_state->current_index = -1;
+            }
+        }
     }
-  }
-
-  if (count > 0) {
-    // Pick random neighbor
-    uint8_t chosen_dir = unvisited[rand() % count];
-    int next_index     = neighbor_index(current_index, chosen_dir, rows, cols);
-
-    // Carve walls
-    cells[current_index].walls &= ~chosen_dir;
-    cells[next_index].walls &= ~opposite_direction(chosen_dir);
-
-    maze_state->visited[next_index] = true;
-    maze_state->number_visited++;
-
-    // Push chosen bitmask onto stack for backtracking
-    maze_state->parent_dirs_stack[++maze_state->parent_dirs_stack_size] = current_index;
-
-    // Move to neighbor
-    maze_state->current_index = next_index;
-
-  } else {
-    // Backtrack
-    if (maze_state->parent_dirs_stack_size >= 0) {
-      maze_state->current_index =
-          maze_state->parent_dirs_stack[maze_state->parent_dirs_stack_size--];
-    } else {
-      maze_state->current_index = -1;
-    }
-  }
 }
 
 Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFunc* algoStepFuncs,
@@ -458,12 +455,11 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
 
   // Generate noise for hybrid selection
   float scale      = 0.06f;
-  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, simplexBilerp, NULL);
+  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, perlinBilerp, NULL);
 
   for (int i = 0; i < rows * columns; i++) {
     int algo_index = value_map_int(noiseGrid[i], 0.0, 1.0, 0, num_algos - 1);
     noiseGrid[i]   = algo_index;
-    printf("algo_index: %d\n", algo_index);
   }
 
   // might make into a function later
@@ -487,11 +483,11 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
       continue;
 
     int region_algo = noiseGrid[i];
-    if (region_algo != 0) {
-      maze_state.visited[i] = true;
-      maze_state.number_visited++;
-      continue;
-    }
+    // if (region_algo != 0) {
+    //   maze_state.visited[i] = true;
+    //   maze_state.number_visited++;
+    //   continue;
+    // }
 
     maze_state.current_index      = i;
     maze_state.current_algo_index = region_algo;
@@ -499,9 +495,10 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
     AlgoStepFunc algo = algoStepFuncs[region_algo];
 
     // Keep running until region fully processed
-    while (!maze_state.visited[i]) {
+    if (!maze_state.visited[i]) {
       algo(cells, rows, columns, &maze_state);
     }
+
   }
 
   //   Free temporary resources
