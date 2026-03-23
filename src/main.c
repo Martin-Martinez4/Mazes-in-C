@@ -81,8 +81,8 @@ int main(int argc, char* argv[]) {
                                          CELL_WIDTH, BORDER_WIDTH);
 
   // Cell* cells = createCells(mazeStats, state.algoSelected, 0.0f);
-  AlgoStepFunc algos[] = { backtrack_step};
-  int algo_array_size = 1;
+  AlgoStepFunc algos[] = { prim_step, backtrack_step};
+  int algo_array_size = 2;
 
 
   Cell* cells = create_maze_hybrid(mazeStats, 0.0f, algos, algo_array_size);

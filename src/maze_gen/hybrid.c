@@ -18,15 +18,23 @@ static void shuffleEdgeArray(Edge* array, int length) {
 }
 
 static int value_map_int(float value, float min_val, float max_val, int min, int max) {
-  if (value < min_val)
+  if (value < min_val) {
     value = min_val;
-  if (value > max_val)
+  }
+  if (value > max_val) {
+
     value = max_val;
+  }
 
   float normalized = (value - min_val) / (max_val - min_val);
 
-  int result = (int) (normalized * (max - min)) + min;
+  int result = min + (int) (normalized * (max - min + 1));
 
+  // clamp to max
+  if (result > max) {
+
+    result = max;
+  }
   return result;
 }
 
@@ -135,19 +143,15 @@ static void mergeSets(int* sets, int current, int change) {
   }
 }
 
-// so many parameters
 static void add_neighbors_to_frontier(int current_index, int columns, int rows,
                                       MazeState* maze_state, Cell* cells) {
   int row, column;
   array_coords_to_matrix_coords(current_index, columns, &row, &column);
 
+  int frontier_index = maze_state->frontier_index;
+
   // Direction offsets: DOWN, RIGHT, UP, LEFT
-  const int d_coords[4][2] = {
-      {1, 0},  // down
-      {0, 1},  // right
-      {-1, 0}, // up
-      {0, -1}  // left
-  };
+  const int d_coords[4][2] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
 
   for (int i = 0; i < 4; i++) {
     int neigh_row = row + d_coords[i][0];
@@ -160,12 +164,17 @@ static void add_neighbors_to_frontier(int current_index, int columns, int rows,
 
     int neigh_index = matrix_coords_to_array_coords(neigh_row, neigh_col, columns);
 
+    if (maze_state->current_algo_index != maze_state->noise[neigh_index]) {
+      continue;
+    }
+
     // Only add unvisited cells that are not already in the frontier
     if (!maze_state->visited[neigh_index] && !maze_state->in_frontier[neigh_index]) {
-      maze_state->frontier[++(maze_state->frontier_index)] = neigh_index;
-      maze_state->in_frontier[neigh_index]                 = true;
+      maze_state->frontier[++frontier_index] = neigh_index;
+      maze_state->in_frontier[neigh_index]   = true;
     }
   }
+  maze_state->frontier_index = frontier_index;
 }
 
 static void carve_to_visited_neighbor(Cell* cells, MazeState* maze_state, int current_index,
@@ -188,6 +197,10 @@ static void carve_to_visited_neighbor(Cell* cells, MazeState* maze_state, int cu
     }
 
     int neigh_index = matrix_coords_to_array_coords(neigh_row, neigh_col, columns);
+
+    if (maze_state->current_algo_index != maze_state->noise[neigh_index]) {
+      continue;
+    }
 
     if (maze_state->visited[neigh_index]) {
       switch (i) {
@@ -248,84 +261,38 @@ static void carve_to_visited_neighbor(Cell* cells, MazeState* maze_state, int cu
   }
 }
 
-// void prim_step(ScratchBuffer* scratch, Cell* cells, float* noise, int* sets, int row, int column,
-//                int columns, int rows, int indx, int size) {
-//   bool* in_frontier = calloc(columns * rows, sizeof(bool));
-
-//   int* frontier      = (int*) scratch->edges;
-//   int frontier_index = -1;
-
-//   int current_coord = matrix_coords_to_array_coords(row, column, columns);
-
-//   frontier[++frontier_index] = current_coord;
-//   in_frontier[current_coord] = true;
-//   cells[current_coord].walls = 0;
-
-//   do {
-//     // copied from prims.c
-//     int random_index = rand() % (frontier_index + 1);
-//     current_coord    = frontier[random_index];
-
-//     // swap top with rand; random selection from stack
-//     int temp                 = frontier[frontier_index];
-//     frontier[frontier_index] = frontier[random_index];
-//     frontier[random_index]   = temp;
-//     frontier_index--;
-
-//     carve_to_visited_neighbor(cells, in_frontier, current_coord, columns, rows);
-//     in_frontier[current_coord] = false;
-
-//     frontier_index = add_neighbors_to_frontier(frontier, in_frontier, frontier_index, cells,
-//     noise,
-//                                                sets, current_coord, columns, rows, indx, size);
-//   } while (frontier_index >= 0);
-
-//   free(in_frontier);
-// }
-
 void prim_step(Cell* cells, int rows, int cols, MazeState* maze_state) {
-  // Initialize first cell if maze is empty
-  if (maze_state->number_visited == 0) {
-    int current_row = rand_int(0, rows - 1);
-    int current_col = rand_int(0, cols - 1);
-    int start_idx   = matrix_coords_to_array_coords(current_row, current_col, cols);
 
-    maze_state->visited[start_idx] = true;
-    maze_state->number_visited++;
-    maze_state->current_index = start_idx;
+  int current_coord = maze_state->current_index;
 
-    add_neighbors_to_frontier(start_idx, cols, rows, maze_state, cells);
-    return;
-  }
+  maze_state->frontier[++maze_state->frontier_index] = current_coord;
+  maze_state->in_frontier[current_coord]             = true;
+  cells[current_coord].walls                         = 0;
 
-  // If frontier empty, Prim done
-  if (maze_state->frontier_index < 0) {
-    maze_state->current_index = -1;
-    return;
-  }
+  do {
+    // copied from prims.c
+    int random_index = rand() % (maze_state->frontier_index + 1);
+    current_coord    = maze_state->frontier[random_index];
 
-  // Pick random frontier cell
-  int random_index  = rand() % (maze_state->frontier_index + 1);
-  int current_index = maze_state->frontier[random_index];
+    // swap top with rand; random selection from stack
+    int temp = maze_state->frontier[maze_state->frontier_index];
+    maze_state->frontier[maze_state->frontier_index] = maze_state->frontier[random_index];
+    maze_state->frontier[random_index]               = temp;
+    // printf("frontier_index before: %d\n", (maze_state->frontier_index));
+    (maze_state->frontier_index) -= 1;
+    // printf("frontier_index after: %d\n", (maze_state->frontier_index));
 
-  // Remove from frontier
-  int temp = maze_state->frontier[maze_state->frontier_index];
-  maze_state->frontier[maze_state->frontier_index] = maze_state->frontier[random_index];
-  maze_state->frontier[random_index]               = temp;
-  maze_state->frontier_index--;
+    carve_to_visited_neighbor(cells, maze_state, current_coord, cols, rows);
+    maze_state->in_frontier[current_coord] = false;
+    if (!maze_state->visited[current_coord]) {
+      maze_state->visited[current_coord] = true;
+      maze_state->number_visited++;
+    }
 
-  // Connect to a visited neighbor
-  carve_to_visited_neighbor(cells, maze_state, current_index, cols, rows);
-
-  // Mark visited
-  maze_state->visited[current_index]     = true;
-  maze_state->in_frontier[current_index] = false;
-  maze_state->number_visited++;
-  maze_state->current_index = current_index;
-
-  // Add unvisited neighbors
-  add_neighbors_to_frontier(current_index, cols, rows, maze_state, cells);
+    add_neighbors_to_frontier(current_coord, cols, rows, maze_state, cells);
+  } while (maze_state->frontier_index >= 0);
 }
+
 static void shuffleArray(void* array, int length, size_t element_size) {
   if (length <= 1 || element_size == 0)
     return;
@@ -493,10 +460,18 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
   float scale      = 0.06f;
   float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, simplexBilerp, NULL);
 
+  for (int i = 0; i < rows * columns; i++) {
+    int algo_index = value_map_int(noiseGrid[i], 0.0, 1.0, 0, num_algos - 1);
+    noiseGrid[i]   = algo_index;
+    printf("algo_index: %d\n", algo_index);
+  }
+
   // might make into a function later
   // Allocate maze state
   MazeState maze_state;
-  maze_state.visited                = calloc(rows * columns, sizeof(bool));
+  maze_state.visited = calloc(rows * columns, sizeof(bool));
+  maze_state.noise   = noiseGrid;
+
   maze_state.parent_dirs_stack      = malloc(sizeof(uint8_t) * rows * columns);
   maze_state.parent_dirs_stack_size = -1;
 
@@ -507,37 +482,30 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
   maze_state.number_visited = 0;
   maze_state.current_index  = -1;
 
-  while (maze_state.number_visited < rows * columns) {
+  for (int i = 0; i < rows * columns; i++) {
+    if (maze_state.visited[i])
+      continue;
 
-    // If current_index == -1, pick a new random cell
-    if (maze_state.current_index == -1) {
-      int index;
-      do {
-        index = rand_int(0, rows * columns - 1);
-      } while (maze_state.visited[index]);
-      maze_state.current_index = index;
-      // For DFS:
-
-      maze_state.parent_dirs_stack_size = -1;
-
-      // For Prim:
-      maze_state.frontier_index = -1;
-      add_neighbors_to_frontier(index, columns, rows, &maze_state, cells);
-
-      maze_state.visited[index] = true;
+    int region_algo = noiseGrid[i];
+    if (region_algo != 0) {
+      maze_state.visited[i] = true;
       maze_state.number_visited++;
+      continue;
     }
 
-    // Map noise to algorithm
-    int algo_index =
-        value_map_int(noiseGrid[maze_state.current_index], 0.0f, 1.0f, 0, num_algos - 1);
-    AlgoStepFunc algo = algoStepFuncs[algo_index];
+    maze_state.current_index      = i;
+    maze_state.current_algo_index = region_algo;
 
-    // Execute step (Prim or backtrack)
-    algo(cells, rows, columns, &maze_state);
+    AlgoStepFunc algo = algoStepFuncs[region_algo];
+
+    // Keep running until region fully processed
+    while (!maze_state.visited[i]) {
+      algo(cells, rows, columns, &maze_state);
+    }
   }
 
-  // Free temporary resources
+  //   Free temporary resources
+  //   double free happens here
   free(maze_state.visited);
   free(maze_state.parent_dirs_stack);
   free(maze_state.frontier);
