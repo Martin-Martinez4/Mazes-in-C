@@ -17,7 +17,6 @@ float smoothStep(float t);
 
 float lerp(float a, float b, float t);
 
-float bilerp(float f00, float f10, float f01, float f11, float x, float y);
 float bilerpFromRowCol(int row, int col, float* scalePtr);
 float perlinBilerp(int row, int col, float* scalePtr);
 float simplexBilerp(int row, int col, float* scalePtr);

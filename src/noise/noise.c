@@ -2,7 +2,7 @@
 #include "grid_utils.h"
 #include "rand_utils.h"
 #include "stdlib.h"
-#include "math.h"
+#include <math.h>
 #include "stdio.h"
 #include "vec2.h"
 
@@ -38,7 +38,7 @@ float lerp(float a, float b, float t) {
   return a + t * (b - a);
 }
 
-float bilerp(float f00, float f10, float f01, float f11, float x, float y) {
+static float bilerp(float f00, float f10, float f01, float f11, float x, float y) {
   float a = lerp(f00, f10, x);
   float b = lerp(f01, f11, x);
 
@@ -66,6 +66,7 @@ float bilerpFromRowCol(int row, int col, float* scalePtr) {
   float f10 = (hash(x0 + 1, y0) / 4294967295.0f);
   float f01 = (hash(x0, y0 + 1) / 4294967295.0f);
   float f11 = (hash(x0 + 1, y0 + 1) / 4294967295.0f);
+
 
   // x and y must be [0, 1]
 
@@ -150,7 +151,7 @@ float simplexBilerp(int row, int col, float* scalePtr) {
 
   // offsets at corners
   // dx1 is the distance from the input point to the second simplex corner
-  // dx1 is the distance from the input point to the second simplex corner
+  // dy1 is the distance from the input point to the second simplex corner
   float dx1 = dx0 - i1 + G2;
   float dy1 = dy0 - j1 + G2;
   // The offset is larger because corner2 is further away in the lattice, and the
@@ -170,6 +171,12 @@ float simplexBilerp(int row, int col, float* scalePtr) {
   float contrib1 = (t1 < 0 ? 0 : t1 *  dotVec2(g1, (vec2) {dx1, dy1}));
   float contrib2 = (t2 < 0 ? 0 : t2 *  dotVec2(g2, (vec2) {dx2, dy2}));
   float noise    = 5.0f * (contrib0 + contrib1 + contrib2);
+  float n = (noise + 1.0f) * 0.5f;
+    if(isnan(n)){
+    printf("t0: %f; t1: %f; t2: %f; \n", t0, t1, t2);
+    printf("noise: %f\n",  (noise + 1.0f) * 0.5f);
+  }
+
   return (noise + 1.0f) * 0.5f;
 }
 
