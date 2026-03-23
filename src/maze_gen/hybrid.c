@@ -259,6 +259,7 @@ static void carve_to_visited_neighbor(Cell* cells, MazeState* maze_state, int cu
     n_cell->walls &= ~TOP;
     break;
   }
+  mergeSets(maze_state->sets, coords, current_index);
 }
 
 void prim_step(Cell* cells, int rows, int cols, MazeState* maze_state) {
@@ -387,50 +388,52 @@ int move_to_parent(int index, int parent_dir, int rows, int cols) {
 }
 
 void backtrack_region(Cell* cells, int rows, int cols, MazeState* maze_state) {
-    while (maze_state->current_index != -1) {
-        int current_index = maze_state->current_index;
+  while (maze_state->current_index != -1) {
+    int current_index = maze_state->current_index;
 
-        int unvisited[4];
-        int count = 0;
+    int unvisited[4];
+    int count = 0;
 
-        uint8_t directions[] = {TOP, RIGHT, BOTTOM, LEFT};
+    uint8_t directions[] = {TOP, RIGHT, BOTTOM, LEFT};
 
-        for (int i = 0; i < 4; i++) {
-            uint8_t dir = directions[i];
-            int n_index = neighbor_index(current_index, dir, rows, cols);
+    for (int i = 0; i < 4; i++) {
+      uint8_t dir = directions[i];
+      int n_index = neighbor_index(current_index, dir, rows, cols);
 
-            if (n_index >= 0 && !maze_state->visited[n_index] &&
-                maze_state->current_algo_index == (int)maze_state->noise[n_index]) {
-                unvisited[count++] = dir;
-            }
-        }
-
-        if (count > 0) {
-            uint8_t chosen_dir = unvisited[rand() % count];
-            int next_index     = neighbor_index(current_index, chosen_dir, rows, cols);
-
-            // Carve walls
-            cells[current_index].walls &= ~chosen_dir;
-            cells[next_index].walls &= ~opposite_direction(chosen_dir);
-
-            maze_state->visited[next_index] = true;
-            maze_state->number_visited++;
-
-            // Push current onto stack
-            maze_state->parent_dirs_stack[++maze_state->parent_dirs_stack_size] = current_index;
-
-            // Move to neighbor
-            maze_state->current_index = next_index;
-        } else {
-            // Backtrack
-            if (maze_state->parent_dirs_stack_size >= 0) {
-                maze_state->current_index =
-                    maze_state->parent_dirs_stack[maze_state->parent_dirs_stack_size--];
-            } else {
-                maze_state->current_index = -1;
-            }
-        }
+      if (n_index >= 0 && !maze_state->visited[n_index] &&
+          maze_state->current_algo_index == (int) maze_state->noise[n_index]) {
+        unvisited[count++] = dir;
+      }
     }
+
+    if (count > 0) {
+      uint8_t chosen_dir = unvisited[rand() % count];
+      int next_index     = neighbor_index(current_index, chosen_dir, rows, cols);
+
+      // Carve walls
+      cells[current_index].walls &= ~chosen_dir;
+      cells[next_index].walls &= ~opposite_direction(chosen_dir);
+
+      mergeSets(maze_state->sets, next_index, current_index);
+
+      maze_state->visited[next_index] = true;
+      maze_state->number_visited++;
+
+      // Push current onto stack
+      maze_state->parent_dirs_stack[++maze_state->parent_dirs_stack_size] = current_index;
+
+      // Move to neighbor
+      maze_state->current_index = next_index;
+    } else {
+      // Backtrack
+      if (maze_state->parent_dirs_stack_size >= 0) {
+        maze_state->current_index =
+            maze_state->parent_dirs_stack[maze_state->parent_dirs_stack_size--];
+      } else {
+        maze_state->current_index = -1;
+      }
+    }
+  }
 }
 
 Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFunc* algoStepFuncs,
@@ -446,13 +449,6 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
   }
   setUpCells(cells, NULL, rows, columns);
 
-  int* sets = malloc(sizeof(int) * rows * columns);
-  if (!sets) {
-    fprintf(stderr, "Error: malloc failed for sets\n");
-    free(cells);
-    return NULL;
-  }
-
   // Generate noise for hybrid selection
   float scale      = 0.06f;
   float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, perlinBilerp, NULL);
@@ -462,10 +458,19 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
     noiseGrid[i]   = algo_index;
   }
 
+  int* sets = malloc(sizeof(int) * rows * columns);
+  if (!sets) {
+    fprintf(stderr, "Error: malloc failed for sets\n");
+    free(cells);
+    return NULL;
+  }
+  setUpSets(sets, NULL, rows, columns);
+
   // might make into a function later
   // Allocate maze state
   MazeState maze_state;
   maze_state.visited = calloc(rows * columns, sizeof(bool));
+  maze_state.sets    = sets;
   maze_state.noise   = noiseGrid;
 
   maze_state.parent_dirs_stack      = malloc(sizeof(uint8_t) * rows * columns);
@@ -498,7 +503,6 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
     if (!maze_state.visited[i]) {
       algo(cells, rows, columns, &maze_state);
     }
-
   }
 
   //   Free temporary resources
@@ -509,5 +513,68 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
   free(maze_state.in_frontier);
   free(noiseGrid);
 
+  // copy paste from kruskals
+  int edges_len = (rows * (columns - 1)) + ((rows - 1) * columns);
+  Edge* edges   = malloc(sizeof(Edge) * edges_len);
+  if (!edges) {
+    fprintf(stderr, "Error: malloc failed for edges\n");
+    free(cells);
+    free(maze_state.sets);
+    return NULL;
+  }
+  setUpEdges(edges, cells, rows, columns);
+
+  int top = edges_len - 1;
+
+  while (top >= 0) {
+    Edge e        = edges[top];
+    Cell* current = e.cell_ptr;
+
+    int neighbor_row;
+    int neighbor_column;
+
+    int current_row    = current->row;
+    int current_column = current->column;
+
+    switch (e.direction) {
+    case RIGHT:
+      neighbor_row    = current_row;
+      neighbor_column = current_column + 1;
+      break;
+
+    case BOTTOM:
+      neighbor_row    = current_row + 1;
+      neighbor_column = current_column;
+      break;
+
+    default:
+      fprintf(stderr, "Error: invalid direction %u in kruskalsCreateMaze()\n",
+              e.opposite_direction);
+      abort(); // or exit(EXIT_FAILURE);
+    }
+
+    if (neighbor_row >= 0 && neighbor_row < rows && neighbor_column >= 0 &&
+        neighbor_column < columns) {
+      int current_coords  = matrix_coords_to_array_coords(current_row, current_column, columns);
+      int neighbor_coords = matrix_coords_to_array_coords(neighbor_row, neighbor_column, columns);
+
+      // get sets
+      int neighbor_set = find(sets, neighbor_coords);
+      int current_set  = find(sets, current_coords);
+
+      if (neighbor_set != current_set) {
+        // remove walls
+        cells[current_coords].walls &= ~e.direction;
+        cells[neighbor_coords].walls &= ~e.opposite_direction;
+
+        // merge sets
+        mergeSets(sets, current_coords, neighbor_set);
+      }
+    }
+
+    top--;
+  }
+  free(edges);
+  free(maze_state.sets);
   return cells;
 }

@@ -15,6 +15,7 @@ typedef struct MazeState {
   int current_index;
   bool* visited;
   int number_visited;
+  int* sets;
   float* noise;
   int current_algo_index;
 
