@@ -5,6 +5,7 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <grid_utils.h>
 #include <time.h>
 
 #include "cell.h"
@@ -35,16 +36,16 @@ const int BORDER_WIDTH = 1;
 int main(int argc, char* argv[]) {
   // Seed the random number generator
   srand((unsigned int) time(NULL));
-  
+
   // random number
   // int r  = rand();
   // // random number from 0 to 9
   // int r2 = rand() % 10;
 
   printf("RUNNING\n");
-  
+
   SDL_Window* window;
-  bool done = false;
+  bool done     = false;
   bool seeNoise = false;
 
   // Initialize SDL3
@@ -80,12 +81,14 @@ int main(int argc, char* argv[]) {
                                          CELL_WIDTH, BORDER_WIDTH);
 
   // Cell* cells = createCells(mazeStats, state.algoSelected, 0.0f);
+  AlgoStepFunc algos[] = { prim_step, backtrack_region };
+  int algo_array_size = 2;
 
-  Cell* cells = create_maze_hybrid(mazeStats, 0.0f, (AlgoStepFunc**){ prim_step }, 1);
 
-  float scale = 0.05f;
-  float* noiseGrid =
-      applyNoise(mazeStats->rows, mazeStats->columns, &scale, simplexBilerp, NULL);
+  Cell* cells = create_maze_hybrid(mazeStats, 0.0f, algos, algo_array_size);
+
+  float scale      = 0.05f;
+  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, perlinBilerp, NULL);
 
   SDL_Texture* texture =
       SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
@@ -119,8 +122,7 @@ int main(int argc, char* argv[]) {
           printf("columns: %d; rows: %d", mazeStats->columns, mazeStats->rows);
           cells = loadMaze(mazeStats, &cellsToDraw, "./maze4.maze");
           rects = createSDLRects(mazeStats, cells, &cellsToDraw);
-        }
-        else if(event.key.scancode == SDL_SCANCODE_M){
+        } else if (event.key.scancode == SDL_SCANCODE_M) {
           state.menuVisible = !state.menuVisible;
         }
       }
@@ -141,18 +143,15 @@ int main(int argc, char* argv[]) {
       state.redrawMaze = false;
     }
 
-    
     if (!state.mCheck) {
-      
-      
+
       // Draw Maze Walls
       SDL_SetRenderDrawColor(renderer, 186, 167, 136, 255);
       SDL_RenderFillRects(renderer, rects, cellsToDraw);
-      
+
     } else {
-      
+
       SDL_RenderTexture(renderer, texture, NULL, &dst);
-      
     }
     nk_sdl_render(ctx, NK_ANTI_ALIASING_ON);
     if (state.export) {
