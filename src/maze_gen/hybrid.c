@@ -451,7 +451,7 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
 
   // Generate noise for hybrid selection
   float scale      = 0.06f;
-  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, perlinBilerp, NULL);
+  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, simplexBilerp, NULL);
 
   for (int i = 0; i < rows * columns; i++) {
     int algo_index = value_map_int(noiseGrid[i], 0.0, 1.0, 0, num_algos - 1);

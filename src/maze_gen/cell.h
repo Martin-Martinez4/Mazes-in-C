@@ -38,4 +38,6 @@ typedef struct Edge {
 Cell create_walled_cell(int row, int column);
 Edge create_edge(Cell* cell, uint8_t direction);
 
+int BFS_count(Cell* cells, int rows, int columns);
+
 #endif

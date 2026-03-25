@@ -81,13 +81,15 @@ int main(int argc, char* argv[]) {
                                          CELL_WIDTH, BORDER_WIDTH);
 
   // Cell* cells = createCells(mazeStats, state.algoSelected, 0.0f);
-  AlgoStepFunc algos[] = { prim_step, backtrack_region };
-  int algo_array_size = 2;
+  AlgoStepFunc algos[] = { prim_step, backtrack_region, prim_step };
+  int algo_array_size = 3;
 
 
   Cell* cells = create_maze_hybrid(mazeStats, 0.0f, algos, algo_array_size);
+  int count = BFS_count(cells, mazeStats->rows, mazeStats->columns);
+  printf("count: %d; want: %d\n", count, mazeStats->rows * mazeStats->columns);
 
-  float scale      = 0.05f;
+  float scale      = 0.0756f;
   float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, perlinBilerp, NULL);
 
   SDL_Texture* texture =
