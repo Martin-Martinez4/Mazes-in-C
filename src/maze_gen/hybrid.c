@@ -436,6 +436,9 @@ void backtrack_region(Cell* cells, int rows, int cols, MazeState* maze_state) {
   }
 }
 
+// Kruskals is applied at the end of the hybrid maze so this does nothing
+void kruskals_region(Cell* cells, int rows, int cols, MazeState* maze_state) {}
+
 Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFunc* algoStepFuncs,
                          int num_algos) {
   int rows    = mazeStats->rows;
