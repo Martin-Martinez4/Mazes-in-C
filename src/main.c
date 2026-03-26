@@ -84,13 +84,17 @@ int main(int argc, char* argv[]) {
   AlgoStepFunc algos[] = { backtrack_region, prim_step, kruskals_region };
   int algo_array_size = 3;
 
+  float scale      = 0.0756f;
+  // LinearGradientParams gp = create_linear_gradient_params(mazeStats->rows, mazeStats->columns, 45.0); 
+  // float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, linear_gradient, &gp);
 
-  Cell* cells = create_maze_hybrid(mazeStats, 0.0f, algos, algo_array_size);
+  RadialGradientParams gp = create_radial_gradient_params(mazeStats->rows, mazeStats->columns, 0, 0); 
+  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, radial_gradient, &gp);
+
+  Cell* cells = create_maze_hybrid(mazeStats, noiseGrid, 0.0f, algos, algo_array_size);
   int count = BFS_count(cells, mazeStats->rows, mazeStats->columns);
   printf("count: %d; want: %d\n", count, mazeStats->rows * mazeStats->columns);
 
-  float scale      = 0.0756f;
-  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, perlinBilerp, NULL);
 
   SDL_Texture* texture =
       SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
@@ -180,6 +184,9 @@ int main(int argc, char* argv[]) {
   nk_sdl_shutdown(ctx);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
+
+
+  free(noiseGrid);
 
   // Clean up
   SDL_Quit();

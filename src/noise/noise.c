@@ -49,7 +49,7 @@ static float bilerp(float f00, float f10, float f01, float f11, float x, float y
 // regions have more than one cell
 // scale decides how many cells are in a region
 // x0 and y0 are hashed because the is the region's x and y
-float bilerpFromRowCol(int row, int col, float* scalePtr) {
+float bilerpFromRowCol(int row, int col, float* scalePtr, void* params) {
 
   float scale = (scalePtr) ? *scalePtr : 0.05f;
 
@@ -67,7 +67,6 @@ float bilerpFromRowCol(int row, int col, float* scalePtr) {
   float f01 = (hash(x0, y0 + 1) / 4294967295.0f);
   float f11 = (hash(x0 + 1, y0 + 1) / 4294967295.0f);
 
-
   // x and y must be [0, 1]
 
   return bilerp(f00, f10, f01, f11, x, y);
@@ -82,7 +81,7 @@ vec2 gradient(int x, int y) {
   return g;
 }
 
-float perlinBilerp(int row, int col, float* scalePtr) {
+float perlinBilerp(int row, int col, float* scalePtr, void* params) {
 
   float scale     = (scalePtr) ? *scalePtr : 0.05f;
   float colScaled = col * scale;
@@ -117,7 +116,7 @@ float perlinBilerp(int row, int col, float* scalePtr) {
                 (dotVec2(g01, d01) + 1.f) / 2, (dotVec2(g11, d11) + 1.f) / 2, x, y);
 }
 
-float simplexBilerp(int row, int col, float* scalePtr) {
+float simplexBilerp(int row, int col, float* scalePtr, void* params) {
   float scale = (scalePtr) ? *scalePtr : 0.05f;
 
   float x = col * scale;
@@ -167,14 +166,14 @@ float simplexBilerp(int row, int col, float* scalePtr) {
   float t1 = 0.5 - dx1 * dx1 - dy1 * dy1;
   float t2 = 0.5 - dx2 * dx2 - dy2 * dy2;
 
-  float contrib0 = (t0 < 0 ? 0 : t0 *  dotVec2(g0, (vec2) {dx0, dy0}));
-  float contrib1 = (t1 < 0 ? 0 : t1 *  dotVec2(g1, (vec2) {dx1, dy1}));
-  float contrib2 = (t2 < 0 ? 0 : t2 *  dotVec2(g2, (vec2) {dx2, dy2}));
+  float contrib0 = (t0 < 0 ? 0 : t0 * dotVec2(g0, (vec2) {dx0, dy0}));
+  float contrib1 = (t1 < 0 ? 0 : t1 * dotVec2(g1, (vec2) {dx1, dy1}));
+  float contrib2 = (t2 < 0 ? 0 : t2 * dotVec2(g2, (vec2) {dx2, dy2}));
   float noise    = 5.0f * (contrib0 + contrib1 + contrib2);
-  float n = (noise + 1.0f) * 0.5f;
-    if(isnan(n)){
+  float n        = (noise + 1.0f) * 0.5f;
+  if (isnan(n)) {
     printf("t0: %f; t1: %f; t2: %f; \n", t0, t1, t2);
-    printf("noise: %f\n",  (noise + 1.0f) * 0.5f);
+    printf("noise: %f\n", (noise + 1.0f) * 0.5f);
   }
 
   return (noise + 1.0f) * 0.5f;
@@ -186,9 +185,78 @@ float* applyNoise(int rows, int cols, float* scalePtr, NoiseFunc noiseFunc, void
 
   for (size_t row = 0; row < rows; row++) {
     for (size_t col = 0; col < cols; col++) {
-      noiseGrid[matrix_coords_to_array_coords(row, col, cols)] = noiseFunc(row, col, scalePtr);
+      noiseGrid[matrix_coords_to_array_coords(row, col, cols)] =
+          noiseFunc(row, col, scalePtr, params);
     }
   }
 
   return noiseGrid;
+}
+
+LinearGradientParams create_linear_gradient_params(int rows, int cols, float degrees) {
+  LinearGradientParams params;
+
+  params.theta = degrees * (MY_PI / 180);
+
+  // project the 4 corners
+  // top left 0,0
+  float t0 = 0 * cosf(params.theta) + 0 * sinf(params.theta);
+  // top right cols-1, 0 and so on
+  float t1 = (cols - 1) * cosf(params.theta) + 0 * sinf(params.theta);
+  float t2 = 0 * cosf(params.theta) + (rows - 1) * sinf(params.theta);
+  float t3 = (cols - 1) * cosf(params.theta) + (rows - 1) * sinf(params.theta);
+
+  // find min/max
+  params.t_min = fminf(fminf(t0, t1), fminf(t2, t3));
+  params.t_max = fmaxf(fmaxf(t0, t1), fmaxf(t2, t3));
+
+  params.dir_x = cosf(params.theta);
+  params.dir_y = sinf(params.theta);
+
+  return params;
+}
+
+float linear_gradient(int row, int col, float* scalePtr, void* params) {
+  LinearGradientParams* gp = (LinearGradientParams*) params;
+
+  float t = row * gp->dir_y + col * gp->dir_x;
+
+  // normailize
+  float range = gp->t_max - gp->t_min;
+  if (range != 0.0f) {
+    t = (t - gp->t_min) / range;
+  } else {
+    t = 0.0f;
+  }
+
+  if (t < 0.0f)
+    t = 0.0f;
+  if (t > 1.0f)
+    t = 1.0f;
+
+  return t;
+}
+
+RadialGradientParams create_radial_gradient_params(int rows, int cols, int cx, int cy) {
+  RadialGradientParams params;
+
+  params.cx = cx;
+  params.cy = cy;
+
+  params.maxDist =
+      sqrtf(fmaxf(cx, cols - 1 - cx) * fmaxf(cx, cols - 1 - cx) +
+            fmaxf(cy, rows - 1 - cy) * fmaxf(cy, rows - 1 - cy));
+
+  return params;
+}
+
+float radial_gradient(int row, int col, float* scalePtr, void* params) {
+  RadialGradientParams* gp = (RadialGradientParams*) params;
+
+  float dx = col - gp->cx;
+  float dy = row - gp->cy;
+
+  float t = (dx*dx + dy*dy) / (gp->maxDist*gp->maxDist);
+  t = fminf(t, 1.0f);
+  return t;
 }

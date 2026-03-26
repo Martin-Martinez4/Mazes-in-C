@@ -439,7 +439,7 @@ void backtrack_region(Cell* cells, int rows, int cols, MazeState* maze_state) {
 // Kruskals is applied at the end of the hybrid maze so this does nothing
 void kruskals_region(Cell* cells, int rows, int cols, MazeState* maze_state) {}
 
-Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFunc* algoStepFuncs,
+Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float roomSaturation, AlgoStepFunc* algoStepFuncs,
                          int num_algos) {
   int rows    = mazeStats->rows;
   int columns = mazeStats->columns;
@@ -454,11 +454,11 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
 
   // Generate noise for hybrid selection
   float scale      = 0.06f;
-  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, simplexBilerp, NULL);
+//   float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, simplexBilerp, NULL);
 
   for (int i = 0; i < rows * columns; i++) {
-    int algo_index = value_map_int(noiseGrid[i], 0.0, 1.0, 0, num_algos - 1);
-    noiseGrid[i]   = algo_index;
+    int algo_index = value_map_int(noise_grid[i], 0.0, 1.0, 0, num_algos - 1);
+    noise_grid[i]   = algo_index;
   }
 
   int* sets = malloc(sizeof(int) * rows * columns);
@@ -474,7 +474,7 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
   MazeState maze_state;
   maze_state.visited = calloc(rows * columns, sizeof(bool));
   maze_state.sets    = sets;
-  maze_state.noise   = noiseGrid;
+  maze_state.noise   = noise_grid;
 
   maze_state.parent_dirs_stack      = malloc(sizeof(uint8_t) * rows * columns);
   maze_state.parent_dirs_stack_size = -1;
@@ -490,7 +490,7 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
     if (maze_state.visited[i])
       continue;
 
-    int region_algo = noiseGrid[i];
+    int region_algo = noise_grid[i];
     // if (region_algo != 0) {
     //   maze_state.visited[i] = true;
     //   maze_state.number_visited++;
@@ -514,7 +514,6 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float roomSaturation, AlgoStepFun
   free(maze_state.parent_dirs_stack);
   free(maze_state.frontier);
   free(maze_state.in_frontier);
-  free(noiseGrid);
 
   // copy paste from kruskals
   int edges_len = (rows * (columns - 1)) + ((rows - 1) * columns);
