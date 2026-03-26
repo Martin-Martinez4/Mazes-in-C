@@ -25,8 +25,8 @@
 #include "layout_nk.h"
 #include "init_font.h"
 
-const int WINDOW_WIDTH  = 1080;
-const int WINDOW_HEIGHT = 800;
+const int WINDOW_WIDTH  = 1920;
+const int WINDOW_HEIGHT = 900;
 // const int WINDOW_HEIGHT = 1080;
 
 const int CELL_HEIGHT  = 8;
@@ -81,25 +81,29 @@ int main(int argc, char* argv[]) {
                                          CELL_WIDTH, BORDER_WIDTH);
 
   // Cell* cells = createCells(mazeStats, state.algoSelected, 0.0f);
-  AlgoStepFunc algos[] = { backtrack_region, prim_step, kruskals_region };
-  int algo_array_size = 3;
+  AlgoStepFunc algos[] = { backtrack_region, prim_step, backtrack_region, prim_step,  backtrack_region, prim_step, backtrack_region, prim_step };
+  int algo_array_size = 8;
 
   float scale      = 0.0756f;
   // LinearGradientParams gp = create_linear_gradient_params(mazeStats->rows, mazeStats->columns, 45.0); 
   // float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, linear_gradient, &gp);
 
-  RadialGradientParams gp = create_radial_gradient_params(mazeStats->rows, mazeStats->columns, 0, 0); 
-  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, radial_gradient, &gp);
+  LinearGradientParams gp = create_linear_gradient_params(mazeStats->rows, mazeStats->columns, 45.0); 
+  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, perlin_warped, &gp);
 
-  Cell* cells = create_maze_hybrid(mazeStats, noiseGrid, 0.0f, algos, algo_array_size);
-  int count = BFS_count(cells, mazeStats->rows, mazeStats->columns);
-  printf("count: %d; want: %d\n", count, mazeStats->rows * mazeStats->columns);
-
-
+  // RadialGradientParams gp = create_radial_gradient_params(mazeStats->rows, mazeStats->columns, 44, 100); 
+  // float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, radial_gradient, &gp);
+  
   SDL_Texture* texture =
       SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
                         mazeStats->columns, mazeStats->rows);
   updateNoiseTexture(texture, noiseGrid, mazeStats->columns, mazeStats->rows);
+  Cell* cells = create_maze_hybrid(mazeStats, noiseGrid, 0.0f, algos, algo_array_size);
+  int count = BFS_count(cells, mazeStats->rows, mazeStats->columns);
+  // printf("count: %d; want: %d\n", count, mazeStats->rows * mazeStats->columns);
+  SDL_Log("\ncount: %d; want: %d\n", count, mazeStats->rows * mazeStats->columns);
+
+
 
   int cellsToDraw;
   SDL_FRect* rects = createSDLRects(mazeStats, cells, &cellsToDraw);

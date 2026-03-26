@@ -243,9 +243,8 @@ RadialGradientParams create_radial_gradient_params(int rows, int cols, int cx, i
   params.cx = cx;
   params.cy = cy;
 
-  params.maxDist =
-      sqrtf(fmaxf(cx, cols - 1 - cx) * fmaxf(cx, cols - 1 - cx) +
-            fmaxf(cy, rows - 1 - cy) * fmaxf(cy, rows - 1 - cy));
+  params.maxDist = sqrtf(fmaxf(cx, cols - 1 - cx) * fmaxf(cx, cols - 1 - cx) +
+                         fmaxf(cy, rows - 1 - cy) * fmaxf(cy, rows - 1 - cy));
 
   return params;
 }
@@ -256,7 +255,20 @@ float radial_gradient(int row, int col, float* scalePtr, void* params) {
   float dx = col - gp->cx;
   float dy = row - gp->cy;
 
-  float t = (dx*dx + dy*dy) / (gp->maxDist*gp->maxDist);
-  t = fminf(t, 1.0f);
+  float t = (dx * dx + dy * dy) / (gp->maxDist * gp->maxDist);
+  t       = fminf(t, 1.0f);
   return t;
+}
+
+float perlin_warped(int row, int col, float* scalePtr, void* params) {
+  // * 2 -1 makes range from -1 to 1
+  float w_x = (perlinBilerp(row, col, scalePtr, params) * 2.0f - 1.0f);
+  float w_y = (perlinBilerp(row + 50, col + 50, scalePtr, params) * 2.0f - 1.0f);
+
+  float strength = 20.0f;
+
+  float warped_col = col + w_x * strength;
+  float warped_row = row + w_y * strength;
+
+  return linear_gradient(warped_row, warped_col, scalePtr, params);
 }

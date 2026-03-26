@@ -61,19 +61,20 @@ void updateNoiseTexture(SDL_Texture* texture, float* noiseGrid, int columns, int
   SDL_LockTexture(texture, NULL, &pixels, &pitch);
   uint32_t* buffer = (uint32_t*) pixels;
 
-  
   for (int y = 0; y < rows; y++) {
     for (int x = 0; x < columns; x++) {
       float v = noiseGrid[y * columns + x];
-      if (v < 0)
+      SDL_Log("v: %f\n", v);
+      if (v < 0) {
         v = 0;
-      if (v > 1)
+      }
+      if (v > 1) {
         v = 1;
+      }
 
-      Uint8 gray   = (Uint8) (v * 255);
+      Uint8 gray = (Uint8) (v * 255);
 
       buffer[y * (pitch / 4) + x] = (255 << 24) | (gray << 16) | (gray << 8) | gray;
-
     }
   }
 

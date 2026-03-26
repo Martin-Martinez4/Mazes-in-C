@@ -45,6 +45,8 @@ float linear_gradient(int row, int col, float* scalePtr, void* params);
 RadialGradientParams create_radial_gradient_params(int rows, int cols, int cx, int cy);
 float radial_gradient(int row, int col, float* scalePtr, void* params);
 
+float perlin_warped(int row, int col, float* scalePtr, void* params);
+
 float* applyNoise(int rows, int cols, float* scalePtr, NoiseFunc noiseFunc, void* params);
 
 #endif
