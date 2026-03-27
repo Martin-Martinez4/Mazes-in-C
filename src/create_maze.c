@@ -9,6 +9,8 @@
 #include "grid_utils.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_render.h"
+#include <SDL3/SDL.h>
+
 
 Cell* createCells(MazeStats* mazeStats, MazeGenAlgorithm algo, double roomSaturation) {
   printf("size is Maze Stats Created");
@@ -64,7 +66,7 @@ void updateNoiseTexture(SDL_Texture* texture, float* noiseGrid, int columns, int
   for (int y = 0; y < rows; y++) {
     for (int x = 0; x < columns; x++) {
       float v = noiseGrid[y * columns + x];
-      SDL_Log("v: %f\n", v);
+      // SDL_Log("v: %f\n", v);
       if (v < 0) {
         v = 0;
       }
