@@ -12,7 +12,6 @@
 #include "draw_cells.h"
 #include "maze_stats.h"
 #include "create_maze.h"
-#include "game_map.h"
 #include "rooms.h"
 #include "hybrid.h"
 #include "export.h"
@@ -108,7 +107,7 @@ int main(int argc, char* argv[]) {
   // 44, 100); float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale,
   // radial_gradient, &gp);
 
-  float room_sat = 0.2;
+  float room_sat = 0.3;
   Rooms* rooms   = makeRooms(mazeStats, room_sat);
 
   SDL_Texture* texture =
