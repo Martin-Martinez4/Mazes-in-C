@@ -179,6 +179,9 @@ int bvh_insert(BVHNodes* nodes, Rooms* rooms, int nodeIndex, int roomIndex) {
 */
 
 Rooms* makeRooms(MazeStats* mazeStats, double saturation) {
+  if(saturation <= 0){
+    return NULL;
+  }
   int columns = mazeStats->columns;
   int rows    = mazeStats->rows;
 

@@ -38,7 +38,7 @@ static int value_map_int(float value, float min_val, float max_val, int min, int
   return result;
 }
 
-static void setUpCells(Cell* cells, Rooms* rooms, int rows, int columns) {
+static void setUpCells(Cell* cells, Rooms* rooms, bool* visited, int rows, int columns) {
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < columns; col++) {
       cells[matrix_coords_to_array_coords(row, col, columns)] = create_walled_cell(row, col);
@@ -68,6 +68,8 @@ static void setUpCells(Cell* cells, Rooms* rooms, int rows, int columns) {
         if (col == x + width - 1)
           walls |= RIGHT;
         cells[matrix_coords_to_array_coords(row, col, columns)].walls = walls;
+
+        visited[matrix_coords_to_array_coords(row, col, columns)] = true;
       }
     }
   }
@@ -439,26 +441,126 @@ void backtrack_region(Cell* cells, int rows, int cols, MazeState* maze_state) {
 // Kruskals is applied at the end of the hybrid maze so this does nothing
 void kruskals_region(Cell* cells, int rows, int cols, MazeState* maze_state) {}
 
-Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float roomSaturation, AlgoStepFunc* algoStepFuncs,
-                         int num_algos) {
+bool is_dead_end(Cell* cell) {
+  uint8_t count = 0;
+  uint8_t walls = cell->walls;
+
+  uint8_t wall_dirs[4] = {TOP, RIGHT, LEFT, BOTTOM};
+
+  for (int i = 0; i < 4; i++) {
+    if ((walls & wall_dirs[i]) == 0) {
+      count++;
+    }
+  }
+  return count == 1;
+}
+
+uint8_t get_open_end(Cell* cell) {
+  uint8_t count = 0;
+  uint8_t walls = cell->walls;
+
+  uint8_t wall_dirs[4] = {TOP, RIGHT, LEFT, BOTTOM};
+
+  for (int i = 0; i < 4; i++) {
+    if ((walls & wall_dirs[i]) == 0) {
+      return wall_dirs[i];
+    }
+  }
+
+  return 0;
+}
+
+int prune_dead_ends(Cell* cells, int rows, int cols) {
+  int count = 0;
+  // TOP, BOTTOM, LEFT, RIGHT
+  const int neigh_coords[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+  const int neigh_dirs[4]      = {BOTTOM, TOP, RIGHT, LEFT};
+  int neigh_coord;
+
+  for (int row = 0; row < rows; row++) {
+    for (int col = 0; col < cols; col++) {
+      int coords = matrix_coords_to_array_coords(row, col, cols);
+
+      Cell* current_cell = &cells[coords];
+
+      int current_row = row;
+      int current_col = col;
+
+      while (is_dead_end(current_cell)) {
+
+        cells[coords].walls = ALL_WALLS;
+        count++;
+
+        for (int i = 0; i < 4; i++) {
+          int new_row = row + neigh_coords[i][0];
+          int new_col = col + neigh_coords[i][1];
+
+          // Bounds check
+          if (new_row < 0 || new_row >= rows || new_col < 0 || new_col >= cols) {
+            continue;
+          }
+
+          int neigh_coord = matrix_coords_to_array_coords(new_row, new_col, cols);
+          cells[neigh_coord].walls |= neigh_dirs[i];
+        }
+
+        int8_t open_end = get_open_end(current_cell);
+        if (open_end == -1) {
+          break;
+        }
+
+        switch (open_end) {
+        case TOP:
+          current_row -= 1;
+          break;
+        case RIGHT:
+          current_col += 1;
+          break;
+        case BOTTOM:
+          current_row += 1;
+          break;
+        case LEFT:
+          current_col -= 1;
+          break;
+        default:
+          break;
+        }
+        coords       = matrix_coords_to_array_coords(current_row, current_col, cols);
+        current_cell = &cells[coords];
+      }
+    }
+  }
+
+  return count;
+}
+
+Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_saturation,
+                         AlgoStepFunc* algoStepFuncs, int num_algos) {
   int rows    = mazeStats->rows;
   int columns = mazeStats->columns;
 
-  Cell* cells = malloc(sizeof(Cell) * rows * columns);
+  Rooms* rooms = makeRooms(mazeStats, room_saturation);
 
+  Cell* cells = malloc(sizeof(Cell) * rows * columns);
   if (!cells) {
     fprintf(stderr, "Error: malloc failed for cells\n");
     return NULL;
   }
-  setUpCells(cells, NULL, rows, columns);
+  bool* visited = calloc(rows * columns, sizeof(bool));
+  if (!visited) {
+    fprintf(stderr, "Error: calloc failed for visited\n");
+    return NULL;
+  }
+  setUpCells(cells, rooms, visited, rows, columns);
 
   // Generate noise for hybrid selection
-  float scale      = 0.06f;
-//   float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, simplexBilerp, NULL);
+  float scale = 0.06f;
+  //   float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, simplexBilerp,
+  //   NULL);
 
   for (int i = 0; i < rows * columns; i++) {
     int algo_index = value_map_int(noise_grid[i], 0.0, 1.0, 0, num_algos - 1);
-    noise_grid[i]   = algo_index;
+    noise_grid[i]  = algo_index;
   }
 
   int* sets = malloc(sizeof(int) * rows * columns);
@@ -467,12 +569,12 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float roomSatu
     free(cells);
     return NULL;
   }
-  setUpSets(sets, NULL, rows, columns);
+  setUpSets(sets, rooms, rows, columns);
 
   // might make into a function later
   // Allocate maze state
   MazeState maze_state;
-  maze_state.visited = calloc(rows * columns, sizeof(bool));
+  maze_state.visited = visited;
   maze_state.sets    = sets;
   maze_state.noise   = noise_grid;
 
@@ -491,11 +593,6 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float roomSatu
       continue;
 
     int region_algo = noise_grid[i];
-    // if (region_algo != 0) {
-    //   maze_state.visited[i] = true;
-    //   maze_state.number_visited++;
-    //   continue;
-    // }
 
     maze_state.current_index      = i;
     maze_state.current_algo_index = region_algo;
@@ -576,7 +673,13 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float roomSatu
 
     top--;
   }
+  if (rooms != NULL) {
+    free(rooms);
+  }
   free(edges);
   free(maze_state.sets);
+
+  while(prune_dead_ends(cells, rows, columns) > 2);
+
   return cells;
 }

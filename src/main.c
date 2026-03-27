@@ -31,8 +31,8 @@ const int WINDOW_WIDTH  = 1080;
 const int WINDOW_HEIGHT = 900;
 // const int WINDOW_HEIGHT = 1080;
 
-const int CELL_HEIGHT  = 24;
-const int CELL_WIDTH   = 24;
+const int CELL_HEIGHT  = 16;
+const int CELL_WIDTH   = 16;
 const int BORDER_WIDTH = 1;
 
 int main(int argc, char* argv[]) {
@@ -83,22 +83,21 @@ int main(int argc, char* argv[]) {
                                          CELL_WIDTH, BORDER_WIDTH);
 
   // Cell* cells = createCells(mazeStats, state.algoSelected, 0.0f);
-  AlgoStepFunc algos[] = {backtrack_region, prim_step, backtrack_region, prim_step,
-                          backtrack_region, prim_step, backtrack_region, prim_step};
-  int algo_array_size  = 8;
+  AlgoStepFunc algos[] = { prim_step, backtrack_region };
+  int algo_array_size  = 2;
 
   float scale = 0.0756f;
   // LinearGradientParams gp = create_linear_gradient_params(mazeStats->rows,
   // mazeStats->columns, 45.0); float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns,
   // &scale, linear_gradient, &gp);
 
-  // LinearGradientParams gp = create_linear_gradient_params(mazeStats->rows,
-  // mazeStats->columns, 45.0); float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns,
-  // &scale, perlin_warped, &gp);
+  LinearGradientParams gp = create_linear_gradient_params(mazeStats->rows,
+  mazeStats->columns, 45.0); float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns,
+  &scale, perlin_warped, &gp);
 
-  RadialGradientParams gp =
-      create_radial_gradient_params(mazeStats->rows, mazeStats->columns, 0, 0);
-  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, radial_gradient, &gp);
+  // RadialGradientParams gp =
+  //     create_radial_gradient_params(mazeStats->rows, mazeStats->columns, 0, 0);
+  // float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, radial_gradient, &gp);
 
   // Cell* cells = create_maze_hybrid(mazeStats, noiseGrid, 0.0f, algos, algo_array_size);
 
@@ -109,18 +108,18 @@ int main(int argc, char* argv[]) {
   // 44, 100); float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale,
   // radial_gradient, &gp);
 
-  float room_sat = 0.1;
-  Rooms* rooms    = makeRooms(mazeStats, room_sat);
+  float room_sat = 0.2;
+  Rooms* rooms   = makeRooms(mazeStats, room_sat);
 
   SDL_Texture* texture =
       SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
                         mazeStats->columns, mazeStats->rows);
   updateNoiseTexture(texture, noiseGrid, mazeStats->columns, mazeStats->rows);
 
-  Cell* cells = create_game_map(mazeStats, rooms, noiseGrid, algos);
+  // Cell* cells = create_game_map(mazeStats, rooms, noiseGrid, algos);
 
-  // Cell* cells = create_maze_hybrid(mazeStats, noiseGrid, 0.0f, algos, algo_array_size);
-  int count = BFS_count(cells, mazeStats->rows, mazeStats->columns);
+  Cell* cells = create_maze_hybrid(mazeStats, noiseGrid, 0.10f, algos, algo_array_size);
+  int count   = BFS_count(cells, mazeStats->rows, mazeStats->columns);
   // printf("count: %d; want: %d\n", count, mazeStats->rows * mazeStats->columns);
   SDL_Log("\ncount: %d; want: %d\n", count, mazeStats->rows * mazeStats->columns);
 
