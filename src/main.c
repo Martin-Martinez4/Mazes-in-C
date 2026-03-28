@@ -107,8 +107,8 @@ int main(int argc, char* argv[]) {
   // 44, 100); float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale,
   // radial_gradient, &gp);
 
-  float room_sat = 0.3;
-  Rooms* rooms   = makeRooms(mazeStats, room_sat);
+  float room_sat = 0.25;
+  // Rooms* rooms   = makeRooms(mazeStats, room_sat);
 
   SDL_Texture* texture =
       SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 
   // Cell* cells = create_game_map(mazeStats, rooms, noiseGrid, algos);
 
-  Cell* cells = create_maze_hybrid(mazeStats, noiseGrid, 0.10f, algos, algo_array_size);
+  Cell* cells = create_maze_hybrid(mazeStats, noiseGrid, room_sat, algos, algo_array_size);
   int count   = BFS_count(cells, mazeStats->rows, mazeStats->columns);
   // printf("count: %d; want: %d\n", count, mazeStats->rows * mazeStats->columns);
   SDL_Log("\ncount: %d; want: %d\n", count, mazeStats->rows * mazeStats->columns);
