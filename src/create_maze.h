@@ -6,10 +6,10 @@
 #include <SDL3/SDL_rect.h>
 #include "SDL3/SDL_render.h"
 
-typedef enum { BACKTRACKING ,PRIMS, KRUSKALS } MazeGenAlgorithm;
+typedef enum { BACKTRACKING ,PRIMS, KRUSKALS, HYBRID } MazeGenAlgorithm;
 
 Cell* createCells(MazeStats* mazeStats, MazeGenAlgorithm algo, double roomSaturation);
 
 SDL_FRect* createSDLRects(MazeStats* mazeStats, Cell* cells, int* cellsCreated);
-void updateNoiseTexture(SDL_Texture* texture, float* noiseGrid, int columns, int rows) ;
+void updateNoiseTexture(SDL_Texture* texture, float* noiseGrid, int columns, int rows);
 #endif

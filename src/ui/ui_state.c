@@ -2,6 +2,14 @@
 #include "create_maze.h"
 
 uiState state = {
+    .cell_width = 16,
+    .cell_height = 16,
+    .border_thickness = 1,
+    .room_saturation = 0.2f,
+    .num_algos = 1,
+    .prune_aggressiveness = 0,
+    .hybrid_options = {BACKTRACKING,BACKTRACKING,BACKTRACKING,BACKTRACKING,BACKTRACKING},
+
     .algoSelected = KRUSKALS,
     .menuExpanded = false,
     .menuVisible = true,

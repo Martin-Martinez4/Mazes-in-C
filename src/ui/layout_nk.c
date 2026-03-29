@@ -7,6 +7,7 @@
 
 // static int text_len[9];
 // static char text[9][64];
+const char* algos[] = {"Backtracking", "Prim's", "Kruskal's"};
 
 static char buf[256] = {0};
 static int len       = 0;
@@ -45,45 +46,90 @@ void renderNk(struct nk_context* ctx) {
       struct nk_vec2 old_spacing = ctx->style.window.spacing;
 
       if (nk_begin(ctx, "Menu", nk_rect(10, 36, 240, 380),
-                   NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_BACKGROUND)) {
+                   NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_DYNAMIC)) {
 
-        nk_layout_row_dynamic(ctx, 0, 4);
-        nk_label(ctx, "Algorithms", NK_TEXT_LEFT);
+        if (nk_tree_push(ctx, NK_TREE_TAB, "Cells Settings", NK_MINIMIZED)) {
 
-        nk_layout_row_dynamic(ctx, 0, 1);
-        if (nk_option_label(ctx, "Backtracking", state.algoSelected == BACKTRACKING))
-          state.algoSelected = BACKTRACKING;
-        if (nk_option_label(ctx, "Prim's", state.algoSelected == PRIMS))
-          state.algoSelected = PRIMS;
-        if (nk_option_label(ctx, "Kruskal's", state.algoSelected == KRUSKALS))
-          state.algoSelected = KRUSKALS;
+          nk_layout_row_dynamic(ctx, 0, 1);
+          nk_property_int(ctx, "Cell Width", 1, &state.cell_width, 128, 1, 1);
+          nk_property_int(ctx, "Cell Height", 1, &state.cell_height, 128, 1, 1);
+          nk_property_int(ctx, "Border Thickness", 1, &state.border_thickness, 16, 1, 1);
 
-        nk_checkbox_label(ctx, "See Noise", &state.mCheck);
+          nk_tree_pop(ctx);
+        }
+
+        if (nk_tree_push(ctx, NK_TREE_TAB, "Algorithms", NK_MINIMIZED)) {
+          nk_layout_row_dynamic(ctx, 0, 1);
+
+          nk_property_float(ctx, "Room Saturation", 0.0f, &state.room_saturation, 0.95f, 0.01f,
+                            0.01f);
+          nk_property_int(ctx, "Dead End Pruning Aggressiveness", 0, &state.prune_aggressiveness,
+                          10, 1, 1);
+
+          if (nk_option_label(ctx, "Backtracking", state.algoSelected == BACKTRACKING))
+            state.algoSelected = BACKTRACKING;
+          if (nk_option_label(ctx, "Prim's", state.algoSelected == PRIMS))
+            state.algoSelected = PRIMS;
+          if (nk_option_label(ctx, "Kruskal's", state.algoSelected == KRUSKALS))
+            state.algoSelected = KRUSKALS;
+          if (nk_option_label(ctx, "Hybrid", state.algoSelected == HYBRID))
+            state.algoSelected = HYBRID;
+
+          if (state.algoSelected == HYBRID) {
+            // Number of algorithms
+            nk_layout_row_dynamic(ctx, 22, 1);
+            nk_property_int(ctx, "Number of Algorithms", 1, &state.num_algos, 5, 1, 1);
+
+            // Hybrid combos
+            for (int i = 0; i < state.num_algos; i++) {
+              char label[32];
+              snprintf(label, sizeof(label), "Hybrid %d", i + 1);
+
+              // One row: label + combo
+              nk_layout_row_dynamic(ctx, 25, 2);
+              nk_label(ctx, label, NK_TEXT_LEFT);
+              state.hybrid_options[i] =
+                  nk_combo(ctx, algos, 3, state.hybrid_options[i], 25, nk_vec2(200, 150));
+            }
+          }
+
+          nk_tree_pop(ctx);
+        }
+
+        if (nk_tree_push(ctx, NK_TREE_TAB, "Noise", NK_MINIMIZED)) {
+          nk_layout_row_dynamic(ctx, 0, 1);
+          nk_checkbox_label(ctx, "See Noise", &state.mCheck);
+          nk_tree_pop(ctx);
+        }
+
+        if (nk_tree_push(ctx, NK_TREE_TAB, "File", NK_MINIMIZED)) {
+          nk_layout_row_dynamic(ctx, 5, 1);
+          nk_spacing(ctx, 1);
+
+          nk_layout_row_dynamic(ctx, 0, 1);
+          nk_edit_string_zero_terminated(ctx, NK_EDIT_FIELD, state.fileName, sizeof(state.fileName),
+                                         nk_filter_default);
+          if (nk_button_label(ctx, "Export")) {
+
+            state.export = true;
+            state.upload = false;
+          }
+          nk_layout_row_dynamic(ctx, 5, 1);
+          nk_spacing(ctx, 1);
+
+          nk_layout_row_dynamic(ctx, 0, 1);
+          nk_edit_string_zero_terminated(ctx, NK_EDIT_FIELD, state.uploadFileName,
+                                         sizeof(state.uploadFileName), nk_filter_default);
+          if (nk_button_label(ctx, "Load")) {
+            state.upload = true;
+            state.export = false;
+          }
+          nk_tree_pop(ctx);
+        }
 
         if (nk_button_label(ctx, "Generate Maze")) {
           SDL_Log("Generate Maze clicked (algo=%d)", state.algoSelected);
           state.redrawMaze = true;
-        }
-        nk_layout_row_dynamic(ctx, 5, 1);
-        nk_spacing(ctx, 1);
-
-        nk_layout_row_dynamic(ctx, 0, 1);
-        nk_edit_string_zero_terminated(ctx, NK_EDIT_FIELD, state.fileName, sizeof(state.fileName),
-                                       nk_filter_default);
-        if (nk_button_label(ctx, "Export")) {
-
-          state.export = true;
-          state.upload = false;
-        }
-        nk_layout_row_dynamic(ctx, 5, 1);
-        nk_spacing(ctx, 1);
-
-        nk_layout_row_dynamic(ctx, 0, 1);
-        nk_edit_string_zero_terminated(ctx, NK_EDIT_FIELD, state.uploadFileName,
-                                       sizeof(state.uploadFileName), nk_filter_default);
-        if (nk_button_label(ctx, "Load")) {
-          state.upload = true;
-          state.export = false;
         }
       }
       nk_end(ctx);

@@ -5,6 +5,15 @@
 #include <nuklear.h>
 
 typedef struct  {
+    int cell_width;
+    int cell_height;
+    int border_thickness;
+    float room_saturation;
+    int num_algos;
+    int prune_aggressiveness;
+
+    int hybrid_options[5];
+
     int algoSelected;
     bool menuVisible;
     bool menuExpanded;
@@ -16,6 +25,7 @@ typedef struct  {
     char uploadFileName[256];
     int uploadFileNameLen;
     nk_bool mCheck;
+
 } uiState;
 
 extern uiState state;
