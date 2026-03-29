@@ -179,15 +179,19 @@ int bvh_insert(BVHNodes* nodes, Rooms* rooms, int nodeIndex, int roomIndex) {
 */
 
 Rooms* makeRooms(MazeStats* mazeStats, double saturation) {
+  if(saturation <= 0){
+    return NULL;
+  }
   int columns = mazeStats->columns;
   int rows    = mazeStats->rows;
 
-  double avg_cells_in_room = 16;
+  double avg_cells_in_room = 8;
   int total_cells          = rows * columns;
 
   int max_rooms = (total_cells * saturation) / avg_cells_in_room;
 
   double current_saturation = 0;
+  int num_cells_in_rooms = 0;
 
   Rooms* rooms    = create_rooms();
   BVHNodes* nodes = create_bvh_nodes();
@@ -251,7 +255,8 @@ Rooms* makeRooms(MazeStats* mazeStats, double saturation) {
 
       if (!collided) {
         append_room(rooms, r);
-        current_saturation = (rooms->length * avg_cells_in_room) / total_cells;
+        num_cells_in_rooms += r.aabb.height * r.aabb.width;
+        current_saturation = (float)num_cells_in_rooms / (float)total_cells;
 
         int newRoomIndex = rooms->length - 1;
         if (rooms->length == 1) {

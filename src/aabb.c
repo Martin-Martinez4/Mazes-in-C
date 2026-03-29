@@ -11,6 +11,7 @@ AABB compute_AABB(int min_x, int max_x, int min_y, int max_y) {
   return aabb;
 }
 
+// from top left corner
 AABB aabb_union(AABB aabb1, AABB aabb2) {
   int min_x = aabb1.x < aabb2.x ? aabb1.x : aabb2.x;
   int max_x = ((aabb1.x + aabb1.width) > (aabb2.x + aabb2.width)) ? (aabb1.x + aabb1.width)
