@@ -303,7 +303,7 @@ static void shuffleArray(void* array, int length, size_t element_size) {
   unsigned char* arr  = (unsigned char*) array;
   unsigned char* temp = (unsigned char*) malloc(element_size);
   if (!temp)
-    return; // allocation failed
+    return;
 
   for (int i = length - 1; i >= 1; i--) {
     int j = rand() % (i + 1);
@@ -470,72 +470,96 @@ uint8_t get_open_end(Cell* cell) {
   return 0;
 }
 
-int prune_dead_ends(Cell* cells, int rows, int cols) {
+int prune_dead_ends(Cell* cells, int rows, int cols, int limit) {
   int count = 0;
   // TOP, BOTTOM, LEFT, RIGHT
   const int neigh_coords[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
   const int neigh_dirs[4]      = {BOTTOM, TOP, RIGHT, LEFT};
   int neigh_coord;
 
-  for (int row = 0; row < rows; row++) {
-    for (int col = 0; col < cols; col++) {
-      int coords = matrix_coords_to_array_coords(row, col, cols);
+  int num_cells = rows * cols;
 
-      Cell* current_cell = &cells[coords];
+  Cell* cells_copy = malloc(sizeof(Cell) * num_cells);
+  memcpy(cells_copy, cells, num_cells * sizeof(Cell));
 
-      int current_row = row;
-      int current_col = col;
+  // for (int row = 0; row < rows; row++) {
+  //    if(count >= limit){
+  //       break;
+  //     }
+  //   for (int col = 0; col < cols; col++) {
+  //     if(count >= limit){
+  //       break;
+  //     }
 
-      while (is_dead_end(current_cell)) {
+  int row;
+  int col;
 
-        cells[coords].walls = ALL_WALLS;
-        count++;
+  shuffleArray(cells_copy, num_cells, sizeof(Cell));
 
-        for (int i = 0; i < 4; i++) {
-          int new_row = row + neigh_coords[i][0];
-          int new_col = col + neigh_coords[i][1];
+  for (int i = 0; i < num_cells; i++) {
+    if (count >= limit) {
+      break;
+    }
+    row        = cells_copy[i].row;
+    col        = cells_copy[i].column;
+    int coords = matrix_coords_to_array_coords(row, col, cols);
 
-          // Bounds check
-          if (new_row < 0 || new_row >= rows || new_col < 0 || new_col >= cols) {
-            continue;
-          }
+    Cell* current_cell = &cells[coords];
 
-          int neigh_coord = matrix_coords_to_array_coords(new_row, new_col, cols);
-          cells[neigh_coord].walls |= neigh_dirs[i];
+    int current_row = row;
+    int current_col = col;
+
+    while (is_dead_end(current_cell) && count < limit) {
+
+      cells[coords].walls = ALL_WALLS;
+      count++;
+
+      for (int i = 0; i < 4; i++) {
+        int new_row = row + neigh_coords[i][0];
+        int new_col = col + neigh_coords[i][1];
+
+        // Bounds check
+        if (new_row < 0 || new_row >= rows || new_col < 0 || new_col >= cols) {
+          continue;
         }
 
-        int8_t open_end = get_open_end(current_cell);
-        if (open_end == -1) {
-          break;
-        }
-
-        switch (open_end) {
-        case TOP:
-          current_row -= 1;
-          break;
-        case RIGHT:
-          current_col += 1;
-          break;
-        case BOTTOM:
-          current_row += 1;
-          break;
-        case LEFT:
-          current_col -= 1;
-          break;
-        default:
-          break;
-        }
-        coords       = matrix_coords_to_array_coords(current_row, current_col, cols);
-        current_cell = &cells[coords];
+        int neigh_coord = matrix_coords_to_array_coords(new_row, new_col, cols);
+        cells[neigh_coord].walls |= neigh_dirs[i];
       }
+
+      int8_t open_end = get_open_end(current_cell);
+      if (open_end == -1) {
+        break;
+      }
+
+      switch (open_end) {
+      case TOP:
+        current_row -= 1;
+        break;
+      case RIGHT:
+        current_col += 1;
+        break;
+      case BOTTOM:
+        current_row += 1;
+        break;
+      case LEFT:
+        current_col -= 1;
+        break;
+      default:
+        break;
+      }
+      coords       = matrix_coords_to_array_coords(current_row, current_col, cols);
+      current_cell = &cells[coords];
     }
   }
+  //   }
+  // }
 
   return count;
 }
 
 Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_saturation,
-                         AlgoStepFunc* algoStepFuncs, int num_algos) {
+                         AlgoStepFunc* algoStepFuncs, int num_algos, int prune_aggressiveness) {
   int rows    = mazeStats->rows;
   int columns = mazeStats->columns;
 
@@ -679,7 +703,17 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_sat
   free(edges);
   free(maze_state.sets);
 
-  while(prune_dead_ends(cells, rows, columns) > 2);
+  if (prune_aggressiveness > 0) {
+    int prunes    = 0;
+    int rows      = mazeStats->rows;
+    int cols      = mazeStats->columns;
+    int num_cells = rows * cols;
+    int limit     = (int) ((float) prune_aggressiveness / 100.0f * num_cells);
+
+    while (prune_dead_ends(cells, rows, columns, limit) && prunes < prune_aggressiveness) {
+      prunes++;
+    };
+  }
 
   return cells;
 }

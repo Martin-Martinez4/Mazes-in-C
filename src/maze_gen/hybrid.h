@@ -34,7 +34,7 @@ void prim_step(Cell* cells, int rows, int cols, MazeState* maze_state);
 void backtrack_region(Cell* cells, int rows, int cols, MazeState* maze_state);
 void kruskals_region(Cell* cells, int rows, int cols, MazeState* maze_state);
 
-Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_saturation, AlgoStepFunc* algoStepFuncs,
-                         int num_algos);
+Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_saturation,
+                         AlgoStepFunc* algoStepFuncs, int num_algos, int prune_aggressiveness);
 
 #endif

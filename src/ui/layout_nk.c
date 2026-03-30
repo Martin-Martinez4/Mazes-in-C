@@ -63,7 +63,7 @@ void renderNk(struct nk_context* ctx) {
 
           nk_property_float(ctx, "Room Saturation", 0.0f, &state.room_saturation, 0.95f, 0.01f,
                             0.01f);
-          nk_property_int(ctx, "Dead End Pruning Aggressiveness", 0, &state.prune_aggressiveness,
+          nk_property_int(ctx, "Prune Aggressiveness", 0, &state.prune_aggressiveness,
                           10, 1, 1);
 
           if (nk_option_label(ctx, "Backtracking", state.algoSelected == BACKTRACKING))
@@ -100,6 +100,7 @@ void renderNk(struct nk_context* ctx) {
           nk_layout_row_dynamic(ctx, 0, 1);
           nk_checkbox_label(ctx, "See Noise", &state.mCheck);
           nk_tree_pop(ctx);
+
         }
 
         if (nk_tree_push(ctx, NK_TREE_TAB, "File", NK_MINIMIZED)) {
