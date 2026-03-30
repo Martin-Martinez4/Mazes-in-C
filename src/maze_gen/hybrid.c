@@ -482,14 +482,6 @@ int prune_dead_ends(Cell* cells, int rows, int cols, int limit) {
   Cell* cells_copy = malloc(sizeof(Cell) * num_cells);
   memcpy(cells_copy, cells, num_cells * sizeof(Cell));
 
-  // for (int row = 0; row < rows; row++) {
-  //    if(count >= limit){
-  //       break;
-  //     }
-  //   for (int col = 0; col < cols; col++) {
-  //     if(count >= limit){
-  //       break;
-  //     }
 
   int row;
   int col;

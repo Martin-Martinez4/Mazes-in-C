@@ -1,16 +1,24 @@
 #include "ui_state.h"
 #include "create_maze.h"
+#include "noise.h"
 
 uiState state = {
     .cell_width = 16,
     .cell_height = 16,
     .border_thickness = 1,
-    .room_saturation = 0.2f,
+    .room_saturation = 0.0f,
     .num_algos = 1,
     .prune_aggressiveness = 0,
     .hybrid_options = {BACKTRACKING,BACKTRACKING,BACKTRACKING,BACKTRACKING,BACKTRACKING},
 
+    .generate_noise = false,
     .algoSelected = KRUSKALS,
+    .noise_selected = VALUE,
+    .scale = 0.0756f,
+    .cx = 0,
+    .cy = 0,
+    .degrees = 45.0f,
+
     .menuExpanded = false,
     .menuVisible = true,
     .redrawMaze = false,
