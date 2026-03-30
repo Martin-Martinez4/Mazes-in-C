@@ -4,10 +4,12 @@
 #include <SDL3/SDL.h>
 #include "stdio.h"
 #include "stdbool.h"
+#include "noise.h"
 
 // static int text_len[9];
 // static char text[9][64];
-const char* algos[] = {"Backtracking", "Prim's", "Kruskal's"};
+const char* algos[3]         = {"Backtracking", "Prim's", "Kruskal's"};
+const char* noise_choices[5] = {"Value", "Perlin", "Simplex", "Linear Gradient", "Radial Gradient"};
 
 static char buf[256] = {0};
 static int len       = 0;
@@ -63,22 +65,27 @@ void renderNk(struct nk_context* ctx) {
 
           nk_property_float(ctx, "Room Saturation", 0.0f, &state.room_saturation, 0.95f, 0.01f,
                             0.01f);
-          nk_property_int(ctx, "Dead End Pruning Aggressiveness", 0, &state.prune_aggressiveness,
-                          10, 1, 1);
+          nk_property_int(ctx, "Prune Aggressiveness", 0, &state.prune_aggressiveness, 20, 1, 1);
 
-          if (nk_option_label(ctx, "Backtracking", state.algoSelected == BACKTRACKING))
-            state.algoSelected = BACKTRACKING;
-          if (nk_option_label(ctx, "Prim's", state.algoSelected == PRIMS))
-            state.algoSelected = PRIMS;
-          if (nk_option_label(ctx, "Kruskal's", state.algoSelected == KRUSKALS))
-            state.algoSelected = KRUSKALS;
+          if (nk_option_label(ctx, "Backtracking", state.algoSelected == BACKTRACKING)) {
+            state.hybrid_options[0] = BACKTRACKING;
+            state.algoSelected      = BACKTRACKING;
+          }
+          if (nk_option_label(ctx, "Prim's", state.algoSelected == PRIMS)) {
+            state.hybrid_options[0] = PRIMS;
+            state.algoSelected      = PRIMS;
+          }
+          if (nk_option_label(ctx, "Kruskal's", state.algoSelected == KRUSKALS)) {
+            state.hybrid_options[0] = KRUSKALS;
+            state.algoSelected      = KRUSKALS;
+          }
           if (nk_option_label(ctx, "Hybrid", state.algoSelected == HYBRID))
             state.algoSelected = HYBRID;
 
           if (state.algoSelected == HYBRID) {
             // Number of algorithms
             nk_layout_row_dynamic(ctx, 22, 1);
-            nk_property_int(ctx, "Number of Algorithms", 1, &state.num_algos, 5, 1, 1);
+            nk_property_int(ctx, "Number of Algorithms", 2, &state.num_algos, 5, 1, 1);
 
             // Hybrid combos
             for (int i = 0; i < state.num_algos; i++) {
@@ -99,6 +106,35 @@ void renderNk(struct nk_context* ctx) {
         if (nk_tree_push(ctx, NK_TREE_TAB, "Noise", NK_MINIMIZED)) {
           nk_layout_row_dynamic(ctx, 0, 1);
           nk_checkbox_label(ctx, "See Noise", &state.mCheck);
+
+          nk_layout_row_dynamic(ctx, 22, 1);
+          nk_property_float(ctx, "Scale", 0.01f, &state.scale, 0.99f, 0.01f, 0.01f);
+
+          char label[32];
+          snprintf(label, sizeof(label), "Noise");
+
+          // One row: label + combo
+          nk_layout_row_dynamic(ctx, 25, 2);
+          nk_label(ctx, label, NK_TEXT_LEFT);
+          state.noise_selected =
+              nk_combo(ctx, noise_choices, 5, state.noise_selected, 25, nk_vec2(200, 150));
+
+          if (state.noise_selected == LINEAR_GRADIENT) {
+            nk_layout_row_dynamic(ctx, 22, 1);
+            nk_property_float(ctx, "Degrees", 0.01f, &state.degrees, 360.0f, 1.0f, 1.0f);
+          }
+          if (state.noise_selected == RADIAL_GRADIENT) {
+            nk_layout_row_dynamic(ctx, 22, 1);
+            nk_property_int(ctx, "cx in %", 0, &state.cx, 100, 1, 1);
+
+            nk_layout_row_dynamic(ctx, 22, 1);
+            nk_property_int(ctx, "cy in %", 0, &state.cy, 100, 1, 1);
+          }
+
+          if (nk_button_label(ctx, "Generate Noise")) {
+            state.generate_noise = true;
+          }
+
           nk_tree_pop(ctx);
         }
 

@@ -5,6 +5,9 @@
 #include <nuklear.h>
 
 typedef struct  {
+    bool menuVisible;
+    bool menuExpanded;
+
     int cell_width;
     int cell_height;
     int border_thickness;
@@ -15,9 +18,16 @@ typedef struct  {
     int hybrid_options[5];
 
     int algoSelected;
-    bool menuVisible;
-    bool menuExpanded;
+
+    bool generate_noise;
+    int noise_selected;
+    float scale;
+    int cx;
+    int cy;
+    float degrees;
+
     bool redrawMaze;
+
     bool export;
     char fileName[256];
     int fileNameLen;

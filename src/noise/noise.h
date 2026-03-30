@@ -4,6 +4,10 @@
 #include "stdint.h"
 #include "vec2.h"
 
+// "Value", "Perlin", "Simplex", "Linear Gradient", "Radial Gradient"
+typedef enum { VALUE ,PERLIN, SIMPLEX, LINEAR_GRADIENT, RADIAL_GRADIENT } NOISE_TYPE;
+
+
 typedef struct {
     float theta;
     float dir_x;
