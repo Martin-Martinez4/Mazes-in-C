@@ -65,6 +65,8 @@ set(sources
     ${CMAKE_SOURCE_DIR}/src/create_maze.c
     ${CMAKE_SOURCE_DIR}/src/maze_gen/backtracking.c
     ${CMAKE_SOURCE_DIR}/src/maze_gen/cell.c
+    ${CMAKE_SOURCE_DIR}/src/maze_gen/sets.c
+    ${CMAKE_SOURCE_DIR}/src/maze_gen/dead_end.c
     ${CMAKE_SOURCE_DIR}/src/utils/rb_tree.c
     ${CMAKE_SOURCE_DIR}/src/utils/sets.c
     ${CMAKE_SOURCE_DIR}/src/draw_cells.c

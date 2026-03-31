@@ -8,7 +8,7 @@
 
 typedef enum { BACKTRACKING ,PRIMS, KRUSKALS, HYBRID } MazeGenAlgorithm;
 
-Cell* createCells(MazeStats* mazeStats, MazeGenAlgorithm algo, double roomSaturation);
+Cell* createCells(MazeStats* mazeStats, float* noise_grid, MazeGenAlgorithm algo, double roomSaturation);
 
 SDL_FRect* createSDLRects(MazeStats* mazeStats, Cell* cells, int* cellsCreated);
 void updateNoiseTexture(SDL_Texture* texture, float* noiseGrid, int columns, int rows);

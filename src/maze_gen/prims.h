@@ -6,13 +6,9 @@
 #include "cell.h"
 #include "maze_stats.h"
 #include "rooms.h"
+#include "maze_state.h"
 
-typedef struct PrimCell {
-  Cell* cell;
-  bool visited;
-  bool in_frontier;
-} PrimCell;
 
-Cell* prims_create_maze(MazeStats* mazeStats, Rooms* rooms);
+void prim_region(Cell* cells, int rows, int cols, MazeState* maze_state);
 
 #endif

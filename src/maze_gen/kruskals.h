@@ -4,7 +4,9 @@
 #include "rooms.h"
 #include "cell.h"
 #include "maze_stats.h"
+#include "maze_state.h"
 
-Cell* kruskalsCreateMaze(MazeStats* mazeStates, Rooms* rooms);
+
+void kruskals_region(Cell* cells, int rows, int cols, MazeState* maze_state);
 
 #endif

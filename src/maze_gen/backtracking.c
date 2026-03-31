@@ -4,215 +4,95 @@
 #include "grid_utils.h"
 #include "rand_utils.h"
 
-void shuffleArray(void* array, int length, size_t element_size) {
-    if (length <= 1 || element_size == 0)
-        return;
+int opposite_direction(int direction) {
+  switch (direction) {
+  case TOP:
+    return BOTTOM;
+  case BOTTOM:
+    return TOP;
+  case LEFT:
+    return RIGHT;
+  case RIGHT:
+    return LEFT;
 
-    unsigned char* arr = (unsigned char*) array;
-    unsigned char* temp = (unsigned char*) malloc(element_size);
-    if (!temp)
-        return; // allocation failed
-
-    for (int i = length - 1; i >= 1; i--) {
-        int j = rand() % (i + 1);
-
-        // swap arr[i] and arr[j]
-        memcpy(temp, arr + i * element_size, element_size);
-        memcpy(arr + i * element_size, arr + j * element_size, element_size);
-        memcpy(arr + j * element_size, temp, element_size);
-    }
-
-    free(temp);
-}
-
-void backtrack(Cell* cells, bool* visited, int row, int column, int rows, int columns) {
-
-  int array_coords = matrix_coords_to_array_coords(row, column, columns);
-
-  if (visited[array_coords]) {
-    return;
-  }
-  visited[array_coords] = true;
-
-  int sides[4] = {TOP, LEFT, BOTTOM, RIGHT};
-  shuffleArray(sides, 4, sizeof(int));
-
-  for (int i = 0; i < 4; i++) {
-    int neigh_index = 0;
-
-    switch (sides[i]) {
-
-    case TOP:
-      if (row == 0) {
-        continue;
-      }
-
-      neigh_index = matrix_coords_to_array_coords(row - 1, column, columns);
-      if (!visited[neigh_index]) {
-        cells[array_coords].walls &= ~TOP;
-        cells[neigh_index].walls &= ~BOTTOM;
-        backtrack(cells, visited, row - 1, column, rows, columns);
-      }
-      break;
-
-    case LEFT:
-      if (column == 0) {
-        continue;
-      }
-
-      neigh_index = matrix_coords_to_array_coords(row, column - 1, columns);
-      if (!visited[neigh_index]) {
-        cells[array_coords].walls &= ~LEFT;
-        cells[neigh_index].walls &= ~RIGHT;
-        backtrack(cells, visited, row, column - 1, rows, columns);
-      }
-      break;
-
-    case BOTTOM:
-      if (row == rows - 1) {
-        continue;
-      }
-
-      neigh_index = matrix_coords_to_array_coords(row + 1, column, columns);
-      if (!visited[neigh_index]) {
-
-        cells[array_coords].walls &= ~BOTTOM;
-        cells[neigh_index].walls &= ~TOP;
-        backtrack(cells, visited, row + 1, column, rows, columns);
-      }
-      break;
-
-    case RIGHT:
-      if (column == columns - 1) {
-        continue;
-      }
-
-      neigh_index = matrix_coords_to_array_coords(row, column + 1, columns);
-      if (!visited[neigh_index]) {
-
-        cells[array_coords].walls &= ~RIGHT;
-        cells[neigh_index].walls &= ~LEFT;
-        backtrack(cells, visited, row, column + 1, rows, columns);
-      }
-      break;
-
-    default:
-      break;
-    }
+  default:
+    return -1;
   }
 }
 
-// Idea: Make reusable and pass in a function to call to handle the rooms
-void setUpCellsbt(Cell* cells, Rooms* rooms, int rows, int columns) {
-  for (int row = 0; row < rows; row++) {
-    for (int col = 0; col < columns; col++) {
-      cells[matrix_coords_to_array_coords(row, col, columns)] = create_walled_cell(row, col);
-    }
+int neighbor_index(int current_index, int direction, int rows, int cols) {
+  int row, col;
+  array_coords_to_matrix_coords(current_index, cols, &row, &col);
+  int n_row = row, n_col = col;
+
+  switch (direction) {
+  case TOP:
+    n_row = row - 1;
+    break;
+  case RIGHT:
+    n_col = col + 1;
+    break;
+  case BOTTOM:
+    n_row = row + 1;
+    break;
+  case LEFT:
+    n_col = col - 1;
+    break;
+  default:
+    return -1;
   }
 
-  if (rooms == NULL) {
-    return;
-  }
-
-  for (int i = 0; i < rooms->length; i++) {
-    Room room = rooms->data[i];
-    int set   = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
-
-    int x      = room.aabb.x;
-    int y      = room.aabb.y;
-    int width  = room.aabb.width;
-    int height = room.aabb.height;
-
-    for (int row = y; row < (y + height); row++) {
-      for (int col = x; col < (x + width); col++) {
-        int walls = 0;
-        if (row == y)
-          walls |= TOP;
-        if (row == y + height - 1)
-          walls |= BOTTOM;
-        if (col == x)
-          walls |= LEFT;
-        if (col == x + width - 1)
-          walls |= RIGHT;
-        cells[matrix_coords_to_array_coords(row, col, columns)].walls = walls;
-      }
-    }
-  }
+  if (n_row < 0 || n_row >= rows || n_col < 0 || n_col >= cols)
+    return -1;
+  return matrix_coords_to_array_coords(n_row, n_col, cols);
 }
 
-Cell* backtrackingCreateMaze(MazeStats* mazeStates, Rooms* rooms) {
-  int columns = mazeStates->columns;
-  int rows    = mazeStates->rows;
 
-  bool* visited = malloc(sizeof(bool) * columns * rows);
+void backtrack_region(Cell* cells, int rows, int cols, MazeState* maze_state) {
+  while (maze_state->current_index != -1) {
+    int current_index = maze_state->current_index;
 
-  for (int row = 0; row < rows; row++) {
-    for (int col = 0; col < columns; col++) {
-      visited[matrix_coords_to_array_coords(row, col, columns)] = false;
+    int unvisited[4];
+    int count = 0;
+
+    uint8_t directions[] = {TOP, RIGHT, BOTTOM, LEFT};
+
+    for (int i = 0; i < 4; i++) {
+      uint8_t dir = directions[i];
+      int n_index = neighbor_index(current_index, dir, rows, cols);
+
+      if (n_index >= 0 && !maze_state->visited[n_index] &&
+          maze_state->current_algo_index == (int) maze_state->noise[n_index]) {
+        unvisited[count++] = dir;
+      }
     }
-  }
 
-  if (rooms != NULL) {
+    if (count > 0) {
+      uint8_t chosen_dir = unvisited[rand() % count];
+      int next_index     = neighbor_index(current_index, chosen_dir, rows, cols);
 
-    for (int i = 0; i < rooms->length; i++) {
-      Room room = rooms->data[i];
-      int set   = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
+      // Carve walls
+      cells[current_index].walls &= ~chosen_dir;
+      cells[next_index].walls &= ~opposite_direction(chosen_dir);
 
-      int x      = room.aabb.x;
-      int y      = room.aabb.y;
-      int width  = room.aabb.width;
-      int height = room.aabb.height;
+      mergeSets(maze_state->sets, next_index, current_index);
 
-      for (int row = y; row < (y + height); row++) {
-        for (int col = x; col < (x + width); col++) {
-          int walls = 0;
-          if (row == y || row == y + height - 1 || col == x || col == x + width - 1) {
-            continue;
-          } else {
+      maze_state->visited[next_index] = true;
+      maze_state->number_visited++;
 
-            visited[matrix_coords_to_array_coords(row, col, columns)] = true;
-          }
-        }
+      // Push current onto stack
+      maze_state->parent_dirs_stack[++maze_state->parent_dirs_stack_size] = current_index;
+
+      // Move to neighbor
+      maze_state->current_index = next_index;
+    } else {
+      // Backtrack
+      if (maze_state->parent_dirs_stack_size >= 0) {
+        maze_state->current_index =
+            maze_state->parent_dirs_stack[maze_state->parent_dirs_stack_size--];
+      } else {
+        maze_state->current_index = -1;
       }
     }
   }
-
-  Cell* cells = malloc(sizeof(Cell) * columns * rows);
-
-  setUpCellsbt(cells, rooms, rows, columns);
-
-  typedef struct {
-    int r, c;
-  } CellPos;
-
-  int freeCount      = 0;
-  CellPos* freeCells = malloc(sizeof(CellPos) * rows * columns);
-
-  for (int row = 0; row < rows; row++) {
-    for (int col = 0; col < columns; col++) {
-      if (!visited[matrix_coords_to_array_coords(row, col, columns)]) {
-        freeCells[freeCount++] = (CellPos){row, col};
-      }
-    }
-  }
-
-  if (freeCount > 0) {
-    CellPos start = freeCells[rand_int(0, freeCount - 1)];
-    backtrack(cells, visited, start.r, start.c, rows, columns);
-  }
-
-  // check for cells that are not visited
-  for (int row = 0; row < rows; row++) {
-    for (int col = 0; col < columns; col++) {
-      int index = matrix_coords_to_array_coords(row, col, columns);
-      if (!visited[index]) {
-        backtrack(cells, visited, row, col, rows, columns);
-      }
-    }
-  }
-
-  free(freeCells);
-  free(visited);
-
-  return cells;
 }

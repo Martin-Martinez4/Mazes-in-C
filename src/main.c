@@ -12,6 +12,7 @@
 #include "draw_cells.h"
 #include "maze_stats.h"
 #include "create_maze.h"
+#include "backtracking.h"
 #include "rooms.h"
 #include "hybrid.h"
 #include "export.h"
@@ -82,7 +83,7 @@ int main(int argc, char* argv[]) {
                                          CELL_WIDTH, BORDER_WIDTH);
 
   // Cell* cells = createCells(mazeStats, state.algoSelected, 0.0f);
-  AlgoStepFunc algos[] = { prim_step, backtrack_region };
+  AlgoStepFunc algos[] = {prim_region, backtrack_region};
   int algo_array_size  = 2;
 
   float scale = 0.0756f;
@@ -90,13 +91,14 @@ int main(int argc, char* argv[]) {
   // mazeStats->columns, 45.0); float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns,
   // &scale, linear_gradient, &gp);
 
-  LinearGradientParams gp = create_linear_gradient_params(mazeStats->rows,
-  mazeStats->columns, 45.0); float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns,
-  &scale, perlin_warped, &gp);
+  LinearGradientParams gp =
+      create_linear_gradient_params(mazeStats->rows, mazeStats->columns, 45.0);
+  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, perlin_warped, &gp);
 
   // RadialGradientParams gp =
   //     create_radial_gradient_params(mazeStats->rows, mazeStats->columns, 0, 0);
-  // float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, radial_gradient, &gp);
+  // float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, radial_gradient,
+  // &gp);
 
   // Cell* cells = create_maze_hybrid(mazeStats, noiseGrid, 0.0f, algos, algo_array_size);
 
@@ -165,7 +167,7 @@ int main(int argc, char* argv[]) {
     renderNk(ctx);
 
     if (state.redrawMaze) {
-      cells            = createCells(mazeStats, state.algoSelected, 0.25);
+      cells            = createCells(mazeStats, noiseGrid, state.algoSelected, state.room_saturation);
       rects            = createSDLRects(mazeStats, cells, &cellsToDraw);
       state.redrawMaze = false;
     }
