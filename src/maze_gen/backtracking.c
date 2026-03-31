@@ -3,6 +3,7 @@
 #include "backtracking.h"
 #include "grid_utils.h"
 #include "rand_utils.h"
+#include "sets.h"
 
 int opposite_direction(int direction) {
   switch (direction) {

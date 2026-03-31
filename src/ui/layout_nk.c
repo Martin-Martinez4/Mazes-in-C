@@ -65,7 +65,7 @@ void renderNk(struct nk_context* ctx) {
 
           nk_property_float(ctx, "Room Saturation", 0.0f, &state.room_saturation, 0.95f, 0.01f,
                             0.01f);
-          nk_property_int(ctx, "Prune Aggressiveness", 0, &state.prune_aggressiveness, 20, 1, 1);
+          nk_property_int(ctx, "Prune Aggressiveness", 0, &state.prune_aggressiveness, 45, 1, 1);
 
           if (nk_option_label(ctx, "Backtracking", state.algoSelected == BACKTRACKING)) {
             state.hybrid_options[0] = BACKTRACKING;

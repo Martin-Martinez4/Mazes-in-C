@@ -288,7 +288,8 @@ Rooms* makeRooms(MazeStats* mazeStats, double saturation) {
 
     attempts_allowed--;
   }
-
+  free(nodes->data);
+  free(nodes);
   printf("Actual Room Saturation Achieved: %f; Target Saturation: %f\n", current_saturation,
          saturation);
   printf("Number Rooms: %d\n", rooms->length);

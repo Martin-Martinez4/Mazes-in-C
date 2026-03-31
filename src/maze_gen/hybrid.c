@@ -212,8 +212,25 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_sat
   free(edges);
   free(maze_state.sets);
 
-  while (prune_dead_ends(cells, rows, columns) > 2)
-    ;
+  if(prune_aggressiveness > 0){
+
+    int removed;
+    int count = 0;
+    int i = 0;
+    int max_pruned_cells = (int)(rows * columns * (prune_aggressiveness/100.f));
+
+    while ( count < max_pruned_cells && i < prune_aggressiveness){
+      removed = prune_dead_ends(cells, rows, columns);
+
+      // no dead ends left avoid empty loops
+      if(removed == 0){
+        break;
+      }
+
+      count += removed;
+      i++;
+    };
+  }
 
   return cells;
 }

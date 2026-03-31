@@ -5,7 +5,8 @@
 #include "cell.h"
 #include "grid_utils.h"
 #include "rand_utils.h"
-#include "rooms.h"
+#include "sets.h"
+
 
 static void add_neighbors_to_frontier(int current_index, int columns, int rows,
                                       MazeState* maze_state, Cell* cells) {

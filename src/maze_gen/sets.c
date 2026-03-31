@@ -1,4 +1,5 @@
 #include "sets.h"
+#include "grid_utils.h"
 #include <stddef.h>
 
 int find(int* sets, int x) {

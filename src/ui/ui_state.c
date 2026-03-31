@@ -7,7 +7,7 @@ uiState state = {
     .cell_height = 16,
     .border_thickness = 1,
     .room_saturation = 0.0f,
-    .num_algos = 1,
+    .num_algos = 2,
     .prune_aggressiveness = 0,
     .hybrid_options = {BACKTRACKING,BACKTRACKING,BACKTRACKING,BACKTRACKING,BACKTRACKING},
 

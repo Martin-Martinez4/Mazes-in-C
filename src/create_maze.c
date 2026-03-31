@@ -12,7 +12,7 @@
 #include <SDL3/SDL.h>
 #include "hybrid.h"
 
-Cell* createCells(MazeStats* mazeStats, float* noise_grid, MazeGenAlgorithm algo, double roomSaturation) {
+Cell* createCells(MazeStats* mazeStats, float* noise_grid, MazeGenAlgorithm algo, double roomSaturation, int prune_aggressiveness) {
   printf("size is Maze Stats Created\n");
   Rooms* rooms = makeRooms(mazeStats, roomSaturation);
   printf("size is rooms Created\n");
@@ -33,8 +33,10 @@ Cell* createCells(MazeStats* mazeStats, float* noise_grid, MazeGenAlgorithm algo
   default:
     return NULL;
   }
-  cells = create_maze_hybrid(mazeStats, noise_grid, roomSaturation, algos, 1);
+  cells = create_maze_hybrid(mazeStats, noise_grid, roomSaturation, algos, 1, prune_aggressiveness);
 
+  free(rooms->data);
+  free(rooms);
   return cells;
 }
 

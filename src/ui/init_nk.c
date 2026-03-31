@@ -44,8 +44,6 @@ struct nk_context* initNk(SDL_Window* window, SDL_Renderer* renderer) {
     font_scale = scale;
   }
 
-  ctx = nk_sdl_init(window, renderer, nk_sdl_allocator());
-  ctx = ctx;
 
 #if 0
     {

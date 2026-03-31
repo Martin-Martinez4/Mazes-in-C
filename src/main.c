@@ -13,6 +13,7 @@
 #include "maze_stats.h"
 #include "create_maze.h"
 #include "backtracking.h"
+#include "kruskals.h"
 #include "rooms.h"
 #include "hybrid.h"
 #include "export.h"
@@ -20,7 +21,7 @@
 #include "noise.h"
 
 #include "config_nk.h"
-
+#include "init_font.h"
 #include "init_nk.h"
 #include "nuklear.h"
 #include "nuklear_sdl3_renderer.h"
@@ -74,7 +75,10 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  init_SDLFont(renderer);
+  FontSystem* font_system = init_SDLFont(renderer);
+  if (!font_system) {
+    return 1;
+  }
 
   struct nk_context* ctx = initNk(window, renderer);
 
@@ -84,19 +88,19 @@ int main(int argc, char* argv[]) {
 
   AlgoStepFunc algos[5] = {backtrack_region};
   int algo_array_size   = 1;
- 
+
   RadialGradientParams gp =
       create_radial_gradient_params(mazeStats->rows, mazeStats->columns, 0, 0);
-  float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, radial_gradient, &gp);
-
+  float* noiseGrid =
+      applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, radial_gradient, &gp);
 
   SDL_Texture* texture =
       SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
                         mazeStats->columns, mazeStats->rows);
   updateNoiseTexture(texture, noiseGrid, mazeStats->columns, mazeStats->rows);
 
-  Cell* cells = create_maze_hybrid(mazeStats, noiseGrid, state.room_saturation, algos, algo_array_size,
-                                   state.prune_aggressiveness);
+  Cell* cells = create_maze_hybrid(mazeStats, noiseGrid, state.room_saturation, algos,
+                                   algo_array_size, state.prune_aggressiveness);
   int count   = BFS_count(cells, mazeStats->rows, mazeStats->columns);
 
   SDL_Log("\ncount: %d; want: %d\n", count, mazeStats->rows * mazeStats->columns);
@@ -145,6 +149,8 @@ int main(int argc, char* argv[]) {
 
     if (state.generate_noise) {
 
+      free(noiseGrid);
+
       switch (state.noise_selected) {
       case VALUE:
         noiseGrid =
@@ -162,16 +168,18 @@ int main(int argc, char* argv[]) {
 
         LinearGradientParams gp =
             create_linear_gradient_params(mazeStats->rows, mazeStats->columns, state.degrees);
-        SDL_Log("Degress: %f", state.degrees);
+        SDL_Log("Degrees: %f", state.degrees);
 
-        noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, linear_gradient, &gp);
+        noiseGrid =
+            applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, linear_gradient, &gp);
         break;
       case RADIAL_GRADIENT:
         RadialGradientParams rp = create_radial_gradient_params(
             mazeStats->rows, mazeStats->columns, (int) (state.cx / 100.0f * mazeStats->columns),
             (int) (state.cy / 100.0f * mazeStats->rows));
 
-        noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, radial_gradient, &rp);
+        noiseGrid =
+            applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, radial_gradient, &rp);
         break;
 
       default:
@@ -188,11 +196,10 @@ int main(int argc, char* argv[]) {
       free(cells);
       free(rects);
       free(noiseGrid);
+      free(mazeStats);
 
       mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), state.cell_height,
                                   state.cell_width, state.border_thickness);
-
-      SDL_DestroyTexture(texture);
 
       texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
                                   mazeStats->columns, mazeStats->rows);
@@ -211,19 +218,20 @@ int main(int argc, char* argv[]) {
             applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, simplexBilerp, NULL);
         break;
       case LINEAR_GRADIENT:
+        LinearGradientParams* gp = malloc(sizeof(*gp));
+        *gp = create_linear_gradient_params(mazeStats->rows, mazeStats->columns, state.degrees);
 
-        LinearGradientParams gp =
-            create_linear_gradient_params(mazeStats->rows, mazeStats->columns, state.degrees);
-        SDL_Log("Degress: %f", state.degrees);
-
-        noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, linear_gradient, &gp);
+        noiseGrid =
+            applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, linear_gradient, &gp);
+        free(gp);
         break;
       case RADIAL_GRADIENT:
         RadialGradientParams rp = create_radial_gradient_params(
             mazeStats->rows, mazeStats->columns, (int) (state.cx / 100.0f * mazeStats->columns),
             (int) (state.cy / 100.0f * mazeStats->rows));
 
-        noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, radial_gradient, &rp);
+        noiseGrid =
+            applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, radial_gradient, &rp);
         break;
 
       default:
@@ -239,16 +247,17 @@ int main(int argc, char* argv[]) {
           algos[i] = backtrack_region;
           break;
         case PRIMS:
-          algos[i] = prim_step;
+          algos[i] = prim_region;
           break;
         case KRUSKALS:
+          algos[i] = kruskals_region;
           break;
         default:
           SDL_Log("Illegal Hybrid Algoirthm Option");
           exit(1);
         }
       }
-      SDL_Log("num_algos: %d\n", state.num_algos);
+      SDL_Log("SDL_Log num_algos: %d\n", state.num_algos);
       cells            = create_maze_hybrid(mazeStats, noiseGrid, state.room_saturation, algos,
                                             state.num_algos, state.prune_aggressiveness);
       rects            = createSDLRects(mazeStats, cells, &cellsToDraw);
@@ -273,27 +282,44 @@ int main(int argc, char* argv[]) {
     }
     if (state.upload) {
       printf("Loading: %s\n", state.uploadFileName);
-      Cell* cTemp = loadMaze(mazeStats, &cellsToDraw, state.uploadFileName);
-      if (!cTemp) {
-        printf("Failed to load file: %s\n", state.uploadFileName);
-      } else {
-        cells = cTemp;
+      free(cells);
+      free(rects);
+
+      Cell* newCells = loadMaze(mazeStats, &cellsToDraw, state.uploadFileName);
+      if (newCells) {
+        free(cells);
+        free(rects);
+
+        cells = newCells;
         rects = createSDLRects(mazeStats, cells, &cellsToDraw);
       }
+
       state.upload = false;
     }
 
     SDL_RenderPresent(renderer);
   }
 
-  // Close and destroy the window
+  // Clean up, Close and destroy the window
+  free(cells);
+  free(rects);
+  free(noiseGrid);
+  free(mazeStats);
+
+  for (int i = 0; i < 1; i++) { // adjust for actual number of fonts
+    if (font_system->fonts[i])
+      TTF_CloseFont(font_system->fonts[i]);
+  }
+  SDL_free(font_system->fonts);
+
+  TTF_DestroyRendererTextEngine(font_system->font_engine);
+  free(font_system);
+
   nk_sdl_shutdown(ctx);
+
+  TTF_Quit();
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
-
-  free(noiseGrid);
-
-  // Clean up
   SDL_Quit();
   return 0;
 }
