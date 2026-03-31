@@ -12,6 +12,7 @@
 #include "draw_cells.h"
 #include "maze_stats.h"
 #include "create_maze.h"
+#include "backtracking.h"
 #include "rooms.h"
 #include "hybrid.h"
 #include "export.h"

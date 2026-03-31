@@ -4,8 +4,8 @@
 #include "cell.h"
 #include "maze_stats.h"
 #include "rooms.h"
+#include "maze_state.h"
 
-Cell* backtrackingCreateMaze(MazeStats* mazeStates, Rooms* rooms);
-void backtrack(Cell* cells, bool* visited, int row, int column, int rows, int columns);
+void backtrack_region(Cell* cells, int rows, int cols, MazeState* maze_state);
 
 #endif

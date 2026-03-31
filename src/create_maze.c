@@ -10,27 +10,30 @@
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_render.h"
 #include <SDL3/SDL.h>
+#include "hybrid.h"
 
-
-Cell* createCells(MazeStats* mazeStats, MazeGenAlgorithm algo, double roomSaturation) {
-  printf("size is Maze Stats Created");
+Cell* createCells(MazeStats* mazeStats, float* noise_grid, MazeGenAlgorithm algo, double roomSaturation) {
+  printf("size is Maze Stats Created\n");
   Rooms* rooms = makeRooms(mazeStats, roomSaturation);
-  printf("size is rooms Created");
+  printf("size is rooms Created\n");
+
+  AlgoStepFunc algos[1] = {backtrack_region};
 
   Cell* cells;
   switch (algo) {
   case KRUSKALS:
-    cells = kruskalsCreateMaze(mazeStats, rooms);
+    algos[0] = kruskals_region;
     break;
   case PRIMS:
-    cells = prims_create_maze(mazeStats, rooms);
+    algos[0] = prim_region;
     break;
   case BACKTRACKING:
-    cells = backtrackingCreateMaze(mazeStats, rooms);
+    algos[0] = backtrack_region;
     break;
   default:
-    cells = NULL;
+    return NULL;
   }
+  cells = create_maze_hybrid(mazeStats, noise_grid, roomSaturation, algos, 1);
 
   return cells;
 }
