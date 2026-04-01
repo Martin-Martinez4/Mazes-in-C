@@ -3,7 +3,7 @@
 #include "backtracking.h"
 #include "grid_utils.h"
 #include "rand_utils.h"
-#include "sets.h"
+// #include "sets.h"
 
 int opposite_direction(int direction) {
   switch (direction) {
@@ -76,7 +76,7 @@ void backtrack_region(Cell* cells, int rows, int cols, MazeState* maze_state) {
       cells[current_index].walls &= ~chosen_dir;
       cells[next_index].walls &= ~opposite_direction(chosen_dir);
 
-      mergeSets(maze_state->sets, next_index, current_index);
+      // mergeSets(maze_state->sets, next_index, current_index);
 
       maze_state->visited[next_index] = true;
       maze_state->number_visited++;

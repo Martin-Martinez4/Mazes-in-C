@@ -11,8 +11,9 @@
 
 static void setUpRegions(Cell* cells, int* sets, Edge* edges, int rows, int cols) {
 
-  int dirs[2]      = {RIGHT, BOTTOM};
-  int neighbors[2] = {-1, -1};
+  int dirs[4]          = {TOP, RIGHT, BOTTOM, LEFT};
+  int opposite_dirs[4] = {BOTTOM, LEFT, TOP, RIGHT};
+  int neighbors[4]     = {-1, -1, -1, -1};
 
   int current_coord = -1;
   Cell current_cell;
@@ -23,13 +24,21 @@ static void setUpRegions(Cell* cells, int* sets, Edge* edges, int rows, int cols
       current_coord = matrix_coords_to_array_coords(row, col, cols);
       current_cell  = cells[current_coord];
 
-      neighbors[0] = col + 1 < cols ? matrix_coords_to_array_coords(row, col + 1, cols) : -1;
+      neighbors[0] = row - 1 >= 0 ? matrix_coords_to_array_coords(row - 1, col, cols) : -1;
+      neighbors[1] = col + 1 < cols ? matrix_coords_to_array_coords(row, col + 1, cols) : -1;
+      neighbors[2] = row + 1 < rows ? matrix_coords_to_array_coords(row + 1, col, cols) : -1;
+      neighbors[3] = col - 1 >= 0 ? matrix_coords_to_array_coords(row, col - 1, cols) : -1;
 
-      neighbors[1] = row + 1 < rows ? matrix_coords_to_array_coords(row + 1, col, cols) : -1;
+      for (int i = 0; i < 4; i++) {
+        if (neighbors[i] == -1) {
+          if ((current_cell.walls & dirs[i]) == 0) {
+            cells[current_coord].walls |= dirs[i];
+          }
+          continue;
+        }
 
-      for (int i = 0; i < 2; i++) {
-        if (neighbors[i] > -1) {
-          if ((dirs[i] & current_cell.walls) == 0) {
+        if ((dirs[i] & current_cell.walls) == 0) {
+          if ((cells[neighbors[i]].walls & opposite_dirs[i]) == 0) {
             mergeSets(sets, current_coord, neighbors[i]);
           }
         }
@@ -40,8 +49,9 @@ static void setUpRegions(Cell* cells, int* sets, Edge* edges, int rows, int cols
 
 static int setUpEdges(Cell* cells, int* sets, Edge* edges, int rows, int cols) {
 
-  int dirs[2]      = {RIGHT, BOTTOM};
-  int neighbors[2] = {-1, -1};
+  int dirs[4]          = {TOP, RIGHT, BOTTOM, LEFT};
+  int opposite_dirs[4] = {BOTTOM, LEFT, TOP, RIGHT};
+  int neighbors[4]     = {-1, -1, -1, -1};
 
   int indx          = 0;
   int current_coord = -1;
@@ -53,19 +63,25 @@ static int setUpEdges(Cell* cells, int* sets, Edge* edges, int rows, int cols) {
       current_coord = matrix_coords_to_array_coords(row, col, cols);
       current_cell  = &cells[current_coord];
 
-      neighbors[0] = col + 1 < cols ? matrix_coords_to_array_coords(row, col + 1, cols) : -1;
+      neighbors[0] = row - 1 >= 0 ? matrix_coords_to_array_coords(row - 1, col, cols) : -1;
+      neighbors[1] = col + 1 < cols ? matrix_coords_to_array_coords(row, col + 1, cols) : -1;
+      neighbors[2] = row + 1 < rows ? matrix_coords_to_array_coords(row + 1, col, cols) : -1;
+      neighbors[3] = col - 1 >= 0 ? matrix_coords_to_array_coords(row, col - 1, cols) : -1;
 
-      neighbors[1] = row + 1 < rows ? matrix_coords_to_array_coords(row + 1, col, cols) : -1;
+      for (int i = 0; i < 4; i++) {
 
-      for (int i = 0; i < 2; i++) {
-
-        if (neighbors[i] > -1) {
-
-          if ((current_cell->walls & dirs[i]) != 0 &&
-              find(sets, current_coord) != find(sets, neighbors[i])) {
-
-            edges[indx++] = create_edge(current_cell, dirs[i]);
+        if (neighbors[i] == -1) {
+          if ((current_cell->walls & dirs[i]) == 0) {
+            cells[current_coord].walls |= dirs[i];
           }
+          continue;
+        }
+
+        if ((current_cell->walls & dirs[i]) != 0 &&
+            (cells[neighbors[i]].walls & opposite_dirs[i]) != 0 &&
+            find(sets, current_coord) != find(sets, neighbors[i])) {
+
+          edges[indx++] = create_edge(current_cell, dirs[i]);
         }
       }
     }
@@ -76,12 +92,12 @@ static int setUpEdges(Cell* cells, int* sets, Edge* edges, int rows, int cols) {
 }
 
 // Kruskals is applied at the end of the hybrid maze so this does nothing
-void kruskals_region(Cell* cells, int rows, int cols, MazeState* maze_state){}
+void kruskals_region(Cell* cells, int rows, int cols, MazeState* maze_state) {}
 
 // Applied at end of hynrid maze
 void kruskals_unite(Cell* cells, int rows, int cols, MazeState* maze_state) {
 
-  int edges_len = (rows * (cols - 1)) + ((rows - 1) * cols);
+  int edges_len = (rows * cols * 4);
   Edge* edges   = malloc(sizeof(Edge) * edges_len);
   if (!edges) {
     fprintf(stderr, "Error: malloc failed for edges\n");
@@ -108,6 +124,14 @@ void kruskals_unite(Cell* cells, int rows, int cols, MazeState* maze_state) {
     int current_column = current->column;
 
     switch (e.direction) {
+    case TOP:
+      neighbor_row    = current_row - 1;
+      neighbor_column = current_column;
+      break;
+    case LEFT:
+      neighbor_row    = current_row;
+      neighbor_column = current_column - 1;
+      break;
     case RIGHT:
       neighbor_row    = current_row;
       neighbor_column = current_column + 1;
@@ -140,7 +164,7 @@ void kruskals_unite(Cell* cells, int rows, int cols, MazeState* maze_state) {
         cells[neighbor_coords].walls &= ~e.opposite_direction;
 
         // merge sets
-        mergeSets(sets, current_coords, neighbor_set);
+        mergeSets(sets, current_coords, neighbor_coords);
       }
     }
 

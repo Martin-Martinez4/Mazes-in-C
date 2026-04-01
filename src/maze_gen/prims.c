@@ -5,8 +5,6 @@
 #include "cell.h"
 #include "grid_utils.h"
 #include "rand_utils.h"
-#include "sets.h"
-
 
 static void add_neighbors_to_frontier(int current_index, int columns, int rows,
                                       MazeState* maze_state, Cell* cells) {
@@ -124,19 +122,23 @@ static void carve_to_visited_neighbor(Cell* cells, MazeState* maze_state, int cu
     n_cell->walls &= ~TOP;
     break;
   }
-  mergeSets(maze_state->sets, coords, current_index);
+  // mergeSets(maze_state->sets, coords, current_index);
 }
 
 void prim_region(Cell* cells, int rows, int cols, MazeState* maze_state) {
 
   int current_coord = maze_state->current_index;
 
-  maze_state->frontier[++maze_state->frontier_index] = current_coord;
-  maze_state->in_frontier[current_coord]             = true;
-  cells[current_coord].walls                         = 0;
+  maze_state->visited[current_coord] = true;
+  maze_state->number_visited++;
 
-  do {
-    // copied from prims.c
+  add_neighbors_to_frontier(current_coord, cols, rows, maze_state, cells);
+
+  while (maze_state->frontier_index >= 0) {
+    if (maze_state->frontier_index < 0) {
+      break;
+    }
+
     int random_index = rand() % (maze_state->frontier_index + 1);
     current_coord    = maze_state->frontier[random_index];
 
@@ -156,5 +158,8 @@ void prim_region(Cell* cells, int rows, int cols, MazeState* maze_state) {
     }
 
     add_neighbors_to_frontier(current_coord, cols, rows, maze_state, cells);
-  } while (maze_state->frontier_index >= 0);
+    if (maze_state->frontier_index < 0) {
+      return;
+    }
+  }
 }
