@@ -28,6 +28,7 @@
 #include "layout_nk.h"
 #include "init_font.h"
 
+
 const int WINDOW_WIDTH  = 1080;
 const int WINDOW_HEIGHT = 900;
 // const int WINDOW_HEIGHT = 1080;
@@ -37,6 +38,7 @@ const int CELL_WIDTH   = 16;
 const int BORDER_WIDTH = 1;
 
 int main(int argc, char* argv[]) {
+
   // Seed the random number generator
   srand((unsigned int) time(NULL));
 
@@ -306,14 +308,13 @@ int main(int argc, char* argv[]) {
   free(noiseGrid);
   free(mazeStats);
 
-  for (int i = 0; i < 1; i++) { // adjust for actual number of fonts
+  for (int i = 0; i < 1; i++) {
     if (font_system->fonts[i])
       TTF_CloseFont(font_system->fonts[i]);
   }
   SDL_free(font_system->fonts);
 
   TTF_DestroyRendererTextEngine(font_system->font_engine);
-  free(font_system);
 
   nk_sdl_shutdown(ctx);
 
