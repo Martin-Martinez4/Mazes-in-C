@@ -3,6 +3,7 @@
 #include "grid_utils.h"
 #include "rand_utils.h"
 #include "dead_end.h"
+#include "kruskals.h"
 #include "sets.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -46,27 +47,6 @@ static void setUpCells(Cell* cells, Rooms* rooms, bool* visited, int rows, int c
 }
 
 
-
-static void setUpEdges(Edge* edges, Cell* cells, int rows, int columns) {
-  int indx = 0;
-  for (int row = 0; row < rows; row++) {
-    for (int col = 0; col < columns; col++) {
-      Cell* c = &cells[matrix_coords_to_array_coords(row, col, columns)];
-
-      // Right neighbor
-      if (col + 1 < columns)
-        edges[indx++] = create_edge(c, RIGHT);
-      // Bottom neighbor
-      if (row + 1 < rows)
-        edges[indx++] = create_edge(c, BOTTOM);
-    }
-  }
-
-  shuffleArray(edges, (rows * (columns - 1)) + ((rows - 1) * columns), sizeof(Edge));
-}
-
-
-
 Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_saturation,
                          AlgoStepFunc* algoStepFuncs, int num_algos, int prune_aggressiveness) {
   int rows    = mazeStats->rows;
@@ -86,11 +66,8 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_sat
   }
   setUpCells(cells, rooms, visited, rows, columns);
 
-  // Generate noise for hybrid selection
   float scale = 0.06f;
-  //   float* noiseGrid = applyNoise(mazeStats->rows, mazeStats->columns, &scale, simplexBilerp,
-  //   NULL);
-
+ 
   for (int i = 0; i < rows * columns; i++) {
     int algo_index = value_map_int(noise_grid[i], 0.0, 1.0, 0, num_algos - 1);
     noise_grid[i]  = algo_index;
@@ -139,91 +116,29 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_sat
   }
 
   //   Free temporary resources
-  //   double free happens here
   free(maze_state.visited);
   free(maze_state.parent_dirs_stack);
   free(maze_state.frontier);
   free(maze_state.in_frontier);
 
-  // copy paste from kruskals
-  int edges_len = (rows * (columns - 1)) + ((rows - 1) * columns);
-  Edge* edges   = malloc(sizeof(Edge) * edges_len);
-  if (!edges) {
-    fprintf(stderr, "Error: malloc failed for edges\n");
-    free(cells);
-    free(maze_state.sets);
-    return NULL;
-  }
-  setUpEdges(edges, cells, rows, columns);
-
-  int top = edges_len - 1;
-
-  while (top >= 0) {
-    Edge e        = edges[top];
-    Cell* current = e.cell_ptr;
-
-    int neighbor_row;
-    int neighbor_column;
-
-    int current_row    = current->row;
-    int current_column = current->column;
-
-    switch (e.direction) {
-    case RIGHT:
-      neighbor_row    = current_row;
-      neighbor_column = current_column + 1;
-      break;
-
-    case BOTTOM:
-      neighbor_row    = current_row + 1;
-      neighbor_column = current_column;
-      break;
-
-    default:
-      fprintf(stderr, "Error: invalid direction %u in kruskalsCreateMaze()\n",
-              e.opposite_direction);
-      abort(); // or exit(EXIT_FAILURE);
-    }
-
-    if (neighbor_row >= 0 && neighbor_row < rows && neighbor_column >= 0 &&
-        neighbor_column < columns) {
-      int current_coords  = matrix_coords_to_array_coords(current_row, current_column, columns);
-      int neighbor_coords = matrix_coords_to_array_coords(neighbor_row, neighbor_column, columns);
-
-      // get sets
-      int neighbor_set = find(sets, neighbor_coords);
-      int current_set  = find(sets, current_coords);
-
-      if (neighbor_set != current_set) {
-        // remove walls
-        cells[current_coords].walls &= ~e.direction;
-        cells[neighbor_coords].walls &= ~e.opposite_direction;
-
-        // merge sets
-        mergeSets(sets, current_coords, neighbor_set);
-      }
-    }
-
-    top--;
-  }
+  kruskals_unite(cells, rows, columns, &maze_state);
   if (rooms != NULL) {
     free(rooms);
   }
-  free(edges);
   free(maze_state.sets);
 
-  if(prune_aggressiveness > 0){
+  if (prune_aggressiveness > 0) {
 
     int removed;
-    int count = 0;
-    int i = 0;
-    int max_pruned_cells = (int)(rows * columns * (prune_aggressiveness/100.f));
+    int count            = 0;
+    int i                = 0;
+    int max_pruned_cells = (int) (rows * columns * (prune_aggressiveness / 100.f));
 
-    while ( count < max_pruned_cells && i < prune_aggressiveness){
+    while (count < max_pruned_cells && i < prune_aggressiveness) {
       removed = prune_dead_ends(cells, rows, columns);
 
       // no dead ends left avoid empty loops
-      if(removed == 0){
+      if (removed == 0) {
         break;
       }
 
