@@ -12,7 +12,7 @@
 static void setUpCells(Cell* cells, Rooms* rooms, bool* visited, int rows, int columns) {
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < columns; col++) {
-      cells[matrix_coords_to_array_coords(row, col, columns)] = create_walled_cell(row, col);
+      cells[matrix_coords_to_array_coords(row, col, columns)] = create_square_cell(row, col, rows, columns);
     }
   }
 

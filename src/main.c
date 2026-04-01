@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
   MazeStats* mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
                                          CELL_WIDTH, BORDER_WIDTH);
 
-  AlgoStepFunc algos[5] = {backtrack_region};
+  AlgoStepFunc algos[5] = {prim_region};
   int algo_array_size   = 1;
 
   RadialGradientParams gp =

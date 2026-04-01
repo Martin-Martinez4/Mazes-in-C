@@ -23,10 +23,18 @@
 // 1110
 #define RIGHT_REMOVER ~RIGHT
 
+// cells are represented using uint8_t
+// 8 walls can be represented
+#define MAX_NEIGHBORS 8
+
 typedef struct Cell {
   int row;
   int column;
   uint8_t walls;
+  uint8_t num_neighbors;
+  int* neighbors[MAX_NEIGHBORS];
+  uint8_t opposite_index[MAX_NEIGHBORS];
+
 } Cell;
 
 typedef struct Edge {
@@ -36,6 +44,7 @@ typedef struct Edge {
 } Edge;
 
 Cell create_walled_cell(int row, int column);
+Cell create_square_cell(int row, int column, int rows, int columns);
 Edge create_edge(Cell* cell, uint8_t direction);
 
 int BFS_count(Cell* cells, int rows, int columns);
