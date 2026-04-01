@@ -8,5 +8,5 @@
 
 
 void kruskals_region(Cell* cells, int rows, int cols, MazeState* maze_state);
-
+void kruskals_unite(Cell* cells, int rows, int cols, MazeState* maze_state);
 #endif
