@@ -23,6 +23,9 @@ Cell create_square_cell(int row, int column, int rows, int columns) {
   // int* neighbors[MAX_NEIGHBORS];
   // uint8_t opposite_index[MAX_NEIGHBORS];
 
+  static uint8_t square_directions[4] = {TOP, RIGHT, BOTTOM, LEFT};
+  static uint8_t opposite_lookup[4]   = {BOTTOM, LEFT, TOP, RIGHT};
+
   int num_neighbors = 0;
   int dirs[4][2]    = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 
@@ -40,8 +43,9 @@ Cell create_square_cell(int row, int column, int rows, int columns) {
 
     if (n_row >= 0 && n_column >= 0 && n_row < rows && n_column < columns) {
 
-      c.neighbors[num_neighbors]      = matrix_coords_to_array_coords(n_row, n_column, columns);
-      c.opposite_index[num_neighbors] = (i + 2) % 4;
+      c.neighbors[num_neighbors]     = matrix_coords_to_array_coords(n_row, n_column, columns);
+      c.opposite_dirs[num_neighbors] = opposite_lookup[i];
+      c.dirs[num_neighbors]          = square_directions[i];
       num_neighbors++;
     }
   }

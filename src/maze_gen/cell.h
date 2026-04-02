@@ -27,13 +27,16 @@
 // 8 walls can be represented
 #define MAX_NEIGHBORS 8
 
+
+
 typedef struct Cell {
   int row;
   int column;
   uint8_t walls;
   uint8_t num_neighbors;
-  int* neighbors[MAX_NEIGHBORS];
-  uint8_t opposite_index[MAX_NEIGHBORS];
+  int neighbors[MAX_NEIGHBORS];
+  uint8_t dirs[MAX_NEIGHBORS];
+  uint8_t opposite_dirs[MAX_NEIGHBORS];
 
 } Cell;
 
