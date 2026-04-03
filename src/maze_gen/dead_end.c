@@ -6,10 +6,9 @@ bool is_dead_end(Cell* cell) {
   uint8_t count = 0;
   uint8_t walls = cell->walls;
 
-  uint8_t wall_dirs[4] = {TOP, RIGHT, LEFT, BOTTOM};
 
-  for (int i = 0; i < 4; i++) {
-    if ((walls & wall_dirs[i]) == 0) {
+  for (int i = 0; i < cell->num_neighbors; i++) {
+    if ((walls & cell->dirs[i]) == 0) {
       count++;
     }
   }
@@ -20,11 +19,9 @@ uint8_t get_open_end(Cell* cell) {
   uint8_t count = 0;
   uint8_t walls = cell->walls;
 
-  uint8_t wall_dirs[4] = {TOP, RIGHT, LEFT, BOTTOM};
-
   for (int i = 0; i < 4; i++) {
-    if ((walls & wall_dirs[i]) == 0) {
-      return wall_dirs[i];
+    if ((walls & cell->dirs[i]) == 0) {
+      return cell->dirs[i];
     }
   }
 

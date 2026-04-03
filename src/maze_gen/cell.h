@@ -32,6 +32,7 @@
 typedef struct Cell {
   int row;
   int column;
+  uint8_t max_edges;
   uint8_t walls;
   uint8_t num_neighbors;
   int neighbors[MAX_NEIGHBORS];

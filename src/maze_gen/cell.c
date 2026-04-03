@@ -16,13 +16,7 @@ Cell create_walled_cell(int row, int column) {
 }
 
 Cell create_square_cell(int row, int column, int rows, int columns) {
-  // int row;
-  // int column;
-  // uint8_t walls;
-  // uint8_t num_neighbors;
-  // int* neighbors[MAX_NEIGHBORS];
-  // uint8_t opposite_index[MAX_NEIGHBORS];
-
+ 
   static uint8_t square_directions[4] = {TOP, RIGHT, BOTTOM, LEFT};
   static uint8_t opposite_lookup[4]   = {BOTTOM, LEFT, TOP, RIGHT};
 
@@ -30,6 +24,7 @@ Cell create_square_cell(int row, int column, int rows, int columns) {
   int dirs[4][2]    = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 
   Cell c;
+  c.max_edges = 4;
   c.row    = row;
   c.column = column;
   c.walls  = ALL_WALLS;

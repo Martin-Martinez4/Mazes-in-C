@@ -11,10 +11,6 @@
 
 static void setUpRegions(Cell* cells, int* sets, Edge* edges, int rows, int cols) {
 
-  int dirs[4]          = {TOP, RIGHT, BOTTOM, LEFT};
-  int opposite_dirs[4] = {BOTTOM, LEFT, TOP, RIGHT};
-  int neighbors[4]     = {-1, -1, -1, -1};
-
   int current_coord = -1;
   Cell current_cell;
 
@@ -24,22 +20,12 @@ static void setUpRegions(Cell* cells, int* sets, Edge* edges, int rows, int cols
       current_coord = matrix_coords_to_array_coords(row, col, cols);
       current_cell  = cells[current_coord];
 
-      neighbors[0] = row - 1 >= 0 ? matrix_coords_to_array_coords(row - 1, col, cols) : -1;
-      neighbors[1] = col + 1 < cols ? matrix_coords_to_array_coords(row, col + 1, cols) : -1;
-      neighbors[2] = row + 1 < rows ? matrix_coords_to_array_coords(row + 1, col, cols) : -1;
-      neighbors[3] = col - 1 >= 0 ? matrix_coords_to_array_coords(row, col - 1, cols) : -1;
+      for (int i = 0; i < current_cell.num_neighbors; i++) {
+     
 
-      for (int i = 0; i < 4; i++) {
-        if (neighbors[i] == -1) {
-          if ((current_cell.walls & dirs[i]) == 0) {
-            cells[current_coord].walls |= dirs[i];
-          }
-          continue;
-        }
-
-        if ((dirs[i] & current_cell.walls) == 0) {
-          if ((cells[neighbors[i]].walls & opposite_dirs[i]) == 0) {
-            mergeSets(sets, current_coord, neighbors[i]);
+        if ((current_cell.dirs[i] & current_cell.walls) == 0) {
+          if ((cells[current_cell.neighbors[i]].walls & current_cell.opposite_dirs[i]) == 0) {
+            mergeSets(sets, current_coord, current_cell.neighbors[i]);
           }
         }
       }
@@ -49,9 +35,6 @@ static void setUpRegions(Cell* cells, int* sets, Edge* edges, int rows, int cols
 
 static int setUpEdges(Cell* cells, int* sets, Edge* edges, int rows, int cols) {
 
-  int dirs[4]          = {TOP, RIGHT, BOTTOM, LEFT};
-  int opposite_dirs[4] = {BOTTOM, LEFT, TOP, RIGHT};
-  int neighbors[4]     = {-1, -1, -1, -1};
 
   int indx          = 0;
   int current_coord = -1;
@@ -63,25 +46,13 @@ static int setUpEdges(Cell* cells, int* sets, Edge* edges, int rows, int cols) {
       current_coord = matrix_coords_to_array_coords(row, col, cols);
       current_cell  = &cells[current_coord];
 
-      neighbors[0] = row - 1 >= 0 ? matrix_coords_to_array_coords(row - 1, col, cols) : -1;
-      neighbors[1] = col + 1 < cols ? matrix_coords_to_array_coords(row, col + 1, cols) : -1;
-      neighbors[2] = row + 1 < rows ? matrix_coords_to_array_coords(row + 1, col, cols) : -1;
-      neighbors[3] = col - 1 >= 0 ? matrix_coords_to_array_coords(row, col - 1, cols) : -1;
+      for (int i = 0; i < current_cell->num_neighbors; i++) {
 
-      for (int i = 0; i < 4; i++) {
+        if ((current_cell->walls & current_cell->dirs[i]) != 0 &&
+            (cells[current_cell->neighbors[i]].walls & current_cell->opposite_dirs[i]) != 0 &&
+            find(sets, current_coord) != find(sets, current_cell->neighbors[i])) {
 
-        if (neighbors[i] == -1) {
-          if ((current_cell->walls & dirs[i]) == 0) {
-            cells[current_coord].walls |= dirs[i];
-          }
-          continue;
-        }
-
-        if ((current_cell->walls & dirs[i]) != 0 &&
-            (cells[neighbors[i]].walls & opposite_dirs[i]) != 0 &&
-            find(sets, current_coord) != find(sets, neighbors[i])) {
-
-          edges[indx++] = create_edge(current_cell, dirs[i]);
+          edges[indx++] = create_edge(current_cell, current_cell->dirs[i]);
         }
       }
     }
