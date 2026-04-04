@@ -146,6 +146,5 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_sat
       i++;
     };
   }
-  printf("Bottom-left Walls: : %d\n", cells[matrix_coords_to_array_coords(rows -1, 0, columns)].walls);
   return cells;
 }
