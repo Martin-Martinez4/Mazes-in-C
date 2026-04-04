@@ -26,7 +26,7 @@ int get_open_end(Cell* cell) {
   return -1;
 }
 
-int prune_dead_ends(Cell* cells, int rows, int cols) {
+int prune_dead_ends(Cell* cells, int rows, int cols, int max_depth ) {
   int count = 0;
   // TOP, BOTTOM, LEFT, RIGHT
   const int neigh_coords[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
@@ -41,7 +41,8 @@ int prune_dead_ends(Cell* cells, int rows, int cols) {
       int current_row = row;
       int current_col = col;
 
-      while (is_dead_end(current_cell)) {
+      int depth = 0;
+      while (is_dead_end(current_cell) && depth < max_depth) {
 
         
         int open_end = get_open_end(current_cell);
@@ -54,6 +55,7 @@ int prune_dead_ends(Cell* cells, int rows, int cols) {
 
         int index = current_cell->neighbors[open_end];
         current_cell = &cells[index];
+        depth++;
       }
     }
   }

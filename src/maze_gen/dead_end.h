@@ -6,6 +6,6 @@
 
 bool is_dead_end(Cell* cell);
 int get_open_end(Cell* cell);
-int prune_dead_ends(Cell* cells, int rows, int cols);
+int prune_dead_ends(Cell* cells, int rows, int cols, int max_depth);
 
 #endif

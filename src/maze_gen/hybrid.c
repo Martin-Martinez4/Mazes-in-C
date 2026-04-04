@@ -12,7 +12,8 @@
 static void setUpCells(Cell* cells, Rooms* rooms, bool* visited, int rows, int columns) {
   for (int row = 0; row < rows; row++) {
     for (int col = 0; col < columns; col++) {
-      cells[matrix_coords_to_array_coords(row, col, columns)] = create_square_cell(row, col, rows, columns);
+      cells[matrix_coords_to_array_coords(row, col, columns)] =
+          create_square_cell(row, col, rows, columns);
     }
   }
 
@@ -20,7 +21,6 @@ static void setUpCells(Cell* cells, Rooms* rooms, bool* visited, int rows, int c
     return;
   for (int i = 0; i < rooms->length; i++) {
     Room room = rooms->data[i];
-    int set   = matrix_coords_to_array_coords(room.aabb.y, room.aabb.x, columns);
 
     int x      = room.aabb.x;
     int y      = room.aabb.y;
@@ -29,23 +29,30 @@ static void setUpCells(Cell* cells, Rooms* rooms, bool* visited, int rows, int c
 
     for (int row = y; row < (y + height); row++) {
       for (int col = x; col < (x + width); col++) {
-        int walls = 0;
-        if (row == y)
-          walls |= TOP;
-        if (row == y + height - 1)
-          walls |= BOTTOM;
-        if (col == x)
-          walls |= LEFT;
-        if (col == x + width - 1)
-          walls |= RIGHT;
-        cells[matrix_coords_to_array_coords(row, col, columns)].walls = walls;
 
-        visited[matrix_coords_to_array_coords(row, col, columns)] = true;
+        int index    = matrix_coords_to_array_coords(row, col, columns);
+        Cell* cell = &cells[index];
+
+        cell->walls = 0;
+
+        // Check all directions this cell knows about
+        for (int d = 0; d < cell->num_neighbors; d++) {
+          int neigh_index = cell->neighbors[d];
+          Cell* neigh   = &cells[neigh_index];
+
+          // If neighbor is outside the room, this is a boundary wall
+          if (neigh->row < y || neigh->row >= (y + height) || neigh->column < x ||
+              neigh->column >= (x + width)) {
+
+            cell->walls |= cell->dirs[d];
+          }
+        }
+
+        visited[index] = true;
       }
     }
   }
 }
-
 
 Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_saturation,
                          AlgoStepFunc* algoStepFuncs, int num_algos, int prune_aggressiveness) {
@@ -67,7 +74,7 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_sat
   setUpCells(cells, rooms, visited, rows, columns);
 
   float scale = 0.06f;
- 
+
   for (int i = 0; i < rows * columns; i++) {
     int algo_index = value_map_int(noise_grid[i], 0.0, 1.0, 0, num_algos - 1);
     noise_grid[i]  = algo_index;
@@ -135,7 +142,7 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_sat
     int max_pruned_cells = (int) (rows * columns * (prune_aggressiveness / 100.f));
 
     while (count < max_pruned_cells && i < prune_aggressiveness) {
-      removed = prune_dead_ends(cells, rows, columns);
+      removed = prune_dead_ends(cells, rows, columns, prune_aggressiveness);
 
       // no dead ends left avoid empty loops
       if (removed == 0) {
