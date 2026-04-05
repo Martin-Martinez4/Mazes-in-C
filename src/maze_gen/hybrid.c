@@ -9,49 +9,89 @@
 #include <stdio.h>
 #include <math.h>
 
-static void setUpCells(Cell* cells, Rooms* rooms, bool* visited, int rows, int columns) {
-  for (int row = 0; row < rows; row++) {
-    for (int col = 0; col < columns; col++) {
-      cells[matrix_coords_to_array_coords(row, col, columns)] =
-          create_square_cell(row, col, rows, columns);
-    }
-  }
+static void setUpCells(Cell* cells, Rooms* rooms, bool* visited, int rows, int columns, int num_edges) {
+    for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+            switch (num_edges)
+            {
+                case 4:
+                    cells[matrix_coords_to_array_coords(row, col, columns)] =
+                        create_square_cell(row, col, rows, columns);
+                    break;
 
-  if (rooms == NULL)
-    return;
-  for (int i = 0; i < rooms->length; i++) {
-    Room room = rooms->data[i];
+                case 3:
+                    cells[matrix_coords_to_array_coords(row, col, columns)] =
+                        create_tri_cell(row, col, rows, columns);
+                    break;
 
-    int x      = room.aabb.x;
-    int y      = room.aabb.y;
-    int width  = room.aabb.width;
-    int height = room.aabb.height;
+                default:
+                    break;
+            }
 
-    for (int row = y; row < (y + height); row++) {
-      for (int col = x; col < (x + width); col++) {
-
-        int index    = matrix_coords_to_array_coords(row, col, columns);
-        Cell* cell = &cells[index];
-
-        cell->walls = 0;
-
-        // Check all directions this cell knows about
-        for (int d = 0; d < cell->num_neighbors; d++) {
-          int neigh_index = cell->neighbors[d];
-          Cell* neigh   = &cells[neigh_index];
-
-          // If neighbor is outside the room, this is a boundary wall
-          if (neigh->row < y || neigh->row >= (y + height) || neigh->column < x ||
-              neigh->column >= (x + width)) {
-
-            cell->walls |= cell->dirs[d];
-          }
+            // Mark all as unvisited initially
+            int idx = matrix_coords_to_array_coords(row, col, columns);
+            visited[idx] = false;
         }
-
-        visited[index] = true;
-      }
     }
-  }
+
+    // If there are no rooms, we're done
+    if (rooms == NULL)
+        return;
+
+    // Room carving for triangle grids
+    for (int r = 0; r < rooms->length; r++) {
+        Room room = rooms->data[r];
+
+        int x = room.aabb.x;
+        int y = room.aabb.y;
+        int width = room.aabb.width;
+        int height = room.aabb.height;
+
+        for (int row = y; row < y + height; row++) {
+            for (int col = x; col < x + width; col++) {
+
+                int idx = matrix_coords_to_array_coords(row, col, columns);
+                Cell* cell = &cells[idx];
+
+                // Remove all walls initially
+                cell->walls = 0;
+
+                for (int d = 0; d < cell->num_neighbors; d++) {
+                    int n_idx = cell->neighbors[d];
+                    Cell* neigh = &cells[n_idx];
+
+                    bool outside = false;
+
+                    // Horizontal walls
+                    if (cell->dirs[d] == TRI_LEFT) {
+                        if (neigh->column < x)
+                            outside = true;
+                    } else if (cell->dirs[d] == TRI_RIGHT) {
+                        if (neigh->column >= x + width)
+                            outside = true;
+                    }
+                    // Vertical walls
+                    else if (cell->dirs[d] == TRI_BASE) {
+                        if (IS_DOWN(row, col)) {
+                            // Down triangle, top neighbor
+                            if (neigh->row < y)
+                                outside = true;
+                        } else {
+                            // Up triangle, bottom neighbor
+                            if (neigh->row >= y + height)
+                                outside = true;
+                        }
+                    }
+
+                    if (outside) {
+                        cell->walls |= cell->dirs[d];
+                    }
+                }
+
+                visited[idx] = true;
+            }
+        }
+    }
 }
 
 Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_saturation,
@@ -71,7 +111,7 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_sat
     fprintf(stderr, "Error: calloc failed for visited\n");
     return NULL;
   }
-  setUpCells(cells, rooms, visited, rows, columns);
+  setUpCells(cells, rooms, visited, rows, columns, mazeStats->num_edges);
 
   float scale = 0.06f;
 

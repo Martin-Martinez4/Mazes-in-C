@@ -16,7 +16,7 @@ Cell create_walled_cell(int row, int column) {
 }
 
 Cell create_square_cell(int row, int column, int rows, int columns) {
- 
+
   static uint8_t square_directions[4] = {TOP, RIGHT, BOTTOM, LEFT};
   static uint8_t opposite_lookup[4]   = {BOTTOM, LEFT, TOP, RIGHT};
 
@@ -25,9 +25,9 @@ Cell create_square_cell(int row, int column, int rows, int columns) {
 
   Cell c;
   c.max_edges = 4;
-  c.row    = row;
-  c.column = column;
-  c.walls  = ALL_WALLS;
+  c.row       = row;
+  c.column    = column;
+  c.walls     = ALL_WALLS;
 
   int n_row;
   int n_column;
@@ -50,36 +50,59 @@ Cell create_square_cell(int row, int column, int rows, int columns) {
   return c;
 }
 
-Edge create_edge(Cell* cell, uint8_t direction) {
-  Edge e;
-  e.cell_ptr = cell;
 
-  switch (direction) {
-  case TOP:
-    e.direction          = TOP;
-    e.opposite_direction = BOTTOM;
-    break;
 
-  case LEFT:
-    e.direction          = LEFT;
-    e.opposite_direction = RIGHT;
-    break;
+Cell create_tri_cell(int row, int col, int rows, int cols) {
+    Cell c = {0};
+    c.row = row;
+    c.column = col;
+    c.max_edges = 3;
+    c.walls = TRI_ALL_WALL;
+    c.num_neighbors = 0;
 
-  case RIGHT:
-    e.direction          = RIGHT;
-    e.opposite_direction = LEFT;
-    break;
+    bool is_down = ((row + col) % 2 == 0); // down triangle
 
-  case BOTTOM:
-    e.direction          = BOTTOM;
-    e.opposite_direction = TOP;
-    break;
-  default:
-    fprintf(stderr, "Error: invalid direction %u in create_edge()\n", direction);
-    abort(); // or exit(EXIT_FAILURE);
-  }
+    int neighbor_offsets[3][2];
 
-  return e;
+    if (is_down) {
+        // left, right, top
+        neighbor_offsets[0][0] = 0; neighbor_offsets[0][1] = -1; // left
+        neighbor_offsets[1][0] = 0; neighbor_offsets[1][1] = 1;  // right
+        neighbor_offsets[2][0] = -1; neighbor_offsets[2][1] = 0; // top
+    } else {
+        // left, right, bottom
+        neighbor_offsets[0][0] = 0; neighbor_offsets[0][1] = -1; // left
+        neighbor_offsets[1][0] = 0; neighbor_offsets[1][1] = 1;  // right
+        neighbor_offsets[2][0] = 1; neighbor_offsets[2][1] = 0;  // bottom
+    }
+
+    uint8_t dirs[3] = {TRI_LEFT, TRI_RIGHT, TRI_BASE};
+    uint8_t opposite[3] = {TRI_RIGHT, TRI_LEFT, TRI_BASE};
+
+    for (int i = 0; i < 3; i++) {
+        int n_row = row + neighbor_offsets[i][0];
+        int n_col = col + neighbor_offsets[i][1];
+
+        // skip out-of-bounds
+        if (n_row < 0 || n_row >= rows || n_col < 0 || n_col >= cols) continue;
+
+        int n_idx = matrix_coords_to_array_coords(n_row, n_col, cols);
+        c.neighbors[c.num_neighbors] = n_idx;
+        c.dirs[c.num_neighbors] = dirs[i];
+        c.opposite_dirs[c.num_neighbors] = opposite[i];
+        c.num_neighbors++;
+    }
+
+    return c;
+}
+
+Edge create_edge(Cell* cell, int neighbor_array_idx) {
+    Edge e;
+    e.cell_ptr = cell;
+    e.neighbor_idx = cell->neighbors[neighbor_array_idx]; // actual array index
+    e.direction = cell->dirs[neighbor_array_idx];
+    e.opposite_direction = cell->opposite_dirs[neighbor_array_idx];
+    return e;
 }
 
 int BFS_count(Cell* cells, int rows, int columns) {
@@ -103,39 +126,17 @@ int BFS_count(Cell* cells, int rows, int columns) {
     count++;
     --stack_head;
 
-    walls = cells[current].walls;
+    Cell* c = &cells[current];
 
-    array_coords_to_matrix_coords(current, columns, &row, &column);
+    for (int i = 0; i < c->num_neighbors; i++) {
+      int next = c->neighbors[i];
 
-    if ((TOP & walls) == 0 && row > 0) {
-      next = matrix_coords_to_array_coords(row - 1, column, columns);
-      if (!visited[next]) {
-        stack[++stack_head] = next;
-        visited[next]       = true;
-      }
-    }
-
-    if ((BOTTOM & walls) == 0 && row < rows - 1) {
-      next = matrix_coords_to_array_coords(row + 1, column, columns);
-      if (!visited[next]) {
-        stack[++stack_head] = next;
-        visited[next]       = true;
-      }
-    }
-
-    if ((RIGHT & walls) == 0 && column < columns - 1) {
-      next = matrix_coords_to_array_coords(row, column + 1, columns);
-      if (!visited[next]) {
-        stack[++stack_head] = next;
-        visited[next]       = true;
-      }
-    }
-
-    if ((LEFT & walls) == 0 && column > 0) {
-      next = matrix_coords_to_array_coords(row, column - 1, columns);
-      if (!visited[next]) {
-        stack[++stack_head] = next;
-        visited[next]       = true;
+      // If wall in this direction is REMOVED, we can traverse
+      if ((c->walls & c->dirs[i]) == 0) {
+        if (!visited[next]) {
+          stack[++stack_head] = next;
+          visited[next]       = true;
+        }
       }
     }
   }

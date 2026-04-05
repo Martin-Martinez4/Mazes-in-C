@@ -8,7 +8,7 @@
 
 // pass by value is good enough for now
 MazeStats* createMazeStats(int canvasWidth, int canvasHeight, int cellWidth, int cellHeight,
-                           int borderWidth) {
+                           int borderWidth, int sides) {
   // typedef struct MazeStats{
   //     int canvasWidth;
   //     int canvasHeight;
@@ -19,20 +19,38 @@ MazeStats* createMazeStats(int canvasWidth, int canvasHeight, int cellWidth, int
 
   // } MazeStats;
 
-  int totalCellHeight = cellHeight + borderWidth;
-  int totalCellWidth  = cellWidth + borderWidth;
+  int totalCellHeight;
+  int totalCellWidth;
 
-  // printf("totalCellHeight : %d\n", totalCellHeight);
-  // printf("totalCellWidth : %d\n", totalCellWidth);
-  // printf("canvasWidth : %d\n", canvasWidth);
   MazeStats* m = malloc(sizeof(MazeStats));
 
-  m->canvasWidth     = canvasWidth;
-  m->canvasHeight    = canvasHeight;
+  m->canvasWidth  = canvasWidth;
+  m->canvasHeight = canvasHeight;
+
+  switch (sides) {
+  case 4:
+    totalCellHeight = cellHeight + borderWidth;
+    totalCellWidth  = cellWidth + borderWidth;
+    m->rows         = (int) ((canvasHeight - borderWidth) / totalCellHeight);
+    m->columns      = (int) ((canvasWidth - borderWidth) / totalCellWidth);
+    break;
+
+  case 3:
+    totalCellHeight = cellHeight + borderWidth;
+    totalCellWidth  = cellWidth + borderWidth;
+    m->rows         = (int) ((canvasHeight - borderWidth) / totalCellHeight);
+    m->columns      = (int) ((canvasWidth - borderWidth) / totalCellWidth) * 2;
+    break;
+
+  default:
+    printf("Invalid number of sides: %d", sides);
+    // add better error handling later
+    exit(0);
+    break;
+  }
+  m->num_edges       = sides;
   m->totalCellHeight = totalCellHeight;
   m->totalCellWidth  = totalCellWidth;
-  m->rows            = (int) ((canvasHeight - borderWidth) / totalCellHeight);
-  m->columns         = (int) ((canvasWidth - borderWidth) / totalCellWidth);
   m->borderWidth     = borderWidth;
 
   return m;
@@ -201,9 +219,9 @@ int draw_quad(SDL_Vertex* quads, int starting_index, float x_from, float y_from,
   return starting_index + 4;
 }
 
-void trisFromStats(MazeStats* mazeStats, SDL_Renderer* renderer) {
+void trisFromStats(Cell* cells, MazeStats* mazeStats, SDL_Renderer* renderer) {
   int rows           = mazeStats->rows;
-  int columns        = mazeStats->columns * 2;
+  int columns        = mazeStats->columns;
   float cell_width   = mazeStats->totalCellWidth;
   float cell_height  = mazeStats->totalCellHeight;
   float border_width = mazeStats->borderWidth;
@@ -213,13 +231,17 @@ void trisFromStats(MazeStats* mazeStats, SDL_Renderer* renderer) {
 
   int current_index = 0;
 
+  Cell* current_cell;
+
   for (int r = 0; r < rows; r++) {
     for (int c = 0; c < columns; c++) {
+
+      current_cell = &cells[matrix_coords_to_array_coords(r, c, columns)];
 
       float x0 = c * (cell_width * 0.5f);
       float y0 = cell_height * r;
 
-      if ((r + c) % 2 == 0) {
+      if (IS_DOWN(r, c)) {
         // Down triangle
         float xl = x0;
         float yl = y0;
@@ -230,9 +252,17 @@ void trisFromStats(MazeStats* mazeStats, SDL_Renderer* renderer) {
         float xb = x0 + cell_width * 0.5f;
         float yb = y0 + cell_height;
 
-        current_index = draw_quad(quads, current_index, xl, yl, xr, yr, border_width);
-        current_index = draw_quad(quads, current_index, xl, yl, xb, yb, border_width);
-        current_index = draw_quad(quads, current_index, xr, yr, xb, yb, border_width);
+        if (current_cell->walls & TRI_BASE) {
+          current_index = draw_quad(quads, current_index, xl, yl, xr, yr, border_width);
+        }
+        if (current_cell->walls & TRI_LEFT) {
+
+          current_index = draw_quad(quads, current_index, xl, yl, xb, yb, border_width);
+        }
+        if (current_cell->walls & TRI_RIGHT) {
+
+          current_index = draw_quad(quads, current_index, xr, yr, xb, yb, border_width);
+        }
 
       } else {
         // Up triangle
@@ -245,9 +275,16 @@ void trisFromStats(MazeStats* mazeStats, SDL_Renderer* renderer) {
         float xt = x0 + cell_width * 0.5f;
         float yt = y0;
 
-        current_index = draw_quad(quads, current_index, xl, yl, xr, yr, border_width);
-        current_index = draw_quad(quads, current_index, xl, yl, xt, yt, border_width);
-        current_index = draw_quad(quads, current_index, xr, yr, xt, yt, border_width);
+        if (current_cell->walls & TRI_BASE) {
+          current_index = draw_quad(quads, current_index, xl, yl, xr, yr, border_width);
+        }
+        if (current_cell->walls & TRI_LEFT) {
+
+          current_index = draw_quad(quads, current_index, xl, yl, xt, yt, border_width);
+        }
+        if (current_cell->walls & TRI_RIGHT) {
+          current_index = draw_quad(quads, current_index, xr, yr, xt, yt, border_width);
+        }
       }
     }
   }

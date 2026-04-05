@@ -9,6 +9,7 @@ typedef struct MazeStats {
   int rows;
   int columns;
   int borderWidth;
+  int num_edges;
 
 } MazeStats;
 

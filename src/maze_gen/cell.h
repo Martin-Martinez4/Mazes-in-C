@@ -14,20 +14,23 @@
 
 #define ALL_WALLS (TOP | RIGHT | BOTTOM | LEFT)
 
-// 0111
-#define TOP_REMOVER ~TOP
-// 1011
-#define LEFT_REMOVER ~LEFT
-// 1101
-#define BOTTOM_REMOVER ~BOTTOM
-// 1110
-#define RIGHT_REMOVER ~RIGHT
+// Triangle Cell things
+#define IS_DOWN(r, c) (((r) + (c)) % 2 == 0)
+
+#define TRI_LEFT  1
+#define TRI_RIGHT  2
+#define TRI_BASE  4
+#define TRI_ALL_WALL (TRI_LEFT | TRI_RIGHT | TRI_BASE)
 
 // cells are represented using uint8_t
 // 8 walls can be represented
 #define MAX_NEIGHBORS 8
 
-
+typedef struct {
+    int dr, dc;
+    uint8_t dir;
+    uint8_t opposite;
+} TriNeighbor;
 
 typedef struct Cell {
   int row;
@@ -42,14 +45,18 @@ typedef struct Cell {
 } Cell;
 
 typedef struct Edge {
-  Cell* cell_ptr;
-  uint8_t direction;
-  uint8_t opposite_direction;
+    Cell* cell_ptr;       // pointer to the current cell
+    int neighbor_idx;     // index of the neighbor cell
+    uint8_t direction;    // wall bit in current cell
+    uint8_t opposite_direction; // wall bit in neighbor cell
 } Edge;
+
+// Kruskal
 
 Cell create_walled_cell(int row, int column);
 Cell create_square_cell(int row, int column, int rows, int columns);
-Edge create_edge(Cell* cell, uint8_t direction);
+Cell create_tri_cell(int row, int column, int rows, int columns);
+Edge create_edge(Cell* cell, int direction_index);
 
 int BFS_count(Cell* cells, int rows, int columns);
 

@@ -28,7 +28,6 @@
 #include "layout_nk.h"
 #include "init_font.h"
 
-
 const int WINDOW_WIDTH  = 1080;
 const int WINDOW_HEIGHT = 900;
 // const int WINDOW_HEIGHT = 1080;
@@ -86,10 +85,10 @@ int main(int argc, char* argv[]) {
 
   // Initial Maze Creation
   MazeStats* mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), CELL_HEIGHT,
-                                         CELL_WIDTH, BORDER_WIDTH);
+                                         CELL_WIDTH, BORDER_WIDTH, 3);
 
-  AlgoStepFunc algos[5] = {prim_region, backtrack_region, prim_region};
-  int algo_array_size   = 3;
+  AlgoStepFunc algos[1] = {prim_region};
+  int algo_array_size   = 1;
 
   RadialGradientParams gp =
       create_radial_gradient_params(mazeStats->rows, mazeStats->columns, 0, 0);
@@ -116,13 +115,7 @@ int main(int argc, char* argv[]) {
 
   while (!done) {
 
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_EVENT_QUIT) {
-            done = true;
-        }
-    }
-
+    // SDL_Event event;
 
     // nk_input_begin(ctx);
 
@@ -162,7 +155,8 @@ int main(int argc, char* argv[]) {
     //   switch (state.noise_selected) {
     //   case VALUE:
     //     noiseGrid =
-    //         applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, bilerpFromRowCol, NULL);
+    //         applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, bilerpFromRowCol,
+    //         NULL);
     //     break;
     //   case PERLIN:
     //     noiseGrid =
@@ -207,15 +201,17 @@ int main(int argc, char* argv[]) {
     //   free(mazeStats);
 
     //   mazeStats = createMazeStats((int) (WINDOW_WIDTH), (int) (WINDOW_HEIGHT), state.cell_height,
-    //                               state.cell_width, state.border_thickness);
+    //                               state.cell_width, state.border_thickness, 4);
 
-    //   texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
+    //   texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+    //   SDL_TEXTUREACCESS_STREAMING,
     //                               mazeStats->columns, mazeStats->rows);
 
     //   switch (state.noise_selected) {
     //   case VALUE:
     //     noiseGrid =
-    //         applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, bilerpFromRowCol, NULL);
+    //         applyNoise(mazeStats->rows, mazeStats->columns, &state.scale, bilerpFromRowCol,
+    //         NULL);
     //     break;
     //   case PERLIN:
     //     noiseGrid =
@@ -305,16 +301,22 @@ int main(int argc, char* argv[]) {
     //   state.upload = false;
     // }
 
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+      if (event.type == SDL_EVENT_QUIT) {
+        done = true;
+      }
+    }
+
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    trisFromStats(mazeStats, renderer);
+    trisFromStats(cells, mazeStats, renderer);
 
     SDL_RenderPresent(renderer);
   }
 
-  // Clean up, Close and destroy the window
-  // free(cells);
+  // // Clean up, Close and destroy the window free(cells);
   // free(rects);
   // free(noiseGrid);
   // free(mazeStats);
@@ -329,9 +331,9 @@ int main(int argc, char* argv[]) {
 
   // nk_sdl_shutdown(ctx);
 
-  TTF_Quit();
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
+  // TTF_Quit();
+  // SDL_DestroyRenderer(renderer);
+  // SDL_DestroyWindow(window);
+  // SDL_Quit();
   return 0;
 }
