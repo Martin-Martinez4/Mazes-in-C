@@ -3,10 +3,12 @@
 #include "grid_utils.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
+#include <SDL3/SDL_pixels.h>
 
 // pass by value is good enough for now
 MazeStats* createMazeStats(int canvasWidth, int canvasHeight, int cellWidth, int cellHeight,
-                          int borderWidth) {
+                           int borderWidth) {
   // typedef struct MazeStats{
   //     int canvasWidth;
   //     int canvasHeight;
@@ -26,12 +28,12 @@ MazeStats* createMazeStats(int canvasWidth, int canvasHeight, int cellWidth, int
   MazeStats* m = malloc(sizeof(MazeStats));
 
   m->canvasWidth     = canvasWidth;
-                        m->canvasHeight    = canvasHeight;
-                        m->totalCellHeight = totalCellHeight;
-                        m->totalCellWidth  = totalCellWidth;
-                        m->rows            = (int) ((canvasHeight - borderWidth) / totalCellHeight);
-                        m->columns         = (int) ((canvasWidth - borderWidth) / totalCellWidth);
-                        m->borderWidth     = borderWidth;
+  m->canvasHeight    = canvasHeight;
+  m->totalCellHeight = totalCellHeight;
+  m->totalCellWidth  = totalCellWidth;
+  m->rows            = (int) ((canvasHeight - borderWidth) / totalCellHeight);
+  m->columns         = (int) ((canvasWidth - borderWidth) / totalCellWidth);
+  m->borderWidth     = borderWidth;
 
   return m;
 }
@@ -53,10 +55,10 @@ int rectsFromCells(Cell* cells, SDL_FRect* rects, size_t length, MazeStats* maze
       Cell* c     = &cells[matrix_coords_to_array_coords(row, col, columns)];
       int walls   = c->walls;
 
-      if(walls == ALL_WALLS){
+      if (walls == ALL_WALLS) {
         rects[current++] =
-              (SDL_FRect){.x = offsetX, .y = offsetY, .w = totalCellWidth, .h = totalCellHeight};
-      }else{
+            (SDL_FRect){.x = offsetX, .y = offsetY, .w = totalCellWidth, .h = totalCellHeight};
+      } else {
 
         // LEFT
         if ((walls & LEFT) != 0 || col == 0) {
@@ -67,7 +69,7 @@ int rectsFromCells(Cell* cells, SDL_FRect* rects, size_t length, MazeStats* maze
           rects[current++] =
               (SDL_FRect){.x = offsetX, .y = offsetY, .w = borderWidth, .h = totalCellHeight};
         }
-  
+
         // TOP
         if ((walls & TOP) != 0 || row == 0) {
           if (current >= (int) length) {
@@ -77,28 +79,29 @@ int rectsFromCells(Cell* cells, SDL_FRect* rects, size_t length, MazeStats* maze
           rects[current++] =
               (SDL_FRect){.x = offsetX, .y = offsetY, .w = totalCellWidth, .h = borderWidth};
         }
-  
+
         // RIGHT
         if ((walls & RIGHT) != 0 || col == columns - 1) {
           if (current >= (int) length) {
-            fprintf(stderr, "rects array overflow at RIGHT, current=%d, max=%zu\n", current, length);
+            fprintf(stderr, "rects array overflow at RIGHT, current=%d, max=%zu\n", current,
+                    length);
             exit(1);
           }
           rects[current++] = (SDL_FRect){
               .x = offsetX + totalCellWidth, .y = offsetY, .w = borderWidth, .h = totalCellHeight};
         }
-  
+
         // BOTTOM
         if ((walls & BOTTOM) != 0 || row == rows - 1) {
           if (current >= (int) length) {
-            fprintf(stderr, "rects array overflow at BOTTOM, current=%d, max=%zu\n", current, length);
+            fprintf(stderr, "rects array overflow at BOTTOM, current=%d, max=%zu\n", current,
+                    length);
             exit(1);
           }
           rects[current++] = (SDL_FRect){
               .x = offsetX, .y = offsetY + totalCellHeight, .w = totalCellWidth, .h = borderWidth};
         }
       }
-
     }
   }
 
@@ -170,4 +173,107 @@ int rectsFromStats(SDL_FRect* rects, size_t length, MazeStats mazeStats) {
   }
 
   return current;
+}
+
+int draw_quad(SDL_Vertex* quads, int starting_index, float x_from, float y_from, float x_to,
+              float y_to, int border_thickness) {
+  // Edge vector: bottom-left -> top
+  float dx = x_to - x_from;
+  float dy = y_to - y_from;
+
+  float len = sqrtf(dx * dx + dy * dy);
+  if (len == 0.0f) {
+
+    return starting_index;
+  }
+
+  float half_t = border_thickness * 0.5f;
+  // Perpendicular offset
+  float px = -dy / len * half_t;
+  float py = dx / len * half_t;
+
+  // Quad for left wall
+  quads[starting_index].position     = (SDL_FPoint){x_from + px, y_from + py};
+  quads[starting_index + 2].position = (SDL_FPoint){x_to + px, y_to + py};
+  quads[starting_index + 1].position = (SDL_FPoint){x_from - px, y_from - py};
+  quads[starting_index + 3].position = (SDL_FPoint){x_to - px, y_to - py};
+
+  return starting_index + 4;
+}
+
+void trisFromStats(MazeStats* mazeStats, SDL_Renderer* renderer) {
+  int rows           = mazeStats->rows;
+  int columns        = mazeStats->columns * 2;
+  float cell_width   = mazeStats->totalCellWidth;
+  float cell_height  = mazeStats->totalCellHeight;
+  float border_width = mazeStats->borderWidth;
+
+  SDL_Vertex* quads = (SDL_Vertex*) malloc(sizeof(SDL_Vertex) * rows * columns * 3 * 4);
+  int* indices      = (int*) malloc(sizeof(int) * rows * columns * 3 * 6);
+
+  int current_index = 0;
+
+  for (int r = 0; r < rows; r++) {
+    for (int c = 0; c < columns; c++) {
+
+      float x0 = c * (cell_width * 0.5f);
+      float y0 = cell_height * r;
+
+      if ((r + c) % 2 == 0) {
+        // Down triangle
+        float xl = x0;
+        float yl = y0;
+
+        float xr = x0 + cell_width;
+        float yr = y0;
+
+        float xb = x0 + cell_width * 0.5f;
+        float yb = y0 + cell_height;
+
+        current_index = draw_quad(quads, current_index, xl, yl, xr, yr, border_width);
+        current_index = draw_quad(quads, current_index, xl, yl, xb, yb, border_width);
+        current_index = draw_quad(quads, current_index, xr, yr, xb, yb, border_width);
+
+      } else {
+        // Up triangle
+        float xl = x0;
+        float yl = y0 + cell_height;
+
+        float xr = x0 + cell_width;
+        float yr = y0 + cell_height;
+
+        float xt = x0 + cell_width * 0.5f;
+        float yt = y0;
+
+        current_index = draw_quad(quads, current_index, xl, yl, xr, yr, border_width);
+        current_index = draw_quad(quads, current_index, xl, yl, xt, yt, border_width);
+        current_index = draw_quad(quads, current_index, xr, yr, xt, yt, border_width);
+      }
+    }
+  }
+
+  SDL_FColor color = {186 / 255.0f, 167 / 255.0f, 136 / 255.0f, 1.0f};
+
+  for (int i = 0; i < current_index; i++) {
+    quads[i].color = color;
+  }
+
+  int quad_count = current_index / 4;
+
+  for (int q = 0; q < quad_count; q++) {
+    int v = q * 4;
+    int i = q * 6;
+
+    indices[i + 0] = v + 0;
+    indices[i + 1] = v + 1;
+    indices[i + 2] = v + 2;
+
+    indices[i + 3] = v + 2;
+    indices[i + 4] = v + 1;
+    indices[i + 5] = v + 3;
+  }
+
+  SDL_RenderGeometry(renderer, NULL, quads, current_index, indices, quad_count * 6);
+  free(indices);
+  free(quads);
 }

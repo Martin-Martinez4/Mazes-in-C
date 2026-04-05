@@ -29,7 +29,6 @@ int get_open_end(Cell* cell) {
 int prune_dead_ends(Cell* cells, int rows, int cols, int max_depth ) {
   int count = 0;
   // TOP, BOTTOM, LEFT, RIGHT
-  const int neigh_coords[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
   int neigh_coord;
 
   for (int row = 0; row < rows; row++) {
