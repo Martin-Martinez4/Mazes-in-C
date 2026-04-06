@@ -41,6 +41,7 @@ typedef struct Cell {
   int neighbors[MAX_NEIGHBORS];
   uint8_t dirs[MAX_NEIGHBORS];
   uint8_t opposite_dirs[MAX_NEIGHBORS];
+  uint8_t cell_all_walls;
 
 } Cell;
 

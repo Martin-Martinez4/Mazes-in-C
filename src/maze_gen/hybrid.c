@@ -99,6 +99,7 @@ Cell* create_maze_hybrid(MazeStats* mazeStats, float* noise_grid, float room_sat
   int rows    = mazeStats->rows;
   int columns = mazeStats->columns;
 
+
   Rooms* rooms = makeRooms(mazeStats, room_saturation);
 
   Cell* cells = malloc(sizeof(Cell) * rows * columns);

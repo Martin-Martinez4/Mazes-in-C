@@ -28,6 +28,7 @@ Cell create_square_cell(int row, int column, int rows, int columns) {
   c.row       = row;
   c.column    = column;
   c.walls     = ALL_WALLS;
+  c.cell_all_walls = ALL_WALLS;
 
   int n_row;
   int n_column;
@@ -50,59 +51,73 @@ Cell create_square_cell(int row, int column, int rows, int columns) {
   return c;
 }
 
-
-
 Cell create_tri_cell(int row, int col, int rows, int cols) {
-    Cell c = {0};
-    c.row = row;
-    c.column = col;
-    c.max_edges = 3;
-    c.walls = TRI_ALL_WALL;
-    c.num_neighbors = 0;
+  Cell c          = {0};
+  c.row           = row;
+  c.column        = col;
+  c.max_edges     = 3;
+  c.walls         = TRI_ALL_WALL;
+  c.num_neighbors = 0;
 
-    bool is_down = ((row + col) % 2 == 0); // down triangle
+  // down triangle
+  bool is_down = ((row + col) % 2 == 0); 
 
-    int neighbor_offsets[3][2];
+  int neighbor_offsets[3][2];
 
-    if (is_down) {
-        // left, right, top
-        neighbor_offsets[0][0] = 0; neighbor_offsets[0][1] = -1; // left
-        neighbor_offsets[1][0] = 0; neighbor_offsets[1][1] = 1;  // right
-        neighbor_offsets[2][0] = -1; neighbor_offsets[2][1] = 0; // top
-    } else {
-        // left, right, bottom
-        neighbor_offsets[0][0] = 0; neighbor_offsets[0][1] = -1; // left
-        neighbor_offsets[1][0] = 0; neighbor_offsets[1][1] = 1;  // right
-        neighbor_offsets[2][0] = 1; neighbor_offsets[2][1] = 0;  // bottom
-    }
+  if (is_down) {
+    // left, right, top
+    neighbor_offsets[0][0] = 0;
+    // left
+    neighbor_offsets[0][1] = -1; 
+    neighbor_offsets[1][0] = 0;
+    // right
+    neighbor_offsets[1][1] = 1; 
+    neighbor_offsets[2][0] = -1;
+    // top
+    neighbor_offsets[2][1] = 0; 
+  } else {
+    // left, right, bottom
+    neighbor_offsets[0][0] = 0;
+    // left
+    neighbor_offsets[0][1] = -1; 
+    neighbor_offsets[1][0] = 0;
+    // right
+    neighbor_offsets[1][1] = 1; 
+    neighbor_offsets[2][0] = 1;
+    // bottom
+    neighbor_offsets[2][1] = 0; 
+  }
 
-    uint8_t dirs[3] = {TRI_LEFT, TRI_RIGHT, TRI_BASE};
-    uint8_t opposite[3] = {TRI_RIGHT, TRI_LEFT, TRI_BASE};
+  uint8_t dirs[3]     = {TRI_LEFT, TRI_RIGHT, TRI_BASE};
+  uint8_t opposite[3] = {TRI_RIGHT, TRI_LEFT, TRI_BASE};
 
-    for (int i = 0; i < 3; i++) {
-        int n_row = row + neighbor_offsets[i][0];
-        int n_col = col + neighbor_offsets[i][1];
+  for (int i = 0; i < 3; i++) {
+    int n_row = row + neighbor_offsets[i][0];
+    int n_col = col + neighbor_offsets[i][1];
 
-        // skip out-of-bounds
-        if (n_row < 0 || n_row >= rows || n_col < 0 || n_col >= cols) continue;
+    // skip out-of-bounds
+    if (n_row < 0 || n_row >= rows || n_col < 0 || n_col >= cols)
+      continue;
 
-        int n_idx = matrix_coords_to_array_coords(n_row, n_col, cols);
-        c.neighbors[c.num_neighbors] = n_idx;
-        c.dirs[c.num_neighbors] = dirs[i];
-        c.opposite_dirs[c.num_neighbors] = opposite[i];
-        c.num_neighbors++;
-    }
+    int n_idx                        = matrix_coords_to_array_coords(n_row, n_col, cols);
+    c.neighbors[c.num_neighbors]     = n_idx;
+    c.dirs[c.num_neighbors]          = dirs[i];
+    c.opposite_dirs[c.num_neighbors] = opposite[i];
+    c.num_neighbors++;
+    c.cell_all_walls = TRI_ALL_WALL;
+  }
 
-    return c;
+  return c;
 }
 
 Edge create_edge(Cell* cell, int neighbor_array_idx) {
-    Edge e;
-    e.cell_ptr = cell;
-    e.neighbor_idx = cell->neighbors[neighbor_array_idx]; // actual array index
-    e.direction = cell->dirs[neighbor_array_idx];
-    e.opposite_direction = cell->opposite_dirs[neighbor_array_idx];
-    return e;
+  Edge e;
+  e.cell_ptr           = cell;
+  // actual array index
+  e.neighbor_idx       = cell->neighbors[neighbor_array_idx]; 
+  e.direction          = cell->dirs[neighbor_array_idx];
+  e.opposite_direction = cell->opposite_dirs[neighbor_array_idx];
+  return e;
 }
 
 int BFS_count(Cell* cells, int rows, int columns) {

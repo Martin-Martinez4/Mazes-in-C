@@ -45,7 +45,7 @@ int prune_dead_ends(Cell* cells, int rows, int cols, int max_depth ) {
 
         
         int open_end = get_open_end(current_cell);
-        current_cell->walls = ALL_WALLS;
+        current_cell->walls = current_cell->cell_all_walls;
         count++;
         cells[current_cell->neighbors[open_end]].walls |= current_cell->opposite_dirs[open_end];
         if (open_end == -1) {

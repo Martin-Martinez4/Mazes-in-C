@@ -3,6 +3,8 @@
 #include "noise.h"
 
 uiState state = {
+    .cell_edges_selected  = 1,
+    .cell_edges = 4,
     .cell_width = 16,
     .cell_height = 16,
     .border_thickness = 1,

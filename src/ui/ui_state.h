@@ -3,11 +3,14 @@
 
 #include <stdbool.h>
 #include <nuklear.h>
+#include <stdint.h>
 
 typedef struct  {
     bool menuVisible;
     bool menuExpanded;
 
+    uint8_t cell_edges_selected;
+    uint8_t cell_edges;
     int cell_width;
     int cell_height;
     int border_thickness;

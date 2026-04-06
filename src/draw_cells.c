@@ -238,8 +238,14 @@ void trisFromStats(Cell* cells, MazeStats* mazeStats, SDL_Renderer* renderer) {
 
       current_cell = &cells[matrix_coords_to_array_coords(r, c, columns)];
 
+      // idea if all walls draw a triangle
+
+      // else do the stuff below
+
       float x0 = c * (cell_width * 0.5f);
       float y0 = cell_height * r;
+
+      int quad_count = 0;
 
       if (IS_DOWN(r, c)) {
         // Down triangle
@@ -310,7 +316,64 @@ void trisFromStats(Cell* cells, MazeStats* mazeStats, SDL_Renderer* renderer) {
     indices[i + 5] = v + 3;
   }
 
-  SDL_RenderGeometry(renderer, NULL, quads, current_index, indices, quad_count * 6);
+  int tris = 0;
+  int i    = quad_count * 6;
+  int v    = current_index;
+  for (int r = 0; r < rows; r++) {
+    for (int c = 0; c < columns; c++) {
+      current_cell = &cells[matrix_coords_to_array_coords(r, c, columns)];
+
+      
+      if (current_cell->walls == TRI_ALL_WALL) {
+        float x0 = c * (cell_width * 0.5f);
+        float y0 = cell_height * r;
+        if (IS_DOWN(r, c)) {
+          // Down triangle
+          float xl = x0;
+          float yl = y0;
+
+          float xr = x0 + cell_width;
+          float yr = y0;
+
+          float xb = x0 + cell_width * 0.5f;
+          float yb = y0 + cell_height;
+
+          quads[current_index++].position = (SDL_FPoint){xb, yb};
+          quads[current_index++].position = (SDL_FPoint){xr, yr};
+          quads[current_index++].position = (SDL_FPoint){xl, yl};
+
+        } else {
+          // Up triangle
+          float xl = x0;
+          float yl = y0 + cell_height;
+
+          float xr = x0 + cell_width;
+          float yr = y0 + cell_height;
+
+          float xt = x0 + cell_width * 0.5f;
+          float yt = y0;
+
+          quads[current_index++].position = (SDL_FPoint){xt, yt};
+          quads[current_index++].position = (SDL_FPoint){xr, yr};
+          quads[current_index++].position = (SDL_FPoint){xl, yl};
+        }
+
+        indices[i++] = v;
+        indices[i++] = v + 2;
+        indices[i++] = v + 1;
+        v += 3;
+        tris += 1;
+
+        SDL_FColor color = {186 / 255.0f, 167 / 255.0f, 136 / 255.0f, 1.0f};
+
+        quads[current_index - 3].color = color;
+        quads[current_index - 2].color = color;
+        quads[current_index - 1].color = color;
+      }
+    }
+  }
+
+  SDL_RenderGeometry(renderer, NULL, quads, current_index, indices, quad_count * 6 + tris * 3);
   free(indices);
   free(quads);
 }

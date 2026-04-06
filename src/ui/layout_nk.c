@@ -10,6 +10,8 @@
 // static char text[9][64];
 const char* algos[3]         = {"Backtracking", "Prim's", "Kruskal's"};
 const char* noise_choices[5] = {"Value", "Perlin", "Simplex", "Linear Gradient", "Radial Gradient"};
+const char* edges_choices[2] = {"3", "4"};
+const uint8_t edges_values[2] = {3, 4};
 
 static char buf[256] = {0};
 static int len       = 0;
@@ -53,6 +55,21 @@ void renderNk(struct nk_context* ctx) {
         if (nk_tree_push(ctx, NK_TREE_TAB, "Cells Settings", NK_MINIMIZED)) {
 
           nk_layout_row_dynamic(ctx, 0, 1);
+          nk_label(ctx, "Cell Edges", NK_TEXT_LEFT);
+          state.cell_edges_selected =
+              nk_combo(ctx, edges_choices, 2, state.cell_edges_selected, 25, nk_vec2(200, 150));
+          switch (state.cell_edges_selected) {
+          case 0:
+            state.cell_edges = edges_values[0];
+            break;
+          case 1:
+            state.cell_edges = edges_values[1];
+            break;
+
+          default:
+            break;
+          }
+
           nk_property_int(ctx, "Cell Width", 1, &state.cell_width, 128, 1, 1);
           nk_property_int(ctx, "Cell Height", 1, &state.cell_height, 128, 1, 1);
           nk_property_int(ctx, "Border Thickness", 1, &state.border_thickness, 16, 1, 1);
