@@ -132,11 +132,12 @@ int main(int argc, char* argv[]) {
       case SDL_EVENT_KEY_DOWN:
         if (event.key.scancode == SDL_SCANCODE_0) {
           printf("columns: %d; rows: %d", mazeStats->columns, mazeStats->rows);
-          cells = loadMaze(mazeStats, &cellsToDraw, "./maze4.maze");
+          cells = loadMaze(mazeStats, &cellsToDraw, "./testTest.maze");
           rects = createSDLRects(mazeStats, cells, &cellsToDraw);
-        } else if (event.key.scancode == SDL_SCANCODE_M) {
-          state.menuVisible = !state.menuVisible;
-        }
+        } 
+        // else if (event.key.scancode == SDL_SCANCODE_M) {
+        //   state.menuVisible = !state.menuVisible;
+        // }
       }
     }
 
@@ -284,8 +285,7 @@ int main(int argc, char* argv[]) {
     }
     if (state.upload) {
       printf("Loading: %s\n", state.uploadFileName);
-      free(cells);
-      free(rects);
+    
 
       Cell* newCells = loadMaze(mazeStats, &cellsToDraw, state.uploadFileName);
       if (newCells) {

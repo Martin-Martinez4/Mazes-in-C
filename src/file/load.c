@@ -8,7 +8,7 @@ Cell* loadMaze(MazeStats* mazeStats, int* cellsCreated, char* filePath) {
 
     FILE* file = fopen(filePath, "rb");
     if (!file) {
-        perror("Could not open file");
+        printf("Could not open file");
         return NULL;
     }
 
@@ -18,13 +18,13 @@ Cell* loadMaze(MazeStats* mazeStats, int* cellsCreated, char* filePath) {
 
     for (uint8_t i = 0; i < 4; i++) {
         if (fread(&l, sizeof(int), 1, file) != 1) {
-            perror("Failed to read magic number");
+            printf("Failed to read magic number");
             fclose(file);
             return NULL;
         }
 
         if (l != magicNum[i]) {
-            perror("File type check failed");
+            printf("File type check failed");
             fclose(file);
             return NULL;
         }
@@ -36,12 +36,12 @@ Cell* loadMaze(MazeStats* mazeStats, int* cellsCreated, char* filePath) {
     if (fread(&columns, sizeof(int), 1, file) != 1 ||
         fread(&rows, sizeof(int), 1, file) != 1) {
 
-        perror("Failed to read maze dimensions");
+        printf("Failed to read maze dimensions");
         fclose(file);
         return NULL;
     }
 
-    printf("columns: %d; rows: %d\n", columns, rows);
+    SDL_Log("columns: %d; rows: %d\n", columns, rows);
 
     mazeStats->rows = rows;
     mazeStats->columns = columns;
@@ -50,7 +50,7 @@ Cell* loadMaze(MazeStats* mazeStats, int* cellsCreated, char* filePath) {
 
     Cell* cells = malloc(sizeof(Cell) * totalCells);
     if (!cells) {
-        perror("malloc failed");
+        printf("malloc failed");
         fclose(file);
         return NULL;
     }
@@ -60,7 +60,7 @@ Cell* loadMaze(MazeStats* mazeStats, int* cellsCreated, char* filePath) {
     for (size_t i = 0; i < totalCells; i++) {
 
         if (fread(&l, sizeof(uint8_t), 1, file) != 1) {
-            perror("Unexpected end of file");
+            printf("Unexpected end of file");
             free(cells);
             fclose(file);
             return NULL;
